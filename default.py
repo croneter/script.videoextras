@@ -54,9 +54,9 @@ class VideoExtras(xbmcgui.Window):
         infoDialogId = xbmcgui.getCurrentWindowDialogId();
         listingWindow = xbmcgui.getCurrentWindowId()
         if select != -1:
-            xbmc.executebuiltin("Dialog.Close(all, true)")
+            xbmc.executebuiltin("Dialog.Close(all, true)", True)
             # Switch the to root location as this can trigger some running plugins to stop
-            xbmc.executebuiltin("xbmc.ActivateWindow(home)")
+#            xbmc.executebuiltin("xbmc.ActivateWindow(home)", True)
             extrasPlayer = xbmc.Player();
             waitLoop = 0
             while extrasPlayer.isPlaying() and waitLoop < 10:
@@ -78,12 +78,12 @@ class VideoExtras(xbmcgui.Window):
                 extrasPlayer.play( exList[select][0] )
             while extrasPlayer.isPlaying():
                 xbmc.sleep(100)
-            xbmc.executebuiltin("xbmc.ActivateWindow(" + str(listingWindow) + ")")
+#            xbmc.executebuiltin("xbmc.ActivateWindow(" + str(listingWindow) + ")", True)
             if xbmcaddon.Addon().getSetting( "extrasReturn" ) != "Video Selection":
                 while(extrasPlayer.isPlaying()):
                     xbmc.sleep(100)
                 if xbmcaddon.Addon().getSetting( "extrasReturn" ) == "Home":
-                    xbmc.executebuiltin("xbmc.ActivateWindow(home)")
+                    xbmc.executebuiltin("xbmc.ActivateWindow(home)", True)
                 else:
                     # Put the information dialog back up
                     xbmc.executebuiltin("xbmc.ActivateWindow(" + str(infoDialogId) + ")")
