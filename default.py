@@ -52,11 +52,8 @@ class VideoExtras(xbmcgui.Window):
                 exList.insert(0, ("PlayAll", "Play All", "Play All") )
         select = xbmcgui.Dialog().select('Extras', [name[2].replace(".sample","").replace("&#58;", ":") for name in exList])
         infoDialogId = xbmcgui.getCurrentWindowDialogId();
-        listingWindow = xbmcgui.getCurrentWindowId()
         if select != -1:
             xbmc.executebuiltin("Dialog.Close(all, true)", True)
-            # Switch the to root location as this can trigger some running plugins to stop
-#            xbmc.executebuiltin("xbmc.ActivateWindow(home)", True)
             extrasPlayer = xbmc.Player();
             waitLoop = 0
             while extrasPlayer.isPlaying() and waitLoop < 10:
@@ -76,12 +73,10 @@ class VideoExtras(xbmcgui.Window):
             else:
                 log( "Start playing " + exList[select][0] )
                 extrasPlayer.play( exList[select][0] )
-            while extrasPlayer.isPlaying():
+            while extrasPlayer.isPlayingVideo():
                 xbmc.sleep(100)
-#            xbmc.executebuiltin("xbmc.ActivateWindow(" + str(listingWindow) + ")", True)
+            
             if xbmcaddon.Addon().getSetting( "extrasReturn" ) != "Video Selection":
-                while(extrasPlayer.isPlaying()):
-                    xbmc.sleep(100)
                 if xbmcaddon.Addon().getSetting( "extrasReturn" ) == "Home":
                     xbmc.executebuiltin("xbmc.ActivateWindow(home)", True)
                 else:
@@ -92,7 +87,10 @@ class VideoExtras(xbmcgui.Window):
                         # this is to avoid the case where the exList dialog displays
                         # behind the info dialog
                         while( xbmcgui.getCurrentWindowDialogId() != infoDialogId):
-                            xbmc.sleep(10)
+                            xbmc.sleep(100)
+                        # Allow time for the screen to load - this could result in an
+                        # action such as starting TvTunes
+                        xbmc.sleep(1000)
                         # Reshow the exList that was previously generated
                         self.showList(exList)
         
@@ -174,14 +172,7 @@ class VideoExtras(xbmcgui.Window):
         if error:
             self.showError()
 
-
-
-# Get the currently selected TV Show Season
-log("*** ROB *** Season = " + str(xbmc.getInfoLabel("ListItem.Season")))
-log("*** ROB *** FolderPath = " + str(xbmc.getInfoLabel("Container.FolderPath")))
-log("*** ROB *** FolderName = " + str(xbmc.getInfoLabel("Container.FolderName")))
-log("*** ROB *** ListItem.Episode = " + str(xbmc.getInfoLabel("ListItem.Episode")))
-
+# Start Running the main Extras Program
 extras = VideoExtras()
 if len(sys.argv) > 1:
     path = sys.argv[1]
