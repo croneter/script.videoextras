@@ -3,6 +3,7 @@
 	<name>script.videoextras</name>
 	<comment></comment>
 	<projects>
+		<project>Stubs</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
