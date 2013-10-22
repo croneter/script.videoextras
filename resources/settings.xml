@@ -2,11 +2,16 @@
   <category label="Extras">
     <setting id="extrasDirName" type="text" label="Extras Directory Name." default="Extras"/>
     <setting id="searchNested" type="bool" label="Search Nested Directories." default="true"/>
-    <setting id="extrasFileTag" type="text" label="Extras File Name Tag." default="-extras-"/>
+    <setting id="enableFileTag" type="bool" label="Enable Extras with File Tag." default="false"/>
+    <setting id="extrasFileTag" enable="eq(-1,true)" type="text" label="Extras File Name Tag." default="-extras-"/>
     <setting id="extrasReturn" type="labelenum" label="Menu to show after playing an extra." values="Video Selection|Information|Extras|Home" default="Video Selection" />
-    <setting id="excludeFiles" type="text" label="Exclude Files Regular Expression." default="([A-Za-z0-9]*.(jpg|idx|srt|nfo|sub|db|txt))"/>
+  </category>
+  <category label="Database">
+    <setting id="enableDB" type="bool" label="Enable Database Support." default="true"/>
   </category>
   <category label="Advanced">
-    <setting id="logEnabled" type="bool" label="Turn on logging." default="false"/>
+    <setting id="excludeFiles" type="text" label="Exclude Files Regular Expression." default="([A-Za-z0-9]*.(jpg|idx|srt|nfo|sub|db|txt))"/>
+    <setting label="Debugging" type="lsep"/>
+    <setting id="logEnabled" type="bool" label="Enable debug logging" default="false"/>
   </category>
 </settings>
