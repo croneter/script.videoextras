@@ -80,6 +80,11 @@ class Settings():
     def getAddonVersion():
         return __addon__.getAddonInfo('version')
 
+    @staticmethod
+    def isDatabaseEnabled():
+        return __addon__.getSetting( "enableDB" ) == "true"
+
+
 ########################################################
 # Class to store all the details for a given extras file
 ########################################################
@@ -351,6 +356,9 @@ class ExtrasDB():
         # If the database file exists, delete it
         if xbmcvfs.exists(self.databasefile):
             xbmcvfs.delete(self.databasefile)
+            log("ExtrasDB: Removed database: " + self.databasefile)
+        else:
+            log("ExtrasDB: No database exists: " + self.databasefile)
     
     def createDatabase(self):
         # Make sure the database does not already exist
@@ -441,33 +449,44 @@ class ExtrasDB():
 
 
 
+        
 #########################
 # Main
 #########################
-if len(sys.argv) > 2:
-    # Check the first argument to see if it details the type of
-    # command being run
+if len(sys.argv) > 1:
+    # get the type of operation
+    log("Operation = " + sys.argv[1])
     
-    # Perform the search command
-    videoExtras = VideoExtras(sys.argv[2])
-    files = videoExtras.findExtras()
-
-    # We are either running the command or just checking for existence
-    # TODO: Can improve performance by not getting all the extras - have an option
-    # for the "findExtras()" method to just search until it finds one
-    if sys.argv[1] == "check":
-        if files:
-            # Set a flag on the window so we know there is data
-            xbmcgui.Window( 12003 ).clearProperty("HideVideoExtrasButton")
-            log("VideoExtras Button Enabled")
-        else:
-            xbmcgui.Window( 12003 ).setProperty( "HideVideoExtrasButton", "true" )
-            log("VideoExtras Button disabled")
-    else:
-        # need to display the extras
-        videoExtras.run(files)
+    if sys.argv[1] == "cleanDatabase":
         extrasDb = ExtrasDB()
-        extrasDb.createDatabase()
+        extrasDb.cleanDatabase()
+    
+    # All other operations require at least 2 arguments
+    if len(sys.argv) > 2:
+        # Check the first argument to see if it details the type of
+        # command being run
+        
+        # Perform the search command
+        videoExtras = VideoExtras(sys.argv[2])
+        files = videoExtras.findExtras()
+    
+        # We are either running the command or just checking for existence
+        # TODO: Can improve performance by not getting all the extras - have an option
+        # for the "findExtras()" method to just search until it finds one
+        if sys.argv[1] == "check":
+            if files:
+                # Set a flag on the window so we know there is data
+                xbmcgui.Window( 12003 ).clearProperty("HideVideoExtrasButton")
+                log("VideoExtras Button Enabled")
+            else:
+                xbmcgui.Window( 12003 ).setProperty( "HideVideoExtrasButton", "true" )
+                log("VideoExtras Button disabled")
+        else:
+            # need to display the extras
+            videoExtras.run(files)
+            if Settings.isDatabaseEnabled():
+                extrasDb = ExtrasDB()
+                extrasDb.createDatabase()
 
 
 
