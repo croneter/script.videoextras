@@ -461,6 +461,10 @@ if len(sys.argv) > 1:
         extrasDb = ExtrasDB()
         extrasDb.cleanDatabase()
     
+    # TODO: See if the "check argument is set, and if the option to disable
+    # the extras button is disabled, if which case just return, there is
+    # nothing to do
+    
     # All other operations require at least 2 arguments
     if len(sys.argv) > 2:
         # Check the first argument to see if it details the type of
@@ -491,19 +495,7 @@ if len(sys.argv) > 1:
 
 
 # TODO:
-# Add settings option to clear/remove the database
 # Extract language strings
 
 # Possibly:
 # Option to update advancedsettings.xml
-
-# DialogVideoInfo.xml
-# ===================
-#<onload condition="System.HasAddon(script.videoextras)">XBMC.RunScript(script.videoextras,check,"$INFO[ListItem.FilenameAndPath]")</onload>
-#<control type="button" id="105">
-#    <description>Extras</description>
-#    <include>ButtonInfoDialogsCommonValues</include>
-#    <label>Extras</label>
-#    <onclick>XBMC.RunScript(script.videoextras,display,"$INFO[ListItem.FilenameAndPath]")</onclick>
-#    <visible>System.HasAddon(script.videoextras) + [Container.Content(movies) | Container.Content(episodes) | Container.Content(TVShows)] + IsEmpty(Window(movieinformation).Property("HideVideoExtrasButton"))</visible>
-#</control>
