@@ -77,6 +77,10 @@ class Settings():
         return __addon__.getSetting( "extrasReturn" ) == "Information"
 
     @staticmethod
+    def isForceButtonDisplay():
+        return __addon__.getSetting( "forceButtonDisplay" ) == "true"
+
+    @staticmethod
     def getAddonVersion():
         return __addon__.getAddonInfo('version')
 
@@ -110,6 +114,7 @@ class ExtrasItem():
 
     # Returns the name to display to the user for the file
     def getDisplayName(self):
+        # Update the display name to allow for : in the name
         return self.displayName.replace(".sample","").replace("&#58;", ":")
 
     # Return the filename for the extra
@@ -229,18 +234,30 @@ class VideoExtrasWindow(xbmcgui.Window):
 ################################################
 class VideoExtrasFinder():
     # Searches a given path for extras files
-    def findExtras(self, path, filename):
+    def findExtras(self, path, filename, exitOnFirst=False):
         # Get the extras that are stored in the extras directory i.e. /Extras/
-        files = self.getExtrasDirFiles(path)
+        files = self.getExtrasDirFiles(path, exitOnFirst)
+        
+        # Check if we only want the first entry, in which case exit after
+        # we find the first
+        if files and (exitOnFirst == True):
+            return files
+        
         # Then add the files that have the extras tag in the name i.e. -extras-
-        files.extend( self.getExtrasFiles( path, filename ) )
+        files.extend( self.getExtrasFiles( path, filename, exitOnFirst ) )
+
+        # Check if we only want the first entry, in which case exit after
+        # we find the first
+        if files and (exitOnFirst == True):
+            return files
+        
         if Settings.isSearchNested():
-            files.extend( self._getNestedExtrasFiles( path, filename ) )
+            files.extend( self._getNestedExtrasFiles( path, filename, exitOnFirst ) )
         files.sort()
         return files
 
     # Gets any extras files that are in the given extras directory
-    def getExtrasDirFiles(self, basepath):
+    def getExtrasDirFiles(self, basepath, exitOnFirst=False):
         # Add the name of the extras directory to the end of the path
         extrasDir = os.path.join( basepath, Settings.getExtrasDirName() ).decode("utf-8")
         log( "Checking existence for " + extrasDir )
@@ -262,9 +279,12 @@ class VideoExtrasFinder():
                     extrasFile = os.path.join( extrasDir, filename ).decode("utf-8")
                     extraItem = ExtrasItem(extrasDir, extrasFile)
                     extras.append(extraItem)
+                    # Check if we are only looking for the first entry
+                    if exitOnFirst == True:
+                        break
         return extras
 
-    def _getNestedExtrasFiles(self, basepath, filename):
+    def _getNestedExtrasFiles(self, basepath, filename, exitOnFirst=False):
         extras = []
         if xbmcvfs.exists( basepath ):
             dirs, files = xbmcvfs.listdir( basepath )
@@ -273,15 +293,24 @@ class VideoExtrasFinder():
                 log( "Nested check in directory: " + dirpath )
                 if( dirname != Settings.getExtrasDirName() ):
                     log( "Check directory: " + dirpath )
-                    extras.extend( self.getExtrasDirFiles(dirpath) )
-                    extras.extend( self.getExtrasFiles( dirpath, filename ) )
-                    extras.extend( self._getNestedExtrasFiles( dirpath, filename ) )
+                    extras.extend( self.getExtrasDirFiles(dirpath, exitOnFirst) )
+                     # Check if we are only looking for the first entry
+                    if files and (exitOnFirst == True):
+                        break
+                    extras.extend( self.getExtrasFiles( dirpath, filename, exitOnFirst ) )
+                     # Check if we are only looking for the first entry
+                    if files and (exitOnFirst == True):
+                        break
+                    extras.extend( self._getNestedExtrasFiles( dirpath, filename, exitOnFirst ) )
+                     # Check if we are only looking for the first entry
+                    if files and (exitOnFirst == True):
+                        break
         return extras
 
     # Search for files with the same name as the original video file
     # but with the extras tag on, this will not recurse directories
     # as they must exist in the same directory
-    def getExtrasFiles(self, filepath, filename):
+    def getExtrasFiles(self, filepath, filename, exitOnFirst=False):
         extras = []
         extrasTag = Settings.getExtrasFileTag()
 
@@ -296,6 +325,9 @@ class VideoExtrasFinder():
                 extrasFile = os.path.join( directory, aFile ).decode("utf-8")
                 extraItem = ExtrasItem(extrasDir, extrasFile, True)
                 extras.append(extraItem)
+                # Check if we are only looking for the first entry
+                if exitOnFirst == True:
+                    break
         return extras
 
 #################################
@@ -315,13 +347,34 @@ class VideoExtras():
             self.filename = None
         log( "Root directory: " + self.baseDirectory )
 
-    def findExtras(self):
+    def findExtras(self, exitOnFirst=False):
         # Display the busy icon while searching for files
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
         extrasFinder = VideoExtrasFinder()
-        files = extrasFinder.findExtras(self.baseDirectory, self.filename )
+        files = extrasFinder.findExtras(self.baseDirectory, self.filename, exitOnFirst )
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
         return files
+
+    # Enable to disable the display of the extras button
+    def checkButtonEnabled(self):
+        # See if the option to force the extras button is enabled,
+        # if which case just make sure the hide option is cleared
+        if Settings.isForceButtonDisplay():
+            xbmcgui.Window( 12003 ).clearProperty("HideVideoExtrasButton")
+            log("Force VideoExtras Button Enabled")
+        else:
+            # Search for the extras, stopping when the first is found
+            # only want to find out if the button should be available
+            files = self.findExtras(True)
+            if files:
+                # Set a flag on the window so we know there is data
+                xbmcgui.Window( 12003 ).clearProperty("HideVideoExtrasButton")
+                log("VideoExtras Button Enabled")
+            else:
+                # Hide the extras button, there are no extras
+                xbmcgui.Window( 12003 ).setProperty( "HideVideoExtrasButton", "true" )
+                log("VideoExtras Button disabled")
+        
 
 
     def run(self, files):
@@ -457,45 +510,25 @@ if len(sys.argv) > 1:
     # get the type of operation
     log("Operation = " + sys.argv[1])
     
+    # Should the existing database be removed
     if sys.argv[1] == "cleanDatabase":
         extrasDb = ExtrasDB()
         extrasDb.cleanDatabase()
     
-    # TODO: See if the "check argument is set, and if the option to disable
-    # the extras button is disabled, if which case just return, there is
-    # nothing to do
-    
     # All other operations require at least 2 arguments
-    if len(sys.argv) > 2:
-        # Check the first argument to see if it details the type of
-        # command being run
-        
-        # Perform the search command
+    elif len(sys.argv) > 2:
+        # Create the extras class that deals with any extras request
         videoExtras = VideoExtras(sys.argv[2])
-        files = videoExtras.findExtras()
-    
+
         # We are either running the command or just checking for existence
-        # TODO: Can improve performance by not getting all the extras - have an option
-        # for the "findExtras()" method to just search until it finds one
         if sys.argv[1] == "check":
-            if files:
-                # Set a flag on the window so we know there is data
-                xbmcgui.Window( 12003 ).clearProperty("HideVideoExtrasButton")
-                log("VideoExtras Button Enabled")
-            else:
-                xbmcgui.Window( 12003 ).setProperty( "HideVideoExtrasButton", "true" )
-                log("VideoExtras Button disabled")
+            videoExtras.checkButtonEnabled()
         else:
+            # Perform the search command
+            files = videoExtras.findExtras()
             # need to display the extras
             videoExtras.run(files)
             if Settings.isDatabaseEnabled():
                 extrasDb = ExtrasDB()
                 extrasDb.createDatabase()
 
-
-
-# TODO:
-# Extract language strings
-
-# Possibly:
-# Option to update advancedsettings.xml
