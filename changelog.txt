@@ -1,2 +1,5 @@
+v 0.0.2:
+- Add option to hide the extras button on the Information Screen
+
 v 0.0.1:
 - Initial beta
