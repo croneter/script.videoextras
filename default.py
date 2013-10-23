@@ -162,7 +162,7 @@ class VideoExtrasWindow(xbmcgui.Window):
         # Get the list of display names
         displayNameList = []
         for anExtra in exList:
-            log("adding: " + anExtra.getDisplayName() + " filename: " + anExtra.getFilename())
+            log("VideoExtrasWindow: adding: " + anExtra.getDisplayName() + " filename: " + anExtra.getFilename())
             displayNameList.append(anExtra.getDisplayName())
 
         addPlayAll = (len(exList) > 1)
@@ -189,7 +189,7 @@ class VideoExtrasWindow(xbmcgui.Window):
                 playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
                 playlist.clear()
                 for item in exList:
-                    log( "Start playing " + item.getFilename() )
+                    log( "VideoExtrasWindow: Start playing " + item.getFilename() )
                     playlist.add( item.getFilename() )
                 extrasPlayer.play( playlist )
             else:
@@ -198,7 +198,7 @@ class VideoExtrasWindow(xbmcgui.Window):
                 # in the selection, so add one
                 if addPlayAll == True:
                     itemToPlay = itemToPlay - 1
-                log( "Start playing " + exList[itemToPlay].getFilename() )
+                log( "VideoExtrasWindow: Start playing " + exList[itemToPlay].getFilename() )
                 extrasPlayer.play( exList[itemToPlay].getFilename() )
             while extrasPlayer.isPlayingVideo():
                 xbmc.sleep(100)
@@ -260,21 +260,21 @@ class VideoExtrasFinder():
     def getExtrasDirFiles(self, basepath, exitOnFirst=False):
         # Add the name of the extras directory to the end of the path
         extrasDir = os.path.join( basepath, Settings.getExtrasDirName() ).decode("utf-8")
-        log( "Checking existence for " + extrasDir )
+        log( "VideoExtrasFinder: Checking existence for " + extrasDir )
         extras = []
         # Check if the extras directory exists
         if xbmcvfs.exists( extrasDir ):
             # lest everything in the extras directory
             dirs, files = xbmcvfs.listdir( extrasDir )
             for filename in files:
-                log( "found file: " + filename)
+                log( "VideoExtrasFinder: found file: " + filename)
                 # Check each file in the directory to see if it should be skipped
                 if( Settings.getExcludeFiles() != "" ):
                     m = re.search(Settings.getExcludeFiles(), filename )
                 else:
                     m = ""
                 if m:
-                    log( "Skiping file: " + filename)
+                    log( "VideoExtrasFinder: Skiping file: " + filename)
                 else:
                     extrasFile = os.path.join( extrasDir, filename ).decode("utf-8")
                     extraItem = ExtrasItem(extrasDir, extrasFile)
@@ -290,9 +290,9 @@ class VideoExtrasFinder():
             dirs, files = xbmcvfs.listdir( basepath )
             for dirname in dirs:
                 dirpath = os.path.join( basepath, dirname ).decode("utf-8")
-                log( "Nested check in directory: " + dirpath )
+                log( "VideoExtrasFinder: Nested check in directory: " + dirpath )
                 if( dirname != Settings.getExtrasDirName() ):
-                    log( "Check directory: " + dirpath )
+                    log( "VideoExtrasFinder: Check directory: " + dirpath )
                     extras.extend( self.getExtrasDirFiles(dirpath, exitOnFirst) )
                      # Check if we are only looking for the first entry
                     if files and (exitOnFirst == True):
@@ -335,7 +335,7 @@ class VideoExtrasFinder():
 #################################
 class VideoExtras():
     def __init__( self, inputArg ):
-        log( "Finding extras for " + inputArg )
+        log( "VideoExtras: Finding extras for " + inputArg )
         self.baseDirectory = inputArg
         if self.baseDirectory.startswith("stack://"):
             self.baseDirectory = self.baseDirectory.replace("stack://", "")
@@ -345,7 +345,7 @@ class VideoExtras():
             self.filename = (os.path.split(inputArg))[1]
         else:
             self.filename = None
-        log( "Root directory: " + self.baseDirectory )
+        log( "VideoExtras: Root directory: " + self.baseDirectory )
 
     def findExtras(self, exitOnFirst=False):
         # Display the busy icon while searching for files
@@ -361,7 +361,7 @@ class VideoExtras():
         # if which case just make sure the hide option is cleared
         if Settings.isForceButtonDisplay():
             xbmcgui.Window( 12003 ).clearProperty("HideVideoExtrasButton")
-            log("Force VideoExtras Button Enabled")
+            log("VideoExtras: Force VideoExtras Button Enabled")
         else:
             # Search for the extras, stopping when the first is found
             # only want to find out if the button should be available
@@ -369,11 +369,11 @@ class VideoExtras():
             if files:
                 # Set a flag on the window so we know there is data
                 xbmcgui.Window( 12003 ).clearProperty("HideVideoExtrasButton")
-                log("VideoExtras Button Enabled")
+                log("VideoExtras: Button Enabled")
             else:
                 # Hide the extras button, there are no extras
                 xbmcgui.Window( 12003 ).setProperty( "HideVideoExtrasButton", "true" )
-                log("VideoExtras Button disabled")
+                log("VideoExtras: Button disabled")
         
 
 
