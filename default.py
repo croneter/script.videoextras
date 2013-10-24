@@ -130,6 +130,7 @@ class ExtrasItem():
     def getOrderKey(self):
         return self.orderKey
 
+    # Parses the filename to work out the display name and order key
     def _generateOrderAndDisplay(self, filename):
         # First thing is to trim the display name from the filename
         # Get just the filename, don't need the full path
@@ -153,6 +154,37 @@ class ExtrasItem():
                 result = ( orderKey, match.group('Display') )
         return result
 
+    # Check for an NFO file for this video and reads details out of it
+    # if it exists
+    def _loadNfoInfo(self, filename):
+        # Find out the name of the NFO file
+        nfoFileName = os.path.join(os.path.splitext( filename )[0], ".nfo").decode("utf-8")
+        
+        log("ExtrasItem: Searching for NFO file: " + nfoFileName)
+        
+        # Return False if file does not exist
+        if not xbmcvfs.exists( nfoFileName ):
+            return False
+        
+        
+        return True
+
+#    <?xml version="1.0" encoding="ISO 8859-2"?>
+#    <movie>
+#        <title>Who knows</title>
+#        <sorttitle>Who knows 1</sorttitle>
+#    </movie>
+
+#    <tvshow>
+#        <title>Who knows</title>
+#        <sorttitle>Who knows 1</sorttitle>
+#    </tvshow>
+
+#    <episodedetails>
+#        <title>Who knows</title>
+#        <season>2</season>
+#        <episode>1</episode>
+#    </episodedetails>
 
 ####################################################
 # Class to control displaying and playing the extras
@@ -338,9 +370,14 @@ class VideoExtras():
         log( "VideoExtras: Finding extras for " + inputArg )
         self.baseDirectory = inputArg
         if self.baseDirectory.startswith("stack://"):
+            self.baseDirectory = self.baseDirectory.split(" , ")[0]
             self.baseDirectory = self.baseDirectory.replace("stack://", "")
+        # Support special paths like smb:// means that we can not just call
+        # os.path.isfile as it will return false even if it is a file
+        # (A bit of a shame - but that's the way it is)
+        fileExt = os.path.splitext( self.baseDirectory )[1]
         # If this is a file, then get it's parent directory
-        if os.path.isfile(self.baseDirectory):
+        if fileExt != None and fileExt != "":
             self.baseDirectory = os.path.dirname(self.baseDirectory)
             self.filename = (os.path.split(inputArg))[1]
         else:
