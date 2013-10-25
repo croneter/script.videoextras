@@ -7,7 +7,7 @@
     <setting id="extrasReturn" type="labelenum" label="Menu to show after playing an extra" values="Video Selection|Information|Extras|Home" default="Video Selection" />
   </category>
   <category label="Database">
-    <setting id="enableDB" type="bool" label="Enable Database Support" default="true"/>
+    <setting id="enableDB" type="bool" label="Enable Database Support" default="false"/>
     <setting label="Operations" type="lsep"/>
     <setting enable="eq(-2,true)" label="Clean Database" type="action" action="RunScript($CWD/default.py, cleanDatabase)"/>
   </category>

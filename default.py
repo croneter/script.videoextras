@@ -19,6 +19,7 @@ import os
 import re
 import random
 import sqlite3
+from xml.etree.ElementTree import ElementTree
 #Modules XBMC
 import xbmcplugin
 import xbmc
@@ -56,7 +57,7 @@ class Settings():
 
     @staticmethod
     def getExtrasFileTag():
-        if  __addon__.getSetting( "enableFileTag" ) != True:
+        if  __addon__.getSetting( "enableFileTag" ) != "true":
             return ""
         return __addon__.getSetting( "extrasFileTag" )
 
@@ -98,8 +99,10 @@ class ExtrasItem():
         self.filename = filename
         # Record if the match was by filename rather than in Extras sub-directory
         self.isFileMatchingExtra = isFileMatchExtra
-        # Get the ordering and display details
-        (self.orderKey, self.displayName) = self._generateOrderAndDisplay(filename)
+        # Check if there is an NFO file to process
+        if not self._loadNfoInfo(filename):
+            # Get the ordering and display details from the filename
+            (self.orderKey, self.displayName) = self._generateOrderAndDisplay(filename)
 
     # eq and lt defined for sorting order only
     def __eq__(self, other):
@@ -158,33 +161,86 @@ class ExtrasItem():
     # if it exists
     def _loadNfoInfo(self, filename):
         # Find out the name of the NFO file
-        nfoFileName = os.path.join(os.path.splitext( filename )[0], ".nfo").decode("utf-8")
+        nfoFileName = os.path.splitext( filename )[0] + ".nfo"
         
         log("ExtrasItem: Searching for NFO file: " + nfoFileName)
         
         # Return False if file does not exist
         if not xbmcvfs.exists( nfoFileName ):
+            log("ExtrasItem: No NFO file found: " + nfoFileName)
             return False
+
+        # Create an XML parser
+        nfoXml = ElementTree()
+        nfoXml.parse(nfoFileName)
+        rootElement = nfoXml.getroot()
         
+        log("ExtrasItem: Root element is = " + rootElement.tag)
         
-        return True
+        # Check which format if being used
+        if rootElement.tag == "movie":
+            log("ExtrasItem: Movie format NFO detected")
+            #    <movie>
+            #        <title>Who knows</title>
+            #        <sorttitle>Who knows 1</sorttitle>
+            #    </movie>
+            
+            # Get the title
+            self.displayName = nfoXml.findtext('title')
+            # Get the sort key
+            self.orderKey = nfoXml.findtext('sorttitle')
 
-#    <?xml version="1.0" encoding="ISO 8859-2"?>
-#    <movie>
-#        <title>Who knows</title>
-#        <sorttitle>Who knows 1</sorttitle>
-#    </movie>
+        elif rootElement.tag == "tvshow":
+            log("ExtrasItem: TvShow format NFO detected")
+            #    <tvshow>
+            #        <title>Who knows</title>
+            #        <sorttitle>Who knows 1</sorttitle>
+            #    </tvshow>
 
-#    <tvshow>
-#        <title>Who knows</title>
-#        <sorttitle>Who knows 1</sorttitle>
-#    </tvshow>
+            # Get the title
+            self.displayName = nfoXml.findtext('title')
+            # Get the sort key
+            self.orderKey = nfoXml.findtext('sorttitle')
 
-#    <episodedetails>
-#        <title>Who knows</title>
-#        <season>2</season>
-#        <episode>1</episode>
-#    </episodedetails>
+        elif rootElement.tag == "episodedetails":
+            log("ExtrasItem: TvEpisode format NFO detected")
+            #    <episodedetails>
+            #        <title>Who knows</title>
+            #        <season>2</season>
+            #        <episode>1</episode>
+            #    </episodedetails>
+
+            # Get the title
+            self.displayName = nfoXml.findtext('title')
+            # Get the sort key
+            season = nfoXml.findtext('season')
+            episode = nfoXml.findtext('episode')
+            
+            # Need to use the season and episode to order the list
+            if (season == None) or (season == ""):
+                season = "0"
+            if (episode == None) or (episode == ""):
+                episode = "0"
+            self.orderKey = "%02d_%02d" % (int(season), int(episode))
+
+        else:
+            self.displayName = None
+            self.orderKey = None
+            log("ExtrasItem: Unknown NFO format")
+
+        del nfoXml
+
+        returnValue = False
+        if (self.displayName != None) and (self.displayName != ""):
+            returnValue = True
+            # If there is no order specified, use the display name
+            if (self.orderKey == None) or (self.orderKey == ""):
+                self.orderKey = self.displayName
+            log("ExtrasItem: Using sort key " + self.orderKey + " for " + self.displayName)
+
+        return returnValue
+
+
 
 ####################################################
 # Class to control displaying and playing the extras
@@ -291,7 +347,7 @@ class VideoExtrasFinder():
     # Gets any extras files that are in the given extras directory
     def getExtrasDirFiles(self, basepath, exitOnFirst=False):
         # Add the name of the extras directory to the end of the path
-        extrasDir = os.path.join( basepath, Settings.getExtrasDirName() ).decode("utf-8")
+        extrasDir = os.path.join( basepath, Settings.getExtrasDirName() )
         log( "VideoExtrasFinder: Checking existence for " + extrasDir )
         extras = []
         # Check if the extras directory exists
@@ -301,14 +357,8 @@ class VideoExtrasFinder():
             for filename in files:
                 log( "VideoExtrasFinder: found file: " + filename)
                 # Check each file in the directory to see if it should be skipped
-                if( Settings.getExcludeFiles() != "" ):
-                    m = re.search(Settings.getExcludeFiles(), filename )
-                else:
-                    m = ""
-                if m:
-                    log( "VideoExtrasFinder: Skiping file: " + filename)
-                else:
-                    extrasFile = os.path.join( extrasDir, filename ).decode("utf-8")
+                if not self.shouldSkipFile(filename):
+                    extrasFile = os.path.join( extrasDir, filename )
                     extraItem = ExtrasItem(extrasDir, extrasFile)
                     extras.append(extraItem)
                     # Check if we are only looking for the first entry
@@ -321,7 +371,7 @@ class VideoExtrasFinder():
         if xbmcvfs.exists( basepath ):
             dirs, files = xbmcvfs.listdir( basepath )
             for dirname in dirs:
-                dirpath = os.path.join( basepath, dirname ).decode("utf-8")
+                dirpath = os.path.join( basepath, dirname )
                 log( "VideoExtrasFinder: Nested check in directory: " + dirpath )
                 if( dirname != Settings.getExtrasDirName() ):
                     log( "VideoExtrasFinder: Check directory: " + dirpath )
@@ -353,14 +403,27 @@ class VideoExtrasFinder():
         dirs, files = xbmcvfs.listdir(directory)
 
         for aFile in files:
-            if extrasTag in aFile:
-                extrasFile = os.path.join( directory, aFile ).decode("utf-8")
-                extraItem = ExtrasItem(extrasDir, extrasFile, True)
+            if not self.shouldSkipFile(aFile) and (extrasTag in aFile):
+                extrasFile = os.path.join( directory, aFile )
+                extraItem = ExtrasItem(directory, extrasFile, True)
                 extras.append(extraItem)
                 # Check if we are only looking for the first entry
                 if exitOnFirst == True:
                     break
         return extras
+
+    # Checks if a file should be skipped because it is in the exclude list
+    def shouldSkipFile(self, filename):
+        shouldSkip = False
+        if( Settings.getExcludeFiles() != "" ):
+            m = re.search(Settings.getExcludeFiles(), filename )
+        else:
+            m = ""
+        if m:
+            shouldSkip = True
+            log( "VideoExtrasFinder: Skipping file: " + filename)
+        return shouldSkip
+
 
 #################################
 # Main Class to control the work
@@ -438,7 +501,7 @@ class ExtrasDB():
     def __init__( self ):
         # Start by getting the database location
         self.configPath = xbmc.translatePath(__addon__.getAddonInfo('profile'))
-        self.databasefile = os.path.join(self.configPath, "extras_database.db").decode("utf-8")
+        self.databasefile = os.path.join(self.configPath, "extras_database.db")
         log("ExtrasDB: Database file location = " + self.databasefile)
 
 

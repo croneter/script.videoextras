@@ -1,3 +1,7 @@
+v 0.0.3:
+- Fixed smb:// mapped files
+- Add support for NFO files to name and order Extras
+
 v 0.0.2:
 - Add option to hide the extras button on the Information Screen
 
