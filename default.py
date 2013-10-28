@@ -19,7 +19,8 @@ import os
 import re
 import random
 import sqlite3
-from xml.etree.ElementTree import ElementTree
+import traceback
+import xml.etree.ElementTree as ET
 #Modules XBMC
 import xbmcplugin
 import xbmc
@@ -170,76 +171,87 @@ class ExtrasItem():
             log("ExtrasItem: No NFO file found: " + nfoFileName)
             return False
 
-        # Create an XML parser
-        nfoXml = ElementTree()
-        nfoXml.parse(nfoFileName)
-        rootElement = nfoXml.getroot()
-        
-        log("ExtrasItem: Root element is = " + rootElement.tag)
-        
-        # Check which format if being used
-        if rootElement.tag == "movie":
-            log("ExtrasItem: Movie format NFO detected")
-            #    <movie>
-            #        <title>Who knows</title>
-            #        <sorttitle>Who knows 1</sorttitle>
-            #    </movie>
-            
-            # Get the title
-            self.displayName = nfoXml.findtext('title')
-            # Get the sort key
-            self.orderKey = nfoXml.findtext('sorttitle')
-
-        elif rootElement.tag == "tvshow":
-            log("ExtrasItem: TvShow format NFO detected")
-            #    <tvshow>
-            #        <title>Who knows</title>
-            #        <sorttitle>Who knows 1</sorttitle>
-            #    </tvshow>
-
-            # Get the title
-            self.displayName = nfoXml.findtext('title')
-            # Get the sort key
-            self.orderKey = nfoXml.findtext('sorttitle')
-
-        elif rootElement.tag == "episodedetails":
-            log("ExtrasItem: TvEpisode format NFO detected")
-            #    <episodedetails>
-            #        <title>Who knows</title>
-            #        <season>2</season>
-            #        <episode>1</episode>
-            #    </episodedetails>
-
-            # Get the title
-            self.displayName = nfoXml.findtext('title')
-            # Get the sort key
-            season = nfoXml.findtext('season')
-            episode = nfoXml.findtext('episode')
-            
-            # Need to use the season and episode to order the list
-            if (season == None) or (season == ""):
-                season = "0"
-            if (episode == None) or (episode == ""):
-                episode = "0"
-            self.orderKey = "%02d_%02d" % (int(season), int(episode))
-
-        else:
-            self.displayName = None
-            self.orderKey = None
-            log("ExtrasItem: Unknown NFO format")
-
-        del nfoXml
-
         returnValue = False
-        if (self.displayName != None) and (self.displayName != ""):
-            returnValue = True
-            # If there is no order specified, use the display name
-            if (self.orderKey == None) or (self.orderKey == ""):
-                self.orderKey = self.displayName
-            log("ExtrasItem: Using sort key " + self.orderKey + " for " + self.displayName)
+
+        try:
+            # Need to first load the contents of the NFO file into
+            # a string, this is because the XML File Parse option will
+            # not handle formats like smb://
+            nfoFile = xbmcvfs.File(nfoFileName)
+            nfoFileStr = nfoFile.read()
+            nfoFile.close()
+
+            # Create an XML parser
+            nfoXml = ET.ElementTree(ET.fromstring(nfoFileStr))
+            rootElement = nfoXml.getroot()
+            
+            log("ExtrasItem: Root element is = " + rootElement.tag)
+            
+            # Check which format if being used
+            if rootElement.tag == "movie":
+                log("ExtrasItem: Movie format NFO detected")
+                #    <movie>
+                #        <title>Who knows</title>
+                #        <sorttitle>Who knows 1</sorttitle>
+                #    </movie>
+                
+                # Get the title
+                self.displayName = nfoXml.findtext('title')
+                # Get the sort key
+                self.orderKey = nfoXml.findtext('sorttitle')
+    
+            elif rootElement.tag == "tvshow":
+                log("ExtrasItem: TvShow format NFO detected")
+                #    <tvshow>
+                #        <title>Who knows</title>
+                #        <sorttitle>Who knows 1</sorttitle>
+                #    </tvshow>
+    
+                # Get the title
+                self.displayName = nfoXml.findtext('title')
+                # Get the sort key
+                self.orderKey = nfoXml.findtext('sorttitle')
+    
+            elif rootElement.tag == "episodedetails":
+                log("ExtrasItem: TvEpisode format NFO detected")
+                #    <episodedetails>
+                #        <title>Who knows</title>
+                #        <season>2</season>
+                #        <episode>1</episode>
+                #    </episodedetails>
+    
+                # Get the title
+                self.displayName = nfoXml.findtext('title')
+                # Get the sort key
+                season = nfoXml.findtext('season')
+                episode = nfoXml.findtext('episode')
+                
+                # Need to use the season and episode to order the list
+                if (season == None) or (season == ""):
+                    season = "0"
+                if (episode == None) or (episode == ""):
+                    episode = "0"
+                self.orderKey = "%02d_%02d" % (int(season), int(episode))
+    
+            else:
+                self.displayName = None
+                self.orderKey = None
+                log("ExtrasItem: Unknown NFO format")
+    
+            del nfoXml
+
+            if (self.displayName != None) and (self.displayName != ""):
+                returnValue = True
+                # If there is no order specified, use the display name
+                if (self.orderKey == None) or (self.orderKey == ""):
+                    self.orderKey = self.displayName
+                log("ExtrasItem: Using sort key " + self.orderKey + " for " + self.displayName)
+        except:
+            log("ExtrasItem: Failed to process NFO: " + nfoFileName)
+            log("ExtrasItem: " + traceback.format_exc())
+            returnValue = False
 
         return returnValue
-
 
 
 ####################################################
@@ -569,19 +581,6 @@ class ExtrasDB():
             insertData = (extrasItem.getDirectory(),extrasItem.getFilename(), extrasItem.getOrderKey(), extrasItem.getDisplayName())
             c.execute('''INSERT INTO ExtrasDir(path, filename, order_key, display_name) VALUES (?,?,?,?)''', insertData)
 
-        rowId = c.lastrowid
-        conn.commit()
-        conn.close()
-        
-        return rowId
-
-    def insertVideoExtrasFileMap(self, sourceVal, extrasId):
-        insertData = (sourceVal, extrasId)
-        
-        conn = sqlite3.connect(self.databasefile)
-        c = conn.cursor()
- 
-        c.execute('''INSERT INTO VideoExtrasFileMap(video_source, extras_id) VALUES (?,?)''', insertData)
         rowId = c.lastrowid
         conn.commit()
         conn.close()
