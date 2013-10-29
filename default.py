@@ -90,6 +90,17 @@ class Settings():
     def isDatabaseEnabled():
         return __addon__.getSetting( "enableDB" ) == "true"
 
+    @staticmethod
+    def isCustomPathEnabled():
+        return __addon__.getSetting("custom_path_enable") == 'true'
+    
+    @staticmethod
+    def getCustomPath():
+        if Settings.isCustomPathEnabled():
+            return __addon__.getSetting("custom_path")
+        else:
+            return None
+
 
 ########################################################
 # Class to store all the details for a given extras file
@@ -333,6 +344,51 @@ class VideoExtrasWindow(xbmcgui.Window):
 # Class to control Searching for the extra files
 ################################################
 class VideoExtrasFinder():
+    # Controls the loading of the information for Extras Files
+    def loadExtras(self, path, filename, exitOnFirst=False):
+        # Check if the files are stored in a custom path
+        if Settings.isCustomPathEnabled():
+            filename = None
+            path = self._getCustomPathDir(path)
+            
+            if path == None:
+                return []
+            else:
+                log("VideoExtrasFinder: Searching in custom path " + path)
+        return self.findExtras(path, filename, exitOnFirst)
+
+    # Calculates and checks the path that files should be in
+    # if using a custom path
+    def _getCustomPathDir(self, path):
+        # Work out which section to look in
+        typeSection = "Movies"
+        if not xbmc.getCondVisibility("Container.Content(movies)"):
+            typeSection = "TvShows"
+
+        # Get the last element of the path
+        pathLastDir = os.path.split(path)[1]
+
+        # Create the path with this added
+        custPath = os.path.join(Settings.getCustomPath(), typeSection, pathLastDir)
+        log("VideoExtrasFinder: Checking existence of custom path " + custPath)
+
+        # Check if this path exists
+        if not xbmcvfs.exists(custPath):
+            # If it doesn't exist, check the path before that, this covers the
+            # case where there is a TV Show with each season in it's own directory
+            path2ndLastDir = os.path.split((os.path.split(path)[0]))[1]
+            custPath = os.path.join(Settings.getCustomPath(), typeSection, path2ndLastDir, pathLastDir)
+            log("VideoExtrasFinder: Checking existence of custom path " + custPath)
+            if not xbmcvfs.exists(custPath):
+                # If it still does not exist then check just the 2nd to last path
+                custPath = os.path.join(Settings.getCustomPath(), typeSection, path2ndLastDir)
+                log("VideoExtrasFinder: Checking existence of custom path " + custPath)
+                if not xbmcvfs.exists(custPath):
+                    custPath = None
+
+        return custPath
+        
+    
     # Searches a given path for extras files
     def findExtras(self, path, filename, exitOnFirst=False):
         # Get the extras that are stored in the extras directory i.e. /Extras/
@@ -344,7 +400,7 @@ class VideoExtrasFinder():
             return files
         
         # Then add the files that have the extras tag in the name i.e. -extras-
-        files.extend( self.getExtrasFiles( path, filename, exitOnFirst ) )
+        files.extend( self._getExtrasFiles( path, filename, exitOnFirst ) )
 
         # Check if we only want the first entry, in which case exit after
         # we find the first
@@ -358,8 +414,12 @@ class VideoExtrasFinder():
 
     # Gets any extras files that are in the given extras directory
     def getExtrasDirFiles(self, basepath, exitOnFirst=False):
-        # Add the name of the extras directory to the end of the path
-        extrasDir = os.path.join( basepath, Settings.getExtrasDirName() )
+        # If a custom path, then don't looks for the Extras directory
+        if not Settings.isCustomPathEnabled():
+            # Add the name of the extras directory to the end of the path
+            extrasDir = os.path.join( basepath, Settings.getExtrasDirName() )
+        else:
+            extrasDir = basepath
         log( "VideoExtrasFinder: Checking existence for " + extrasDir )
         extras = []
         # Check if the extras directory exists
@@ -369,7 +429,7 @@ class VideoExtrasFinder():
             for filename in files:
                 log( "VideoExtrasFinder: found file: " + filename)
                 # Check each file in the directory to see if it should be skipped
-                if not self.shouldSkipFile(filename):
+                if not self._shouldSkipFile(filename):
                     extrasFile = os.path.join( extrasDir, filename )
                     extraItem = ExtrasItem(extrasDir, extrasFile)
                     extras.append(extraItem)
@@ -391,7 +451,7 @@ class VideoExtrasFinder():
                      # Check if we are only looking for the first entry
                     if files and (exitOnFirst == True):
                         break
-                    extras.extend( self.getExtrasFiles( dirpath, filename, exitOnFirst ) )
+                    extras.extend( self._getExtrasFiles( dirpath, filename, exitOnFirst ) )
                      # Check if we are only looking for the first entry
                     if files and (exitOnFirst == True):
                         break
@@ -404,7 +464,7 @@ class VideoExtrasFinder():
     # Search for files with the same name as the original video file
     # but with the extras tag on, this will not recurse directories
     # as they must exist in the same directory
-    def getExtrasFiles(self, filepath, filename, exitOnFirst=False):
+    def _getExtrasFiles(self, filepath, filename, exitOnFirst=False):
         extras = []
         extrasTag = Settings.getExtrasFileTag()
 
@@ -415,7 +475,7 @@ class VideoExtrasFinder():
         dirs, files = xbmcvfs.listdir(directory)
 
         for aFile in files:
-            if not self.shouldSkipFile(aFile) and (extrasTag in aFile):
+            if not self._shouldSkipFile(aFile) and (extrasTag in aFile):
                 extrasFile = os.path.join( directory, aFile )
                 extraItem = ExtrasItem(directory, extrasFile, True)
                 extras.append(extraItem)
@@ -425,7 +485,7 @@ class VideoExtrasFinder():
         return extras
 
     # Checks if a file should be skipped because it is in the exclude list
-    def shouldSkipFile(self, filename):
+    def _shouldSkipFile(self, filename):
         shouldSkip = False
         if( Settings.getExcludeFiles() != "" ):
             m = re.search(Settings.getExcludeFiles(), filename )
@@ -462,12 +522,16 @@ class VideoExtras():
     def findExtras(self, exitOnFirst=False):
         # Display the busy icon while searching for files
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-        extrasFinder = VideoExtrasFinder()
-        files = extrasFinder.findExtras(self.baseDirectory, self.filename, exitOnFirst )
+        files = []
+        try:
+            extrasFinder = VideoExtrasFinder()
+            files = extrasFinder.loadExtras(self.baseDirectory, self.filename, exitOnFirst )
+        except:
+            log("ExtrasItem: " + traceback.format_exc())
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
         return files
 
-    # Enable to disable the display of the extras button
+    # Enable and disable the display of the extras button
     def checkButtonEnabled(self):
         # See if the option to force the extras button is enabled,
         # if which case just make sure the hide option is cleared
@@ -596,7 +660,6 @@ class ExtrasDB():
         log("Count by file is: " + c.fetchone()[0])
         
         # TODO: Need to also check by directory
-        
         conn.close()
 
 
@@ -605,29 +668,31 @@ class ExtrasDB():
 #########################
 # Main
 #########################
-if len(sys.argv) > 1:
-    # get the type of operation
-    log("Operation = " + sys.argv[1])
+try:
+    if len(sys.argv) > 1:
+        # get the type of operation
+        log("Operation = " + sys.argv[1])
+        
+        # Should the existing database be removed
+        if sys.argv[1] == "cleanDatabase":
+            extrasDb = ExtrasDB()
+            extrasDb.cleanDatabase()
+        
+        # All other operations require at least 2 arguments
+        elif len(sys.argv) > 2:
+            # Create the extras class that deals with any extras request
+            videoExtras = VideoExtras(sys.argv[2])
     
-    # Should the existing database be removed
-    if sys.argv[1] == "cleanDatabase":
-        extrasDb = ExtrasDB()
-        extrasDb.cleanDatabase()
-    
-    # All other operations require at least 2 arguments
-    elif len(sys.argv) > 2:
-        # Create the extras class that deals with any extras request
-        videoExtras = VideoExtras(sys.argv[2])
-
-        # We are either running the command or just checking for existence
-        if sys.argv[1] == "check":
-            videoExtras.checkButtonEnabled()
-        else:
-            # Perform the search command
-            files = videoExtras.findExtras()
-            # need to display the extras
-            videoExtras.run(files)
-            if Settings.isDatabaseEnabled():
-                extrasDb = ExtrasDB()
-                extrasDb.createDatabase()
-
+            # We are either running the command or just checking for existence
+            if sys.argv[1] == "check":
+                videoExtras.checkButtonEnabled()
+            else:
+                # Perform the search command
+                files = videoExtras.findExtras()
+                # need to display the extras
+                videoExtras.run(files)
+                if Settings.isDatabaseEnabled():
+                    extrasDb = ExtrasDB()
+                    extrasDb.createDatabase()
+except:
+    log("ExtrasItem: " + traceback.format_exc())

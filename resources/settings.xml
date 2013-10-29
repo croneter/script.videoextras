@@ -1,20 +1,23 @@
 <settings>
-  <category label="Extras">
-    <setting id="extrasDirName" type="text" label="Extras Directory Name" default="Extras"/>
-    <setting id="searchNested" type="bool" label="Search Nested Directories" default="true"/>
-    <setting id="enableFileTag" type="bool" label="Enable Extras with File Tag" default="false"/>
-    <setting id="extrasFileTag" enable="eq(-1,true)" type="text" label="Extras File Name Tag" default="-extras-"/>
-    <setting id="extrasReturn" type="labelenum" label="Menu to show after playing an extra" values="Video Selection|Information|Extras|Home" default="Video Selection" />
-  </category>
-  <category label="Database">
-    <setting id="enableDB" type="bool" label="Enable Database Support" default="false"/>
-    <setting label="Operations" type="lsep"/>
-    <setting enable="eq(-2,true)" label="Clean Database" type="action" action="RunScript($CWD/default.py, cleanDatabase)"/>
-  </category>
-  <category label="Advanced">
-    <setting id="forceButtonDisplay" type="bool" label="Force Extras Button Display" default="false"/>
-    <setting id="excludeFiles" type="text" label="Exclude Files Regular Expression" default="([A-Za-z0-9]*.(jpg|idx|srt|nfo|sub|db|txt))"/>
-    <setting label="Debugging" type="lsep"/>
-    <setting id="logEnabled" type="bool" label="Enable debug logging" default="false"/>
-  </category>
+	<category label="Extras">
+		<setting id="extrasDirName" type="text" label="Extras Directory Name" default="Extras"/>
+		<setting id="searchNested" type="bool" label="Search Nested Directories" default="true"/>
+		<setting id="enableFileTag" type="bool" label="Enable Extras with File Tag" default="false"/>
+		<setting id="extrasFileTag" enable="eq(-1,true)" type="text" label="Extras File Name Tag" default="-extras-"/>
+		<setting id="extrasReturn" type="labelenum" label="Menu to show after playing an extra" values="Video Selection|Information|Extras|Home" default="Video Selection" />
+	</category>
+	<category label="Database">
+		<setting id="enableDB" type="bool" label="Enable Database Support" default="false"/>
+		<setting label="Operations" type="lsep"/>
+		<setting enable="eq(-2,true)" label="Clean Database" type="action" action="RunScript($CWD/default.py, cleanDatabase)"/>
+	</category>
+	<category label="Advanced">
+		<setting id="forceButtonDisplay" type="bool" label="Force Extras Button Display" default="false"/>
+		<setting id="excludeFiles" type="text" label="Exclude Files Regular Expression" default="([A-Za-z0-9]*.(jpg|idx|srt|nfo|sub|db|txt))"/>
+	    <setting label="Remote Extras Location" type="lsep"/>
+		<setting id="custom_path_enable" type="bool" label="Use Custom Extras Location" default="false"/>
+		<setting id="custom_path" enable="eq(-1,true)" type="folder" source="files" label="Path" default="" />
+		<setting label="Debugging" type="lsep"/>
+		<setting id="logEnabled" type="bool" label="Enable debug logging" default="false"/>
+	</category>
 </settings>
