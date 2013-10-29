@@ -1,3 +1,6 @@
+v 0.0.4:
+- Added support for remote extras location
+
 v 0.0.3:
 - Fixed smb:// mapped files
 - Add support for NFO files to name and order Extras

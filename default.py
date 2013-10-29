@@ -101,6 +101,20 @@ class Settings():
         else:
             return None
 
+    @staticmethod
+    def getCustomPathMoviesDir():
+        if Settings.isCustomPathEnabled():
+            return __addon__.getSetting("custom_path_movies")
+        else:
+            return ""
+
+    @staticmethod
+    def getCustomPathTvShowsDir():
+        if Settings.isCustomPathEnabled():
+            return __addon__.getSetting("custom_path_tvshows")
+        else:
+            return ""
+
 
 ########################################################
 # Class to store all the details for a given extras file
@@ -361,9 +375,9 @@ class VideoExtrasFinder():
     # if using a custom path
     def _getCustomPathDir(self, path):
         # Work out which section to look in
-        typeSection = "Movies"
+        typeSection = Settings.getCustomPathMoviesDir()
         if not xbmc.getCondVisibility("Container.Content(movies)"):
-            typeSection = "TvShows"
+            typeSection = Settings.getCustomPathTvShowsDir()
 
         # Get the last element of the path
         pathLastDir = os.path.split(path)[1]
