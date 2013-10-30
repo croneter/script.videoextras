@@ -68,15 +68,15 @@ class Settings():
 
     @staticmethod
     def isMenuReturnVideoSelection():
-        return __addon__.getSetting( "extrasReturn" ) == "Video Selection"
+        return __addon__.getSetting( "extrasReturn" ) == __addon__.getLocalizedString(32007)
 
     @staticmethod
     def isMenuReturnHome():
-        return __addon__.getSetting( "extrasReturn" ) == "Home"
+        return __addon__.getSetting( "extrasReturn" ) == __addon__.getLocalizedString(32009)
 
     @staticmethod
     def isMenuReturnInformation():
-        return __addon__.getSetting( "extrasReturn" ) == "Information"
+        return __addon__.getSetting( "extrasReturn" ) == __addon__.getLocalizedString(32008)
 
     @staticmethod
     def isForceButtonDisplay():
@@ -292,7 +292,8 @@ class VideoExtrasWindow(xbmcgui.Window):
 
         addPlayAll = (len(exList) > 1)
         if addPlayAll:
-            displayNameList.insert(0, "Play All" )
+            # Play All Selection Option
+            displayNameList.insert(0, __addon__.getLocalizedString(32101) )
 
         # Show the list to the user
         select = xbmcgui.Dialog().select('Extras', displayNameList)
@@ -351,7 +352,8 @@ class VideoExtrasWindow(xbmcgui.Window):
                             self.showList(exList)
 
     def showError(self):
-        xbmcgui.Dialog().ok("Info", "No extras found")
+        # "Info", "No extras found"
+        xbmcgui.Dialog().ok(__addon__.getLocalizedString(32102), __addon__.getLocalizedString(32103))
 
 
 ################################################

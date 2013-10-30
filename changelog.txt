@@ -1,3 +1,6 @@
+v 0.0.5:
+- Language Setup
+
 v 0.0.4:
 - Added support for remote extras location
 
