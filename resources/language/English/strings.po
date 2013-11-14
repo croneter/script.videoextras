@@ -124,8 +124,11 @@ msgctxt "#32024"
 msgid "Clean Database"
 msgstr ""
 
+msgctxt "#32025"
+msgid "Use Detailed List Screen"
+msgstr ""
 
-#empty strings from id 32021 to 32100
+#empty strings from id 32026 to 32100
 
 msgctxt "#32101"
 msgid "Play All"
