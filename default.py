@@ -407,7 +407,7 @@ class ExtrasPlayer(xbmc.Player):
         listitem = xbmcgui.ListItem()
         # Set the display title on the video play overlay
         listitem.setInfo('video', {'studio': __addon__.getLocalizedString(32001)})
-        listitem.setInfo('video', {'Title': str(extrasItem.getDisplayName())})
+        listitem.setInfo('video', {'Title': extrasItem.getDisplayName()})
         # Record if the video should start playing part-way through
         if extrasItem.isResumable():
             if extrasItem.getResumePoint() > 1:
@@ -422,7 +422,7 @@ class VideoExtrasDialog(xbmcgui.Window):
         # Get the list of display names
         displayNameList = []
         for anExtra in exList:
-            log("VideoExtrasDialog: adding: " + anExtra.getDisplayName() + " filename: " + anExtra.getFilename())
+            log("VideoExtrasDialog: filename: " + anExtra.getFilename())
             displayNameList.append(anExtra.getDisplayName())
 
         addPlayAll = (len(exList) > 1)
@@ -726,6 +726,7 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         # Copy off the key-word arguments
         # The non keyword arguments will be the ones passed to the main WindowXML
         self.files = kwargs.pop('files')
+        self.lastRecordedListPosition = -1
 
     # Static method to create the Window class
     @staticmethod
@@ -737,8 +738,8 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         self.clearList()
         
         for anExtra in self.files:
-            log("VideoExtrasWindow: adding: " + anExtra.getDisplayName() + " filename: " + anExtra.getFilename())
-            
+            log("VideoExtrasWindow: filename: " + anExtra.getFilename())
+
             # A bit of a hack, but we use label2 as a variable to be able to decide
             # where we are within the play order, either "resume" or not
             label2 = ""
@@ -752,6 +753,12 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         
         # Update the title name to include the name of the show or film the extras are for        
         # self.getControl(321).setLabel(self.getControl(321).getLabel() + "Blake's 7")
+        
+        # Before we return, set back the selected on screen item to the one just watched
+        # This is in the case of a reload
+        if self.lastRecordedListPosition > 0:
+            self.setCurrentListPosition(self.lastRecordedListPosition)
+        
         xbmcgui.WindowXML.onInit(self)
 
     def onClick(self, control):
@@ -783,8 +790,9 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
 
     # Search the list of extras for a given filename
     def _getCurrentSelection(self):
-        log("VideoExtrasWindow: List position = " + str(self.getCurrentListPosition()))
-        anItem = self.getListItem(self.getCurrentListPosition())
+        self.lastRecordedListPosition = self.getCurrentListPosition()
+        log("VideoExtrasWindow: List position = " + str(self.lastRecordedListPosition))
+        anItem = self.getListItem(self.lastRecordedListPosition)
         filename = anItem.getProperty("Filename")
         log("VideoExtrasWindow: Selected file = " + filename)
         # Now search the Extras list for a match

@@ -1,3 +1,8 @@
+v0.0.7:
+- Enable non mouse navigation of extras screen
+- Return to previously selected after playing
+- Support NFO names with non ascii characters
+
 v0.0.6:
 - Video play overlay now displays the Display Name rather than filename
 - Option to have a non "dialog" screen view and have a standard list for extras
