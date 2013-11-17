@@ -113,6 +113,22 @@ class Settings():
         else:
             return ""
 
+###############################################################
+# Class to make it easier to see which screen is being checked
+###############################################################
+class WindowShowing():
+    @staticmethod
+    def isTv():
+        if xbmc.getCondVisibility("Container.Content(tvshows)"):
+            return True
+        if xbmc.getInfoLabel( "container.folderpath" ) == "videodb://2/2/":
+            return True # TvShowTitles
+        if xbmc.getCondVisibility("Container.Content(Seasons)"):
+            return True
+        if xbmc.getCondVisibility("Container.Content(Episodes)"):
+            return True
+        return False
+
 
 ########################################################
 # Class to store all the details for a given extras file
@@ -309,7 +325,7 @@ class ExtrasItem(BaseExtrasItem):
         elif currentPoint < 6:
             self.watched = 0
             self.resumePoint = 0
-        # Otherwise save the reume point
+        # Otherwise save the resume point
         else:
             self.watched = 0
             self.resumePoint = currentPoint
@@ -332,7 +348,7 @@ class ExtrasItem(BaseExtrasItem):
         # Get a connection to the DB
         conn = self.extrasDb.getConnection()
         c = conn.cursor()
-        # Insert one at a time so we can get the ID of each
+        
         insertData = (self.getFilename(), self.resumePoint, self.totalDuration, self.getWatched())
         c.execute('''INSERT OR REPLACE INTO ExtrasFile(filename, resumePoint, duration, watched) VALUES (?,?,?,?)''', insertData)
 
@@ -367,7 +383,7 @@ class ExtrasItem(BaseExtrasItem):
         # row[1] - Name of the file
         # row[2] - Current point played to (or -1 is not saved)
         # row[3] - Total Duration of the video 
-        # row[4] - 0 if not watched 1 if watched 
+        # row[4] - 0 if not watched 1 if watched
         self.resumePoint = row[2]
         self.totalDuration = row[3]
         self.watched = row[4]
@@ -655,6 +671,7 @@ class VideoExtrasFinder():
 class VideoExtras():
     def __init__( self, inputArg ):
         log( "VideoExtras: Finding extras for " + inputArg )
+        self.srcDetails = SourceDetails(inputArg)
         self.baseDirectory = inputArg
         if self.baseDirectory.startswith("stack://"):
             self.baseDirectory = self.baseDirectory.split(" , ")[0]
@@ -712,7 +729,7 @@ class VideoExtras():
         else:
             # Check which listing format to use
             if Settings.isDetailedListScreen():
-                extrasWindow = VideoExtrasWindow.createVideoExtrasWindow(files=files)
+                extrasWindow = VideoExtrasWindow.createVideoExtrasWindow(files=files, src=self.srcDetails)
                 xbmc.executebuiltin( "Dialog.Close(movieinformation)", True )
                 extrasWindow.doModal()
             else:
@@ -726,12 +743,13 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         # Copy off the key-word arguments
         # The non keyword arguments will be the ones passed to the main WindowXML
         self.files = kwargs.pop('files')
+        self.srcDetails = kwargs.pop('src')
         self.lastRecordedListPosition = -1
 
     # Static method to create the Window class
     @staticmethod
-    def createVideoExtrasWindow(files):
-        return VideoExtrasWindow("script-videoextras-main.xml", __addon__.getAddonInfo('path').decode("utf-8"), files=files)
+    def createVideoExtrasWindow(files, src):
+        return VideoExtrasWindow("script-videoextras-main.xml", __addon__.getAddonInfo('path').decode("utf-8"), files=files, src=src)
 
     def onInit(self):
         # Need to clear the list of the default items
@@ -746,9 +764,11 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             if anExtra.isResumable():
                 label2 = "resume"            
             
-            anItem = xbmcgui.ListItem(anExtra.getDisplayName(), label2)
+            anItem = xbmcgui.ListItem(anExtra.getDisplayName(), label2, path=self.srcDetails.getPath())
             anItem.setProperty("FileName", anExtra.getFilename())
             anItem.setInfo('video', { 'PlayCount': anExtra.getWatched() })
+            anItem.setInfo('video', { 'Title': self.srcDetails.getTitle() })
+
             self.addItem(anItem)
         
         # Update the title name to include the name of the show or film the extras are for        
@@ -852,7 +872,7 @@ class ExtrasDB():
 
             # Create a table that will be used to store each extras file
             # The "id" will be auto-generated as the primary key
-            c.execute('''CREATE TABLE ExtrasFile (id integer primary key, filename text, resumePoint integer, duration integer, watched integer)''')
+            c.execute('''CREATE TABLE ExtrasFile (id integer primary key, filename text unique, resumePoint integer, duration integer, watched integer)''')
 
             # Save (commit) the changes
             conn.commit()
@@ -875,7 +895,22 @@ class ExtrasDB():
         return conn
 
 
+class SourceDetails():
+    def __init__(self, path):
+        self.path = path
+        # Get the title of the Movie or TV Show
+        if WindowShowing.isTv():
+            self.title = xbmc.getInfoLabel( "ListItem.TVShowTitle" )
+            log("*** ROB ***: Setting title to TVShowTitle: " + self.title)
+        else:
+            self.title = xbmc.getInfoLabel( "ListItem.Title" )
+            log("*** ROB ***: Setting title to Title: " + self.title)
 
+    def getTitle(self):
+        return self.title
+
+    def getPath(self):
+        return self.path
         
 #########################
 # Main

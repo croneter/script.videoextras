@@ -2,6 +2,7 @@ v0.0.7:
 - Enable non mouse navigation of extras screen
 - Return to previously selected after playing
 - Support NFO names with non ascii characters
+- Support continued playing of themes
 
 v0.0.6:
 - Video play overlay now displays the Display Name rather than filename
