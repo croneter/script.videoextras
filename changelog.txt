@@ -1,3 +1,6 @@
+v0.0.8
+- Support background image on advanced list
+
 v0.0.7:
 - Enable non mouse navigation of extras screen
 - Return to previously selected after playing

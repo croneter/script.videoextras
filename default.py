@@ -775,6 +775,9 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             anItem.setProperty("TotalTime", str(anExtra.getTotalDuration()))
             anItem.setProperty("ResumeTime", str(anExtra.getResumePoint()))
 
+            # Set the background image
+            anItem.setProperty( "Fanart_Image", self.srcDetails.getFanArt() )
+
             self.addItem(anItem)
         
         # Before we return, set back the selected on screen item to the one just watched
@@ -905,26 +908,29 @@ class ExtrasDB():
         return conn
 
 
+##################################################
+# Class to store the details of the selected item
+##################################################
 class SourceDetails():
     def __init__(self, path):
         self.path = path
         # Get the title of the Movie or TV Show
         if WindowShowing.isTv():
             self.title = xbmc.getInfoLabel( "ListItem.TVShowTitle" )
-            
-#            json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShows", "params": { "filter": {"field": "playcount", "operator": "is", "value": "0"}, "limits": { "start" : 0, "end": 75 }, "properties": ["art", "genre", "plot", "title", "originaltitle", "year", "rating", "thumbnail", "playcount", "file", "fanart"], "sort": { "order": "ascending", "method": "label" } }, "id": "1"}')
-#            json_query = unicode(json_query, 'utf-8', errors='ignore')
-#            json_query = simplejson.loads(json_query)
-#            log("*** ROB ***: " + str(json_query))
-            
         else:
             self.title = xbmc.getInfoLabel( "ListItem.Title" )
+        # Save the background
+        self.fanart = xbmc.getInfoLabel( "ListItem.Property(Fanart_Image) " )
 
     def getTitle(self):
         return self.title
 
     def getPath(self):
         return self.path
+    
+    def getFanArt(self):
+        return self.fanart
+
         
 #########################
 # Main
