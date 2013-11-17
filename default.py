@@ -785,11 +785,11 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         # Get the item that was clicked on
         extraItem = self._getCurrentSelection()
         
-        if extraItem.getResumePoint() > 0:
-            displayNameList = []
-            displayNameList.append("Resume")
-            displayNameList.append("From Start")
-            xbmcgui.Dialog().select("", displayNameList)
+#        if extraItem.getResumePoint() > 0:
+#            displayNameList = []
+#            displayNameList.append("Resume")
+#            displayNameList.append("From Start")
+#            xbmcgui.Dialog().select("", displayNameList)
         
         # liz.setProperty('TotalTime', '1200' )
         # liz.setProperty('ResumeTime', '300' )
