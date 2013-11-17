@@ -28,6 +28,13 @@ import xbmcgui
 import xbmcvfs
 import xbmcaddon
 
+# Add JSON support for queries
+if sys.version_info < (2, 7):
+    import simplejson
+else:
+    import json as simplejson
+
+
 __addon__     = xbmcaddon.Addon(id='script.videoextras')
 __addonid__   = __addon__.getAddonInfo('id')
 
@@ -749,6 +756,7 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
     # Static method to create the Window class
     @staticmethod
     def createVideoExtrasWindow(files, src):
+#        return VideoExtrasWindow("MyVideoNav.xml", os.getcwd(), files=files, src=src)
         return VideoExtrasWindow("script-videoextras-main.xml", __addon__.getAddonInfo('path').decode("utf-8"), files=files, src=src)
 
     def onInit(self):
@@ -758,21 +766,16 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         for anExtra in self.files:
             log("VideoExtrasWindow: filename: " + anExtra.getFilename())
 
-            # A bit of a hack, but we use label2 as a variable to be able to decide
-            # where we are within the play order, either "resume" or not
-            label2 = ""
-            if anExtra.isResumable():
-                label2 = "resume"            
-            
-            anItem = xbmcgui.ListItem(anExtra.getDisplayName(), label2, path=self.srcDetails.getPath())
+            anItem = xbmcgui.ListItem(anExtra.getDisplayName(), path=self.srcDetails.getPath())
             anItem.setProperty("FileName", anExtra.getFilename())
             anItem.setInfo('video', { 'PlayCount': anExtra.getWatched() })
             anItem.setInfo('video', { 'Title': self.srcDetails.getTitle() })
 
+            # The following two will give us the resume flag
+            anItem.setProperty("TotalTime", str(anExtra.getTotalDuration()))
+            anItem.setProperty("ResumeTime", str(anExtra.getResumePoint()))
+
             self.addItem(anItem)
-        
-        # Update the title name to include the name of the show or film the extras are for        
-        # self.getControl(321).setLabel(self.getControl(321).getLabel() + "Blake's 7")
         
         # Before we return, set back the selected on screen item to the one just watched
         # This is in the case of a reload
@@ -790,9 +793,6 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
 #            displayNameList.append("Resume")
 #            displayNameList.append("From Start")
 #            xbmcgui.Dialog().select("", displayNameList)
-        
-        # liz.setProperty('TotalTime', '1200' )
-        # liz.setProperty('ResumeTime', '300' )
         
         extrasPlayer = ExtrasPlayer()
         extrasPlayer.play( extraItem )
@@ -911,10 +911,14 @@ class SourceDetails():
         # Get the title of the Movie or TV Show
         if WindowShowing.isTv():
             self.title = xbmc.getInfoLabel( "ListItem.TVShowTitle" )
-            log("*** ROB ***: Setting title to TVShowTitle: " + self.title)
+            
+#            json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.GetTVShows", "params": { "filter": {"field": "playcount", "operator": "is", "value": "0"}, "limits": { "start" : 0, "end": 75 }, "properties": ["art", "genre", "plot", "title", "originaltitle", "year", "rating", "thumbnail", "playcount", "file", "fanart"], "sort": { "order": "ascending", "method": "label" } }, "id": "1"}')
+#            json_query = unicode(json_query, 'utf-8', errors='ignore')
+#            json_query = simplejson.loads(json_query)
+#            log("*** ROB ***: " + str(json_query))
+            
         else:
             self.title = xbmc.getInfoLabel( "ListItem.Title" )
-            log("*** ROB ***: Setting title to Title: " + self.title)
 
     def getTitle(self):
         return self.title

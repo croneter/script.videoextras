@@ -90,7 +90,7 @@
 						<width>16</width>
 						<height>16</height>
 						<texture>OverlayWatching.png</texture>
-						<visible>!IsEmpty(ListItem.Label2)</visible>
+						<visible>ListItem.IsResumable</visible>
 					</control>
 					<control type="image">
 						<posx>1050</posx>
@@ -121,14 +121,6 @@
 						<include>VisibleFadeEffect</include>
 					</control>
 					<control type="image">
-						<posx>875</posx>
-						<posy>4</posy>
-						<width>200</width>
-						<height>33</height>
-						<texture border="0,0,14,0">MediaItemDetailBG.png</texture>
-						<visible>Control.HasFocus(51) + !IsEmpty(ListItem.Label2)</visible>
-					</control>
-					<control type="image">
 						<posx>10</posx>
 						<posy>4</posy>
 						<width>40</width>
@@ -153,7 +145,7 @@
 						<width>16</width>
 						<height>16</height>
 						<texture>OverlayWatching.png</texture>
-						<visible>!IsEmpty(ListItem.Label2)</visible>
+						<visible>ListItem.IsResumable</visible>
 					</control>
 					<control type="image">
 						<posx>1050</posx>
