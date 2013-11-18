@@ -1,5 +1,6 @@
 v0.0.8
 - Support background image on advanced list
+- Change icon to differ more from DVDExtras
 
 v0.0.7:
 - Enable non mouse navigation of extras screen
