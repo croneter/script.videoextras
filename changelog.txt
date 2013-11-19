@@ -1,3 +1,6 @@
+v0.0.9
+- Fix issue when passed a plugin URL instead of a filename
+
 v0.0.8
 - Support background image on advanced list
 - Change icon to differ more from DVDExtras

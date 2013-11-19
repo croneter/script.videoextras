@@ -947,22 +947,27 @@ try:
         
         # All other operations require at least 2 arguments
         elif len(sys.argv) > 2:
-            # Create the extras class that deals with any extras request
-            videoExtras = VideoExtras(sys.argv[2])
-    
-            # We are either running the command or just checking for existence
-            if sys.argv[1] == "check":
-                videoExtras.checkButtonEnabled()
+            # Make sure we are not passed a plugin path
+            if "plugin://" in sys.argv[2]:
+                if sys.argv[1] == "check":
+                    xbmcgui.Window( 12003 ).setProperty( "HideVideoExtrasButton", "true" )
             else:
-                # Check if the use database setting is enabled
-                extrasDb = None
-                if Settings.isDatabaseEnabled():
-                    extrasDb = ExtrasDB()
-                    # Make sure the database has been created
-                    extrasDb.createDatabase()
-                # Perform the search command
-                files = videoExtras.findExtras(extrasDb=extrasDb)
-                # need to display the extras
-                videoExtras.run(files)
+                # Create the extras class that deals with any extras request
+                videoExtras = VideoExtras(sys.argv[2])
+        
+                # We are either running the command or just checking for existence
+                if sys.argv[1] == "check":
+                    videoExtras.checkButtonEnabled()
+                else:
+                    # Check if the use database setting is enabled
+                    extrasDb = None
+                    if Settings.isDatabaseEnabled():
+                        extrasDb = ExtrasDB()
+                        # Make sure the database has been created
+                        extrasDb.createDatabase()
+                    # Perform the search command
+                    files = videoExtras.findExtras(extrasDb=extrasDb)
+                    # need to display the extras
+                    videoExtras.run(files)
 except:
     log("ExtrasItem: " + traceback.format_exc())
