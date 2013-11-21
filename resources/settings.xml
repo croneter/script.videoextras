@@ -15,7 +15,7 @@
 		<setting id="custom_path_tvshows" enable="eq(-3,true)" type="text" label="32015" default="TvShows"/>
 	</category>
 	<category label="32021">
-		<setting id="enableDB" type="bool" label="32022" default="false"/>
+		<setting id="enableDB" type="bool" label="32022" default="true"/>
 		<setting label="32023" type="lsep"/>
 		<setting enable="eq(-2,true)" label="32024" type="action" action="RunScript($CWD/default.py, cleanDatabase)"/>
 	</category>

@@ -899,7 +899,20 @@ class VideoExtrasResumeWindow(xbmcgui.WindowXMLDialog):
         # Need to populate the resume point
         resumeButton = self.getControl(VideoExtrasResumeWindow.RESUME)
         currentLabel = resumeButton.getLabel()
-#        resumeButton.setLabel(currentLabel + str("00:00"))
+        
+        # Split the time up ready for display
+        minutes, seconds = divmod(self.resumetime, 60)
+
+        hoursString = ""        
+        if minutes > 60:
+            # Need to collect hours if needed
+            hours, minutes = divmod(minutes, 60)
+            hoursString = "%02d:" % hours
+        
+        newLabel = "%s %s%02d:%02d" % (currentLabel, hoursString, minutes, seconds)
+
+        # Reset the resume label with the addition of the time
+        resumeButton.setLabel(newLabel)
         xbmcgui.WindowXMLDialog.onInit(self)
 
     def onClick(self, control):
@@ -958,8 +971,8 @@ class ExtrasDB():
             c.execute('''CREATE TABLE version (version text primary key)''')
             
             # Insert a row for the version
-            versionNum = Settings.getAddonVersion()
-            log("Version number = " + versionNum)
+            versionNum = "1"
+
             # Run the statement passing in an array with one value
             c.execute("INSERT INTO version VALUES (?)", (versionNum,))
 
