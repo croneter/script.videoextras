@@ -336,6 +336,12 @@ class ExtrasItem(BaseExtrasItem):
         BaseExtrasItem.__init__(self, directory, filename, isFileMatchExtra)
         self._loadState()
 
+    # Note: An attempt was made to re-use the existing XBMC database to
+    # read the playcount to work out if a video file has been watched,
+    # however this did not seem to work, call was:
+    # json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Files.GetFileDetails", "params": {"file": "%s", "media": "video", "properties": [ "playcount" ]},"id": 1 }' % filename)
+    # Even posted on the forum, but this hasn't resolved it:
+    # http://forum.xbmc.org/showthread.php?tid=177368
     def getWatched(self):
         return self.watched
     
@@ -766,8 +772,10 @@ class VideoExtras():
                 extrasWindow = VideoExtrasDialog()
                 extrasWindow.showList( files )
 
+#####################################################################
 # Extras display Window that contains a few more details and looks
 # more like the TV SHows listing
+#####################################################################
 class VideoExtrasWindow(xbmcgui.WindowXML):
     def __init__( self, *args, **kwargs ):
         # Copy off the key-word arguments
@@ -814,11 +822,17 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         # Get the item that was clicked on
         extraItem = self._getCurrentSelection()
         
-#        if extraItem.getResumePoint() > 0:
-#            displayNameList = []
-#            displayNameList.append("Resume")
-#            displayNameList.append("From Start")
-#            xbmcgui.Dialog().select("", displayNameList)
+        if extraItem.getResumePoint() > 0:
+            resumeWindow = VideoExtrasResumeWindow.createVideoExtrasResumeWindow(extraItem.getResumePoint())
+            resumeWindow.doModal()
+            
+            # Check the return value, if exit, then we play nothing
+            if resumeWindow.isExit():
+                return
+            # If requested to restart from beginning, reset the resume point before playing
+            if resumeWindow.isRestart():
+                extraItem.setResumePoint(0)
+            # Default is to actually resume
         
         extrasPlayer = ExtrasPlayer()
         extrasPlayer.play( extraItem )
@@ -859,12 +873,55 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         return None
         
 
-# Note: An attempt was made to re-use the existing XBMC database to
-# read the playcount to work out if a video file has been watched,
-# however this did not seem to work, call was:
-# json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Files.GetFileDetails", "params": {"file": "%s", "media": "video", "properties": [ "playcount" ]},"id": 1 }' % filename)
-# Even posted on the forum, but this hasn't resolved it:
-# http://forum.xbmc.org/showthread.php?tid=177368
+
+##################################################
+# Dialog window to find out is a video should be
+# resumes or started from the beginning
+##################################################
+class VideoExtrasResumeWindow(xbmcgui.WindowXMLDialog):
+    EXIT = 1
+    RESUME = 2
+    RESTART = 40
+
+    def __init__( self, *args, **kwargs ):
+        # Copy off the key-word arguments
+        # The non keyword arguments will be the ones passed to the main WindowXML
+        self.resumetime = kwargs.pop('resumetime')
+        self.selectionMade = VideoExtrasResumeWindow.EXIT
+
+    # Static method to create the Window Dialog class
+    @staticmethod
+    def createVideoExtrasResumeWindow(resumetime=0):
+#        return VideoExtrasWindow("MyVideoNav.xml", os.getcwd(), files=files, src=src)
+        return VideoExtrasResumeWindow("script-videoextras-resume.xml", __addon__.getAddonInfo('path').decode("utf-8"), resumetime=resumetime)
+
+    def onInit(self):
+        # Need to populate the resume point
+        resumeButton = self.getControl(VideoExtrasResumeWindow.RESUME)
+        currentLabel = resumeButton.getLabel()
+#        resumeButton.setLabel(currentLabel + str("00:00"))
+        xbmcgui.WindowXMLDialog.onInit(self)
+
+    def onClick(self, control):
+        # Save the item that was clicked
+        # Item ID 2 is resume
+        # Item ID 40 is start from beginning
+        self.selectionMade = control
+        # If not resume or restart - we just want to exit without playing
+        if not (self.isResume() or self.isRestart()):
+            self.selectionMade = VideoExtrasResumeWindow.EXIT
+        # Close the dialog after the selection
+        self.close()
+
+    def isResume(self):
+        return self.selectionMade == VideoExtrasResumeWindow.RESUME
+    
+    def isRestart(self):
+        return self.selectionMade == VideoExtrasResumeWindow.RESTART
+    
+    def isExit(self):
+        return self.selectionMade == VideoExtrasResumeWindow.EXIT
+       
 
 
 #################################

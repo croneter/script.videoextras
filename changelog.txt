@@ -1,6 +1,7 @@
 v0.0.9
 - Fix issue when passed a plugin URL instead of a filename
 - Add Gotham Support
+- Add resume dialog
 
 v0.0.8
 - Support background image on advanced list

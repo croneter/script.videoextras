@@ -4,7 +4,7 @@
 		<setting id="searchNested" type="bool" label="32003" default="true"/>
 		<setting id="enableFileTag" type="bool" label="32004" default="false"/>
 		<setting id="extrasFileTag" enable="eq(-1,true)" type="text" label="32005" default="-extras-"/>
-		<setting id="detailedList" type="bool" label="32025" default="false"/>
+		<setting id="detailedList" type="bool" label="32025" default="true"/>
 		<setting id="extrasReturn" enable="eq(-1,false)" type="labelenum" label="32006" lvalues="32007|32008|32001|32009" default="32007" />
 	</category>
 	<category label="32010">

@@ -141,3 +141,11 @@ msgstr ""
 msgctxt "#32103"
 msgid "No extras found"
 msgstr ""
+
+msgctxt "#32104"
+msgid "Resume from"
+msgstr ""
+
+msgctxt "#32105"
+msgid "Start from beginning"
+msgstr ""
