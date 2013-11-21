@@ -124,16 +124,39 @@ class Settings():
 # Class to make it easier to see which screen is being checked
 ###############################################################
 class WindowShowing():
+    xbmcMajorVersion = 0
+
+    @staticmethod
+    def getXbmcMajorVersion():
+        if WindowShowing.xbmcMajorVersion == 0:
+            xbmcVer = xbmc.getInfoLabel('system.buildversion')
+            log("WindowShowing: XBMC Version = " + xbmcVer)
+            WindowShowing.xbmcMajorVersion = 12
+            try:
+                # Get just the major version number
+                WindowShowing.xbmcMajorVersion = int(xbmcVer.split(".", 1)[0])
+            except:
+                # Default to frodo as the default version if we fail to find it
+                log("WindowShowing: Failed to get XBMC version")
+            log("WindowShowing: XBMC Version %d (%s)" % (WindowShowing.xbmcMajorVersion, xbmcVer))
+        return WindowShowing.xbmcMajorVersion
+
     @staticmethod
     def isTv():
         if xbmc.getCondVisibility("Container.Content(tvshows)"):
             return True
-        if xbmc.getInfoLabel( "container.folderpath" ) == "videodb://2/2/":
-            return True # TvShowTitles
         if xbmc.getCondVisibility("Container.Content(Seasons)"):
             return True
         if xbmc.getCondVisibility("Container.Content(Episodes)"):
             return True
+        
+        folderPathId = "videodb://2/2/"
+        # The ID for the TV Show Title changed in Gotham
+        if WindowShowing.getXbmcMajorVersion() > 12:
+            folderPathId = "videodb://tvshows/titles/ "
+        if xbmc.getInfoLabel( "container.folderpath" ) == folderPathId:
+            return True # TvShowTitles
+
         return False
 
 
