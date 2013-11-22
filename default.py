@@ -153,7 +153,7 @@ class WindowShowing():
         folderPathId = "videodb://2/2/"
         # The ID for the TV Show Title changed in Gotham
         if WindowShowing.getXbmcMajorVersion() > 12:
-            folderPathId = "videodb://tvshows/titles/ "
+            folderPathId = "videodb://tvshows/titles/"
         if xbmc.getInfoLabel( "container.folderpath" ) == folderPathId:
             return True # TvShowTitles
 
@@ -801,6 +801,9 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             anItem.setProperty("FileName", anExtra.getFilename())
             anItem.setInfo('video', { 'PlayCount': anExtra.getWatched() })
             anItem.setInfo('video', { 'Title': self.srcDetails.getTitle() })
+            if self.srcDetails.getTvShowTitle() != "":
+                log("*** ROB ***: Setting TvTitle to " + self.srcDetails.getTvShowTitle())
+                anItem.setInfo('video', { 'TvShowTitle': self.srcDetails.getTvShowTitle() })
 
             # The following two will give us the resume flag
             anItem.setProperty("TotalTime", str(anExtra.getTotalDuration()))
@@ -892,7 +895,6 @@ class VideoExtrasResumeWindow(xbmcgui.WindowXMLDialog):
     # Static method to create the Window Dialog class
     @staticmethod
     def createVideoExtrasResumeWindow(resumetime=0):
-#        return VideoExtrasWindow("MyVideoNav.xml", os.getcwd(), files=files, src=src)
         return VideoExtrasResumeWindow("script-videoextras-resume.xml", __addon__.getAddonInfo('path').decode("utf-8"), resumetime=resumetime)
 
     def onInit(self):
@@ -1010,13 +1012,18 @@ class SourceDetails():
         # Get the title of the Movie or TV Show
         if WindowShowing.isTv():
             self.title = xbmc.getInfoLabel( "ListItem.TVShowTitle" )
+            self.tvshowtitle = self.title
         else:
             self.title = xbmc.getInfoLabel( "ListItem.Title" )
+            self.tvshowtitle = ""
         # Save the background
         self.fanart = xbmc.getInfoLabel( "ListItem.Property(Fanart_Image) " )
 
     def getTitle(self):
         return self.title
+
+    def getTvShowTitle(self):
+        return self.tvshowtitle
 
     def getPath(self):
         return self.path
