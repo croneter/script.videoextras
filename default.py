@@ -802,7 +802,6 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             anItem.setInfo('video', { 'PlayCount': anExtra.getWatched() })
             anItem.setInfo('video', { 'Title': self.srcDetails.getTitle() })
             if self.srcDetails.getTvShowTitle() != "":
-                log("*** ROB ***: Setting TvTitle to " + self.srcDetails.getTvShowTitle())
                 anItem.setInfo('video', { 'TvShowTitle': self.srcDetails.getTvShowTitle() })
 
             # The following two will give us the resume flag
