@@ -1,3 +1,6 @@
+v1.0.0
+- Initial Official Release
+
 v0.1.0
 - Fix playing theme from TV Show Information
 - Add interface for skinner to get info on extras existing
