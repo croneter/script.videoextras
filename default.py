@@ -755,7 +755,26 @@ class VideoExtras():
                 # Hide the extras button, there are no extras
                 xbmcgui.Window( 12003 ).setProperty( "HideVideoExtrasButton", "true" )
                 log("VideoExtras: Button disabled")
-        
+
+    # Checks if the selected value has extras, setting a custom flag
+    def hasExtras(self, flag):
+        # Get the current window of dialog
+        try: windowid = xbmcgui.getCurrentWindowDialogId()
+        except: windowid = 9999
+        if windowid == 9999:
+            windowid = xbmcgui.getCurrentWindowId()
+
+        # Search for the extras, stopping when the first is found
+        # only want to find out if the button should be available
+        files = self.findExtras(True)
+        if files:
+            # Set a flag on the window so we know there is data
+            xbmcgui.Window( windowid ).setProperty(flag, "true")
+            log("VideoExtras: Has Extras")
+        else:
+            # Clear the flag, there are no extras
+            xbmcgui.Window( windowid ).clearProperties(flag)
+            log("VideoExtras: Does Not Have Extras")
 
 
     def run(self, files):
@@ -1056,6 +1075,13 @@ try:
             extrasDb = ExtrasDB()
             extrasDb.cleanDatabase()
         
+        # Check for a request to check for extras
+        elif len(sys.argv) > 3 and sys.argv[1] == "hasExtras":
+            
+            if not ("plugin://" in sys.argv[3]):
+                videoExtras = VideoExtras(sys.argv[3])
+                videoExtras.hasExtras(sys.argv[2])
+            
         # All other operations require at least 2 arguments
         elif len(sys.argv) > 2:
             # Make sure we are not passed a plugin path

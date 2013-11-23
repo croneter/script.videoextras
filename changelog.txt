@@ -1,5 +1,6 @@
 v0.1.0
 - Fix playing theme from TV Show Information
+- Add interface for skinner to get info on extras existing
 
 v0.0.9
 - Fix issue when passed a plugin URL instead of a filename
