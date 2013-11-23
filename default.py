@@ -797,7 +797,7 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         for anExtra in self.files:
             log("VideoExtrasWindow: filename: " + anExtra.getFilename())
 
-            anItem = xbmcgui.ListItem(anExtra.getDisplayName(), path=self.srcDetails.getPath())
+            anItem = xbmcgui.ListItem(anExtra.getDisplayName(), path=self.srcDetails.getFilenameAndPath())
             anItem.setProperty("FileName", anExtra.getFilename())
             anItem.setInfo('video', { 'PlayCount': anExtra.getWatched() })
             anItem.setInfo('video', { 'Title': self.srcDetails.getTitle() })
@@ -1015,6 +1015,10 @@ class SourceDetails():
         else:
             self.title = xbmc.getInfoLabel( "ListItem.Title" )
             self.tvshowtitle = ""
+
+        # This should be the same as the "path" passed in
+        self.FilenameAndPath = xbmc.getInfoLabel( "ListItem.FilenameAndPath" )
+
         # Save the background
         self.fanart = xbmc.getInfoLabel( "ListItem.Property(Fanart_Image) " )
 
@@ -1023,6 +1027,14 @@ class SourceDetails():
 
     def getTvShowTitle(self):
         return self.tvshowtitle
+
+    # This is a bit of a hack, when we set the path we need to set it an extra
+    # directory below where we really are - this path is not used to retrieve
+    # the extras files (This class highlights where the script was called from)
+    # It is used to trigger the TV Tunes, and for some reason between VideoExtras
+    # setting the value and TvTunes getting it, it loses the final directory
+    def getFilenameAndPath(self):
+        return self.FilenameAndPath + "Extras"
 
     def getPath(self):
         return self.path

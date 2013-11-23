@@ -1,3 +1,6 @@
+v0.1.0
+- Fix playing theme from TV Show Information
+
 v0.0.9
 - Fix issue when passed a plugin URL instead of a filename
 - Add Gotham Support
