@@ -73,15 +73,24 @@ class Settings():
 
     @staticmethod
     def isMenuReturnVideoSelection():
-        return __addon__.getSetting( "extrasReturn" ) == __addon__.getLocalizedString(32007)
+        settingsSelect = "extrasReturn"
+        if Settings.isDetailedListScreen():
+            settingsSelect = "detailedReturn"
+        return __addon__.getSetting( settingsSelect ) == __addon__.getLocalizedString(32007)
 
     @staticmethod
     def isMenuReturnHome():
-        return __addon__.getSetting( "extrasReturn" ) == __addon__.getLocalizedString(32009)
+        settingsSelect = "extrasReturn"
+        if Settings.isDetailedListScreen():
+            settingsSelect = "detailedReturn"
+        return __addon__.getSetting( settingsSelect ) == __addon__.getLocalizedString(32009)
 
     @staticmethod
     def isMenuReturnInformation():
-        return __addon__.getSetting( "extrasReturn" ) == __addon__.getLocalizedString(32008)
+        settingsSelect = "extrasReturn"
+        if Settings.isDetailedListScreen():
+            settingsSelect = "detailedReturn"
+        return __addon__.getSetting( settingsSelect ) == __addon__.getLocalizedString(32008)
 
     @staticmethod
     def isForceButtonDisplay():
@@ -484,9 +493,8 @@ class VideoExtrasDialog(xbmcgui.Window):
 
         # Show the list to the user
         select = xbmcgui.Dialog().select(__addon__.getLocalizedString(32001), displayNameList)
-        
-        infoDialogId = xbmcgui.getCurrentWindowDialogId();
-        # USer has made a selection, -1 is exit
+
+        # User has made a selection, -1 is exit
         if select != -1:
             xbmc.executebuiltin("Dialog.Close(all, true)", True)
             extrasPlayer = ExtrasPlayer()
@@ -512,33 +520,9 @@ class VideoExtrasDialog(xbmcgui.Window):
                 extrasPlayer.play( exList[itemToPlay] )
             while extrasPlayer.isPlayingVideo():
                 xbmc.sleep(100)
-            
-            # The video selection will be the default return location
-            if not Settings.isMenuReturnVideoSelection():
-                if Settings.isMenuReturnHome():
-                    xbmc.executebuiltin("xbmc.ActivateWindow(home)", True)
-                else:
-                    # Put the information dialog back up
-                    xbmc.executebuiltin("xbmc.ActivateWindow(" + str(infoDialogId) + ")")
-                    if not Settings.isMenuReturnInformation():
-                        # Wait for the Info window to open, it can take a while
-                        # this is to avoid the case where the exList dialog displays
-                        # behind the info dialog
-                        while( xbmcgui.getCurrentWindowDialogId() != infoDialogId):
-                            xbmc.sleep(100)
-                        # Allow time for the screen to load - this could result in an
-                        # action such as starting TvTunes
-                        xbmc.sleep(1000)
-                        # Before showing the list, check if someone has quickly
-                        # closed the info screen while it was opening and we were waiting
-                        if xbmcgui.getCurrentWindowDialogId() == infoDialogId:
-                            # Reshow the exList that was previously generated
-                            self.showList(exList)
-
-    @staticmethod
-    def showError(self):
-        # "Info", "No extras found"
-        xbmcgui.Dialog().ok(__addon__.getLocalizedString(32102), __addon__.getLocalizedString(32103))
+        else:
+            return False
+        return True
 
 
 ################################################
@@ -780,8 +764,11 @@ class VideoExtras():
     def run(self, files):
         # All the files have been retrieved, now need to display them       
         if not files:
-            VideoExtrasDialog.showError()
+            # "Info", "No extras found"
+            xbmcgui.Dialog().ok(__addon__.getLocalizedString(32102), __addon__.getLocalizedString(32103))
         else:
+            needsWindowReset = True
+            
             # Check which listing format to use
             if Settings.isDetailedListScreen():
                 extrasWindow = VideoExtrasWindow.createVideoExtrasWindow(files=files, src=self.srcDetails)
@@ -789,7 +776,34 @@ class VideoExtras():
                 extrasWindow.doModal()
             else:
                 extrasWindow = VideoExtrasDialog()
-                extrasWindow.showList( files )
+                needsWindowReset = extrasWindow.showList( files )
+            
+            # The video selection will be the default return location
+            if (not Settings.isMenuReturnVideoSelection()) and needsWindowReset:
+                if Settings.isMenuReturnHome():
+                    xbmc.executebuiltin("xbmc.ActivateWindow(home)", True)
+                else:
+                    infoDialogId = 12003
+                    # Put the information dialog back up
+                    xbmc.executebuiltin("xbmc.ActivateWindow(movieinformation)")
+                    if not Settings.isMenuReturnInformation():
+                        # Wait for the Info window to open, it can take a while
+                        # this is to avoid the case where the exList dialog displays
+                        # behind the info dialog
+                        counter = 0
+                        while( xbmcgui.getCurrentWindowDialogId() != infoDialogId) and (counter <30):
+                            xbmc.sleep(100)
+                            counter = counter + 1
+                        # Allow time for the screen to load - this could result in an
+                        # action such as starting TvTunes
+                        xbmc.sleep(1000)
+                        # Before showing the list, check if someone has quickly
+                        # closed the info screen while it was opening and we were waiting
+                        if xbmcgui.getCurrentWindowDialogId() == infoDialogId:
+                            # Reshow the exList that was previously generated
+                            self.run(files)
+
+
 
 #####################################################################
 # Extras display Window that contains a few more details and looks
