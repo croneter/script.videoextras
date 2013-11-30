@@ -176,6 +176,11 @@ class BaseExtrasItem():
     def __init__( self, directory, filename, isFileMatchExtra=False ):
         self.directory = directory
         self.filename = filename
+        # Setup the icon and thumbnail images
+        self.thumbnailImage = ""
+        self.iconImage = ""
+        self._loadImages(filename)
+
         # Record if the match was by filename rather than in Extras sub-directory
         self.isFileMatchingExtra = isFileMatchExtra
         # Check if there is an NFO file to process
@@ -211,6 +216,75 @@ class BaseExtrasItem():
     
     def getOrderKey(self):
         return self.orderKey
+
+    def getThumbnailImage(self):
+        return self.thumbnailImage
+
+    def getIconImage(self):
+        return self.iconImage
+
+    # Load the Correct set of images for icons and thumbnails
+    # Image options are
+    # (NFO - Will overwrite these values)
+    # <filename>.tbn/jpg
+    # <filename>-poster.jpg (Auto picked up by player)
+    # <filename>-thumb.jpg
+    # poster.jpg
+    # folder.jpg
+    #
+    # See:
+    # http://wiki.xbmc.org/?title=Thumbnails
+    # http://wiki.xbmc.org/index.php?title=Frodo_FAQ#Local_images
+    def _loadImages(self, filename):
+        imageList = []
+        # Find out the name of the image files
+        fileNoExt = os.path.splitext( filename )[0]
+
+        # Start by searching for the filename match
+        fileNoExtImage = self._loadImageFile( fileNoExt )
+        if fileNoExtImage != "":
+            imageList.append(fileNoExtImage)
+
+        # Check for -poster added to the end
+        fileNoExtImage = self._loadImageFile( fileNoExt + "-poster" )
+        if fileNoExtImage != "":
+            imageList.append(fileNoExtImage)
+
+        if len(imageList) < 2:
+            # Check for -thumb added to the end
+            fileNoExtImage = self._loadImageFile( fileNoExt + "-thumb" )
+            if fileNoExtImage != "":
+                imageList.append(fileNoExtImage)
+
+        if len(imageList) < 2:
+            # Check for poster.jpg
+            fileNoExt = os.path.join(self.directory, "poster")
+            fileNoExtImage = self._loadImageFile( fileNoExt )
+            if fileNoExtImage != "":
+                imageList.append(fileNoExtImage)
+
+        if len(imageList) < 2:
+            # Check for folder.jpg
+            fileNoExt = os.path.join(self.directory, "folder")
+            fileNoExtImage = self._loadImageFile( fileNoExt )
+            if fileNoExtImage != "":
+                imageList.append(fileNoExtImage)
+                
+        # Set the first one to the thumbnail, and the second the the icon
+        if len(imageList) > 0:
+            self.thumbnailImage = imageList[0]
+            if len(imageList) > 1:
+                self.iconImage = imageList[1]
+
+    # Searched for a given image name under different extensions
+    def _loadImageFile(self, fileNoExt):
+        if xbmcvfs.exists( fileNoExt + ".tbn" ):
+            return fileNoExt + ".tbn"
+        if xbmcvfs.exists( fileNoExt + ".png" ):
+            return fileNoExt + ".png"
+        if xbmcvfs.exists( fileNoExt + ".jpg" ):
+            return fileNoExt + ".jpg"
+        return ""
 
     # Parses the filename to work out the display name and order key
     def _generateOrderAndDisplay(self, filename):
@@ -310,11 +384,17 @@ class BaseExtrasItem():
                 if (episode == None) or (episode == ""):
                     episode = "0"
                 self.orderKey = "%02d_%02d" % (int(season), int(episode))
-    
+
             else:
                 self.displayName = None
                 self.orderKey = None
                 log("BaseExtrasItem: Unknown NFO format")
+    
+            # Now get the thumbnail - always called the same regardless of
+            # movie of TV
+            thumbnail = self._getNfoThumb(nfoXml)
+            if thumbnail != None:
+                self.thumbnailImage = thumbnail
     
             del nfoXml
 
@@ -330,6 +410,20 @@ class BaseExtrasItem():
             returnValue = False
 
         return returnValue
+
+    # Reads the thumbnail information from an NFO file
+    def _getNfoThumb(self, nfoXml):
+        # Get the thumbnail
+        thumbnail = nfoXml.findtext('thumb')
+        if (thumbnail != None) and (thumbnail != ""):
+            # Found the thumb entry, check if this is a local path
+            # which just has a filename, this is the case if there are
+            # no forward slashes and no back slashes
+            if (not "/" in thumbnail) and (not "\\" in thumbnail):
+                thumbnail = os.path.join(self.directory, thumbnail)
+        else:
+            thumbnail = None
+        return thumbnail
 
 
 ####################################################################
@@ -469,6 +563,14 @@ class ExtrasPlayer(xbmc.Player):
         # Set the display title on the video play overlay
         listitem.setInfo('video', {'studio': __addon__.getLocalizedString(32001)})
         listitem.setInfo('video', {'Title': extrasItem.getDisplayName()})
+        
+        # If both the Icon and Thumbnail is set, the list screen will choose to show
+        # the thumbnail
+        if extrasItem.getIconImage() != "":
+            listitem.setIconImage(extrasItem.getIconImage())
+        if extrasItem.getThumbnailImage() != "":
+            listitem.setThumbnailImage(extrasItem.getThumbnailImage())
+        
         # Record if the video should start playing part-way through
         if extrasItem.isResumable():
             if extrasItem.getResumePoint() > 1:
@@ -836,6 +938,13 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             anItem.setInfo('video', { 'Title': self.srcDetails.getTitle() })
             if self.srcDetails.getTvShowTitle() != "":
                 anItem.setInfo('video', { 'TvShowTitle': self.srcDetails.getTvShowTitle() })
+
+            # If both the Icon and Thumbnail is set, the list screen will choose to show
+            # the thumbnail
+            if anExtra.getIconImage() != "":
+                anItem.setIconImage(anExtra.getIconImage())
+            if anExtra.getThumbnailImage() != "":
+                anItem.setThumbnailImage(anExtra.getThumbnailImage())
 
             # The following two will give us the resume flag
             anItem.setProperty("TotalTime", str(anExtra.getTotalDuration()))

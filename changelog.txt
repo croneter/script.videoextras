@@ -1,5 +1,6 @@
 v1.0.1
 - Add selection for return window for detailed list
+- Add support for thumbnail/icon image
 
 v1.0.0
 - Initial Official Release
