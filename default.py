@@ -1190,6 +1190,17 @@ class SourceDetails():
     fanart = None
     filenameAndPath = None
 
+    # Forces the loading of all the source details
+    # This is needed if the "Current Window" is going to
+    # change - and we need a reference to the source before
+    # it changes
+    @staticmethod
+    def forceLoadDetails():
+        SourceDetails.getFanArt()
+        SourceDetails.getFilenameAndPath()
+        SourceDetails.getTitle()
+        SourceDetails.getTvShowTitle()
+
     @staticmethod
     def getTitle():
         if SourceDetails.title == None:
@@ -1235,6 +1246,9 @@ try:
     if len(sys.argv) > 1:
         # get the type of operation
         log("Operation = " + sys.argv[1])
+
+        # Load the details of the current source of the extras        
+        SourceDetails.forceLoadDetails()
         
         # Should the existing database be removed
         if sys.argv[1] == "cleanDatabase":
