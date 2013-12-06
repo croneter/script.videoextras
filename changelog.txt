@@ -1,3 +1,6 @@
+v1.0.2
+- Language Structure update
+
 v1.0.1
 - Add selection for return window for detailed list
 - Add support for thumbnail/icon image
