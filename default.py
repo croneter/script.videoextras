@@ -836,6 +836,12 @@ class VideoExtras():
         if self.baseDirectory.startswith("stack://"):
             self.baseDirectory = self.baseDirectory.split(" , ")[0]
             self.baseDirectory = self.baseDirectory.replace("stack://", "")
+        # There is a problem if some-one is using windows shares with
+        # \\SERVER\Name as when the addon gets called the first \ gets
+        # removed, making an invalid path, so we add it back here
+        elif self.baseDirectory.startswith("\\"):
+            self.baseDirectory = "\\" + self.baseDirectory
+
         # Support special paths like smb:// means that we can not just call
         # os.path.isfile as it will return false even if it is a file
         # (A bit of a shame - but that's the way it is)
@@ -882,7 +888,7 @@ class VideoExtras():
 
     # Checks if the selected value has extras, setting a custom flag
     def hasExtras(self, flag):
-        # Get the current window of dialog
+        # Get the current window or dialog
         try: windowid = xbmcgui.getCurrentWindowDialogId()
         except: windowid = 9999
         if windowid == 9999:

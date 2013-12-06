@@ -1,5 +1,5 @@
 v1.0.2
-- Language Structure update
+- Support windows shares as \\SERVER\Name
 
 v1.0.1
 - Add selection for return window for detailed list
