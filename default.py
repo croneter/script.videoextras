@@ -45,6 +45,21 @@ def log(txt):
         message = u'%s: %s' % (__addonid__, txt)
         xbmc.log(msg=message.encode("utf-8"), level=xbmc.LOGDEBUG)
 
+# There has been problems with calling join with non ascii characters,
+# so we have this method to try and do the conversion for us
+def os_path_join( dir, file ):
+    # Convert each argument - if an error, then it will use the default value
+    # that was passed in
+    try:
+        dir = dir.decode("utf-8")
+    except:
+        pass
+    try:
+        file = file.decode("utf-8")
+    except:
+        pass
+    return os.path.join(dir, file)
+
 ##############################
 # Stores Various Settings
 ##############################
@@ -191,6 +206,8 @@ class BaseExtrasItem():
 
     # eq and lt defined for sorting order only
     def __eq__(self, other):
+        if other == None:
+            return False
         # Check key, display then filename - all need to be the same for equals
         return ((self.orderKey, self.displayName, self.directory, self.filename, self.isFileMatchingExtra) ==
                 (other.orderKey, other.displayName, other.directory, other.filename, other.isFileMatchingExtra))
@@ -208,6 +225,22 @@ class BaseExtrasItem():
     # Return the filename for the extra
     def getFilename(self):
         return self.filename
+
+    # Compare if a filename matches the existing one
+    def isFilenameMatch(self, compareToFilename):
+        srcFilename = self.filename
+        tgtFilename = compareToFilename
+        try:
+            srcFilename = srcFilename.decode("utf-8")
+        except:
+            pass
+        try:
+            tgtFilename = tgtFilename.decode("utf-8")
+        except:
+            pass
+        if srcFilename == tgtFilename:
+            return True
+        return False
 
     def getDirectory(self):
         return self.directory
@@ -264,14 +297,14 @@ class BaseExtrasItem():
 
         if len(imageList) < 2:
             # Check for poster.jpg
-            fileDir = os.path.join(self.directory, "poster")
+            fileDir = os_path_join(self.directory, "poster")
             fileNoExtImage = self._loadImageFile( fileDir )
             if fileNoExtImage != "":
                 imageList.append(fileNoExtImage)
 
         if len(imageList) < 2:
             # Check for folder.jpg
-            fileDir = os.path.join(self.directory, "folder")
+            fileDir = os_path_join(self.directory, "folder")
             fileNoExtImage = self._loadImageFile( fileDir )
             if fileNoExtImage != "":
                 imageList.append(fileNoExtImage)
@@ -289,7 +322,7 @@ class BaseExtrasItem():
             self.fanart = fileNoExtImage
         else:
             # Check for fanart.jpg
-            fileDir = os.path.join(self.directory, "fanart")
+            fileDir = os_path_join(self.directory, "fanart")
             fileNoExtImage = self._loadImageFile( fileDir )
             if fileNoExtImage != "":
                 self.fanart = fileNoExtImage
@@ -445,7 +478,7 @@ class BaseExtrasItem():
             # which just has a filename, this is the case if there are
             # no forward slashes and no back slashes
             if (not "/" in thumbnail) and (not "\\" in thumbnail):
-                thumbnail = os.path.join(self.directory, thumbnail)
+                thumbnail = os_path_join(self.directory, thumbnail)
         else:
             thumbnail = None
         return thumbnail
@@ -459,7 +492,7 @@ class BaseExtrasItem():
             # which just has a filename, this is the case if there are
             # no forward slashes and no back slashes
             if (not "/" in fanart) and (not "\\" in fanart):
-                fanart = os.path.join(self.directory, fanart)
+                fanart = os_path_join(self.directory, fanart)
         else:
             fanart = None
         return fanart
@@ -698,7 +731,8 @@ class VideoExtrasFinder():
         pathLastDir = os.path.split(path)[1]
 
         # Create the path with this added
-        custPath = os.path.join(Settings.getCustomPath(), typeSection, pathLastDir)
+        custPath = os_path_join(Settings.getCustomPath(), typeSection)
+        custPath = os_path_join(custPath, pathLastDir)
         log("VideoExtrasFinder: Checking existence of custom path %s" % custPath)
 
         # Check if this path exists
@@ -706,11 +740,14 @@ class VideoExtrasFinder():
             # If it doesn't exist, check the path before that, this covers the
             # case where there is a TV Show with each season in it's own directory
             path2ndLastDir = os.path.split((os.path.split(path)[0]))[1]
-            custPath = os.path.join(Settings.getCustomPath(), typeSection, path2ndLastDir, pathLastDir)
+            custPath = os_path_join(Settings.getCustomPath(), typeSection)
+            custPath = os_path_join(custPath, path2ndLastDir)
+            custPath = os_path_join(custPath, pathLastDir)
             log("VideoExtrasFinder: Checking existence of custom path %s" % custPath)
             if not xbmcvfs.exists(custPath):
                 # If it still does not exist then check just the 2nd to last path
-                custPath = os.path.join(Settings.getCustomPath(), typeSection, path2ndLastDir)
+                custPath = os_path_join(Settings.getCustomPath(), typeSection)
+                custPath = os_path_join(custPath, path2ndLastDir)
                 log("VideoExtrasFinder: Checking existence of custom path %s" % custPath)
                 if not xbmcvfs.exists(custPath):
                     custPath = None
@@ -746,7 +783,7 @@ class VideoExtrasFinder():
         # If a custom path, then don't looks for the Extras directory
         if not Settings.isCustomPathEnabled():
             # Add the name of the extras directory to the end of the path
-            extrasDir = os.path.join( basepath, Settings.getExtrasDirName() )
+            extrasDir = os_path_join( basepath, Settings.getExtrasDirName() )
         else:
             extrasDir = basepath
         log( "VideoExtrasFinder: Checking existence for %s" % extrasDir )
@@ -759,7 +796,7 @@ class VideoExtrasFinder():
                 log( "VideoExtrasFinder: found file: %s" % filename)
                 # Check each file in the directory to see if it should be skipped
                 if not self._shouldSkipFile(filename):
-                    extrasFile = os.path.join( extrasDir, filename )
+                    extrasFile = os_path_join( extrasDir, filename )
                     extraItem = ExtrasItem(extrasDir, extrasFile, extrasDb=self.extrasDb)
                     extras.append(extraItem)
                     # Check if we are only looking for the first entry
@@ -772,7 +809,7 @@ class VideoExtrasFinder():
         if xbmcvfs.exists( basepath ):
             dirs, files = xbmcvfs.listdir( basepath )
             for dirname in dirs:
-                dirpath = os.path.join( basepath, dirname )
+                dirpath = os_path_join( basepath, dirname )
                 log( "VideoExtrasFinder: Nested check in directory: %s" % dirpath )
                 if( dirname != Settings.getExtrasDirName() ):
                     log( "VideoExtrasFinder: Check directory: %s" % dirpath )
@@ -805,7 +842,7 @@ class VideoExtrasFinder():
 
         for aFile in files:
             if not self._shouldSkipFile(aFile) and (extrasTag in aFile):
-                extrasFile = os.path.join( directory, aFile )
+                extrasFile = os_path_join( directory, aFile )
                 extraItem = ExtrasItem(directory, extrasFile, True, extrasDb=self.extrasDb)
                 extras.append(extraItem)
                 # Check if we are only looking for the first entry
@@ -1009,6 +1046,11 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         # Get the item that was clicked on
         extraItem = self._getCurrentSelection()
         
+        if extraItem == None:
+            # Something has gone very wrong, there is no longer the item that was selected
+            log("VideoExtrasWindow: Unable to match item to current selection")
+            return
+        
         if extraItem.getResumePoint() > 0:
             resumeWindow = VideoExtrasResumeWindow.createVideoExtrasResumeWindow(extraItem.getResumePoint())
             resumeWindow.doModal()
@@ -1055,11 +1097,10 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         log("VideoExtrasWindow: Selected file = %s" % filename)
         # Now search the Extras list for a match
         for anExtra in self.files:
-            if anExtra.getFilename() == filename:
+            if anExtra.isFilenameMatch( filename ):
                 log("VideoExtrasWindow: Found  = %s" % filename)
                 return anExtra
         return None
-        
 
 
 ##################################################
@@ -1131,7 +1172,7 @@ class ExtrasDB():
     def __init__( self ):
         # Start by getting the database location
         self.configPath = xbmc.translatePath(__addon__.getAddonInfo('profile'))
-        self.databasefile = os.path.join(self.configPath, "extras_database.db")
+        self.databasefile = os_path_join(self.configPath, "extras_database.db")
         log("ExtrasDB: Database file location = %s" % self.databasefile)
 
     def cleanDatabase(self):
@@ -1216,6 +1257,12 @@ class SourceDetails():
                 SourceDetails.title = xbmc.getInfoLabel( "ListItem.TVShowTitle" )
             else:
                 SourceDetails.title = xbmc.getInfoLabel( "ListItem.Title" )
+            # There are times when the title has a different encoding
+            try:
+                SourceDetails.title = SourceDetails.title.decode("utf-8")
+            except:
+                pass
+
         return SourceDetails.title
 
     @staticmethod
@@ -1225,6 +1272,12 @@ class SourceDetails():
                 SourceDetails.tvshowtitle = xbmc.getInfoLabel( "ListItem.TVShowTitle" )
             else:
                 SourceDetails.tvshowtitle = ""
+            # There are times when the title has a different encoding
+            try:
+                SourceDetails.tvshowtitle = SourceDetails.tvshowtitle.decode("utf-8")
+            except:
+                pass
+
         return SourceDetails.tvshowtitle
 
     # This is a bit of a hack, when we set the path we need to set it an extra

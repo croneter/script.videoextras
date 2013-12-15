@@ -1,5 +1,6 @@
 v1.0.2
 - Support windows shares as \\SERVER\Name
+- Fix non-ascii names on non-windows platform
 
 v1.0.1
 - Add selection for return window for detailed list
