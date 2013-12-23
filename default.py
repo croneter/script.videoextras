@@ -841,7 +841,7 @@ class VideoExtrasFinder():
         dirs, files = xbmcvfs.listdir(directory)
 
         for aFile in files:
-            if not self._shouldSkipFile(aFile) and (extrasTag in aFile):
+            if not self._shouldSkipFile(aFile) and (extrasTag in aFile) and aFile.startswith(os.path.splitext(filename)[0] + extrasTag):
                 extrasFile = os_path_join( directory, aFile )
                 extraItem = ExtrasItem(directory, extrasFile, True, extrasDb=self.extrasDb)
                 extras.append(extraItem)
