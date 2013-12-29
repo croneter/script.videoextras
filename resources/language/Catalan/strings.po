@@ -21,15 +21,11 @@ msgid "Add Video Extras to your Movies and TV shows."
 msgstr "Afegeix vídeos extres a les teves pel·lícules i sèries de televisió."
 
 msgctxt "Addon Description"
-msgid ""
-"Provides a way to add Video Extras to your Video library. Look at the wiki "
-"for setup instructions."
+msgid "Provides a way to add Video Extras to your Video library. Look at the wiki for setup instructions."
 msgstr "Proporciona una manera d'afegir vídeo extres a la seva biblioteca de vídeo. Mira el wiki per instruccions d'instal·lació."
 
 msgctxt "Addon Disclaimer"
-msgid ""
-"Skinners, please see the wiki to know how to integrate it in your skin: "
-"http://wiki.xbmc.org/index.php?title=Add-on:VideoExtras"
+msgid "Skinners, please see the wiki to know how to integrate it in your skin: http://wiki.xbmc.org/index.php?title=Add-on:VideoExtras"
 msgstr "Skinner, si us plau, consulteu el wiki per saber com integrar-lo en la vostra pell: http://wiki.xbmc.org/index.php?title=Add-on:VideoExtras"
 
 msgctxt "#32001"
