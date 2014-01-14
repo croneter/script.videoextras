@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <window type="buttonMenu">
 	<defaultcontrol>9001</defaultcontrol>
-	<animation effect="fade" time="250">WindowOpen</animation>
-	<animation effect="fade" time="250">WindowClose</animation>
+	<include>dialogeffect</include>
 	<allowoverlay>yes</allowoverlay>
 	<coordinates>
 		<system>1</system>
