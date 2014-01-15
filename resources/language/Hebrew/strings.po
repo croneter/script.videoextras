@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: XBMC Addons\n"
 "Report-Msgid-Bugs-To: alanwww1@xbmc.org\n"
 "POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"PO-Revision-Date: 2014-01-14 14:36+0000\n"
+"PO-Revision-Date: 2014-01-15 02:40+0000\n"
 "Last-Translator: dhead666 <myfoolishgames@gmail.com>\n"
 "Language-Team: Hebrew (http://www.transifex.com/projects/p/xbmc-addons/language/he/)\n"
 "MIME-Version: 1.0\n"
@@ -20,13 +20,13 @@ msgstr ""
 
 msgctxt "Addon Summary"
 msgid "Add Video Extras to your Movies and TV shows."
-msgstr "הוסף Extra של וידאו לסרטים ולסדרות שלך."
+msgstr "הוסף ספיישלים (Video Extras) לסרטים ולסדרות שלך."
 
 msgctxt "Addon Description"
 msgid ""
 "Provides a way to add Video Extras to your Video library. Look at the wiki "
 "for setup instructions."
-msgstr "מספק אפשרות להוסיף Extra של וידאו לספריית הוידאו שלך. פנה לוויקי להוראות התקנה."
+msgstr "מספק אפשרות להוסיף ספיישלים (Video Extras) לספריית הוידאו שלך. פנה לוויקי להוראות התקנה."
 
 msgctxt "Addon Disclaimer"
 msgid ""
@@ -36,11 +36,11 @@ msgstr "מפתחי מעטפות, אנא פנו לוויקי להבנה כיצד 
 
 msgctxt "#32001"
 msgid "Extras"
-msgstr "Extras"
+msgstr "ספיישלים"
 
 msgctxt "#32002"
 msgid "Extras Directory Name"
-msgstr "שם תיקיית Extras"
+msgstr "שם תיקיית ספיישלים"
 
 msgctxt "#32003"
 msgid "Search Nested Directories"
@@ -48,15 +48,15 @@ msgstr "חפש בתיקיות מקוננות"
 
 msgctxt "#32004"
 msgid "Enable Extras with File Tag"
-msgstr "הפעל Extra עם תגית קובץ"
+msgstr "אפשר זיהוי ספיישלים לפי תגית קובץ"
 
 msgctxt "#32005"
 msgid "Extras File Name Tag"
-msgstr "תגית שם קובץ Extra"
+msgstr "תגית שם קובץ ספיישל"
 
 msgctxt "#32006"
 msgid "Menu to show after playing an extra"
-msgstr "תפריט להצגה לאחר ניגון Extra"
+msgstr "תפריט להצגה לאחר ניגון ספיישל"
 
 msgctxt "#32007"
 msgid "Video Selection"
@@ -76,11 +76,11 @@ msgstr "מערכת קבצים"
 
 msgctxt "#32011"
 msgid "Remote Extras Location"
-msgstr "מיקום Extra מרוחק"
+msgstr "מיקום ספיישלים מרוחק"
 
 msgctxt "#32012"
 msgid "Use Custom Extras Location"
-msgstr "מיקום Extra מותאם"
+msgstr "מיקום ספיישלים מותאם"
 
 msgctxt "#32013"
 msgid "Path"
@@ -100,11 +100,11 @@ msgstr "מתקדם"
 
 msgctxt "#32017"
 msgid "Force Extras Button Display"
-msgstr "הכרח הצגת לחצן Extras"
+msgstr "אלץ הצגת לחצן ספיישלים"
 
 msgctxt "#32018"
 msgid "Exclude Files Regular Expression"
-msgstr "RegEX להשמטת קבצים"
+msgstr "RegEX לאי הכללת קבצים"
 
 msgctxt "#32019"
 msgid "Debugging"
@@ -148,7 +148,7 @@ msgstr "מידע"
 
 msgctxt "#32103"
 msgid "No extras found"
-msgstr "לא נמצאו Extras"
+msgstr "לא נמצאו ספיישלים"
 
 msgctxt "#32104"
 msgid "Resume from"
