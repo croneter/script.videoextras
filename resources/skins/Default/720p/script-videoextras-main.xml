@@ -324,90 +324,6 @@
 			</control>
 		</control>
 
-		<!-- include: MainWindowMouseButtons -->
-		<control type="group">
-			<posx>120r</posx>
-			<posy>55r</posy>
-			<animation effect="fade" time="250" condition="Window.Previous(Home)">WindowOpen</animation>
-			<animation effect="fade" time="250" condition="Window.Next(Home)">WindowClose</animation>
-			<visible>system.getbool(input.enablemouse)</visible>
-			<control type="button">
-				<description>Back push button</description>
-				<posx>0</posx>
-				<posy>0</posy>
-				<width>45</width>
-				<height>45</height>
-				<label>1036</label>
-				<font>-</font>
-				<aligny>-</aligny>
-				<onclick>back</onclick>
-				<texturefocus border="5">floor_buttonFO.png</texturefocus>
-				<texturenofocus border="5">floor_button.png</texturenofocus>
-				<onleft>50</onleft>
-				<onright>50</onright>
-				<onup>50</onup>
-				<ondown>50</ondown>
-			</control>
-			<control type="image">
-				<description>Back Icon</description>
-				<posx>5</posx>
-				<posy>5</posy>
-				<width>35</width>
-				<height>35</height>
-				<aspectratio>keep</aspectratio>
-				<texture>icon_back.png</texture>
-			</control>
-			<control type="button">
-				<description>Home push button</description>
-				<posx>55</posx>
-				<posy>0</posy>
-				<width>45</width>
-				<height>45</height>
-				<label>31003</label>
-				<font>-</font>
-				<aligny>-</aligny>
-				<onclick>ActivateWindow(home)</onclick>
-				<texturefocus border="5">floor_buttonFO.png</texturefocus>
-				<texturenofocus border="5">floor_button.png</texturenofocus>
-				<onleft>50</onleft>
-				<onright>50</onright>
-				<onup>50</onup>
-				<ondown>50</ondown>
-			</control>
-			<control type="image">
-				<description>Home Icon</description>
-				<posx>60</posx>
-				<posy>5</posy>
-				<width>35</width>
-				<height>35</height>
-				<aspectratio>keep</aspectratio>
-				<texture>icon_home.png</texture>
-			</control>
-		</control>
-
-
-
-		<!-- include: BehindDialogFadeOut -->
-		<control type="image">
-			<posx>0</posx>
-			<posy>0</posy>
-			<width>1280</width>
-			<height>720</height>
-			<texture>black-back.png</texture>
-			<animation effect="fade" time="400">Visible</animation>
-			<animation effect="fade" time="200">Hidden</animation>
-			<visible>Window.IsActive(MovieInformation) | Window.IsActive(SelectDialog)</visible>
-		</control>
-
-		<control type="image">
-			<description>Section header image</description>
-			<posx>20</posx>
-			<posy>3</posy>
-			<width>35</width>
-			<height>35</height>
-			<aspectratio>keep</aspectratio>
-			<texture>icon_video.png</texture>
-		</control>
 		<control type="grouplist">
 			<description>Section header Test Label: "Extras - Title"</description>
 			<posx>65</posx>
@@ -465,13 +381,6 @@
 				<scrolltime>200</scrolltime>
 				<itemlayout height="40" width="1080">
 					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>1080</width>
-						<height>41</height>
-						<texture border="0,2,0,2">MenuItemNF.png</texture>
-					</control>
-					<control type="image">
 						<posx>10</posx>
 						<posy>4</posy>
 						<width>40</width>
@@ -503,33 +412,12 @@
 						<posy>14</posy>
 						<width>20</width>
 						<height>20</height>
+						<!-- Default XBMC Icon -->
 						<texture>OverlayWatched.png</texture>
 						<visible>IntegerGreaterThan(ListItem.PlayCount,0)</visible>
 					</control>
 				</itemlayout>
 				<focusedlayout height="40" width="1080">
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>1080</width>
-						<height>41</height>
-						<texture border="0,2,0,2">MenuItemNF.png</texture>
-						<visible>!Control.HasFocus(51)</visible>
-						<!-- include: VisibleFadeEffect -->
-						<animation effect="fade" time="300">Visible</animation>
-						<animation effect="fade" time="300">Hidden</animation>
-					</control>
-					<control type="image">
-						<posx>0</posx>
-						<posy>0</posy>
-						<width>1080</width>
-						<height>41</height>
-						<texture border="0,2,0,2">MenuItemFO.png</texture>
-						<visible>Control.HasFocus(51)</visible>
-						<!-- include: VisibleFadeEffect -->
-						<animation effect="fade" time="300">Visible</animation>
-						<animation effect="fade" time="300">Hidden</animation>
-					</control>
 					<control type="image">
 						<posx>10</posx>
 						<posy>4</posy>
@@ -562,6 +450,7 @@
 						<posy>14</posy>
 						<width>20</width>
 						<height>20</height>
+						<!-- Default XBMC Icon -->
 						<texture>OverlayWatched.png</texture>
 						<visible>IntegerGreaterThan(ListItem.PlayCount,0)</visible>
 					</control>
