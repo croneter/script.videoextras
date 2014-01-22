@@ -1,3 +1,6 @@
+v1.0.4
+- Add Video duration to the display listing
+
 v1.0.3
 - Fix returning from extras list bug
 

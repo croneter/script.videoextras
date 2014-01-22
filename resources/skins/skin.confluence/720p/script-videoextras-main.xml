@@ -86,6 +86,20 @@
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label]</label>
 					</control>
+					<!-- Label 2 is used to store the Duration HH:MM:SS -->
+					<control type="label">
+						<posx>950</posx>
+						<posy>0</posy>
+						<width>100</width>
+						<height>40</height>
+						<font>font13</font>
+						<textcolor>grey2</textcolor>
+						<selectedcolor>selected</selectedcolor>
+						<align>right</align>
+						<aligny>center</aligny>
+						<visible>!IsEmpty(ListItem.Label2)</visible>
+						<label>$INFO[ListItem.Label2]</label>
+					</control>
 					<control type="image">
 						<posx>1050</posx>
 						<posy>14</posy>
@@ -140,6 +154,20 @@
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label]</label>
+					</control>
+					<!-- Label 2 is used to store the Duration HH:MM:SS -->
+					<control type="label">
+						<posx>950</posx>
+						<posy>0</posy>
+						<width>100</width>
+						<height>40</height>
+						<font>font13</font>
+						<textcolor>white</textcolor>
+						<selectedcolor>selected</selectedcolor>
+						<align>right</align>
+						<aligny>center</aligny>
+						<visible>!IsEmpty(ListItem.Label2)</visible>
+						<label>$INFO[ListItem.Label2]</label>
 					</control>
 					<control type="image">
 						<posx>1050</posx>
