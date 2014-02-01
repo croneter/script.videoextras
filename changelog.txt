@@ -1,4 +1,5 @@
 v1.0.4
+- Improved default window xml for detailed list to work with most skins
 - Add Video duration to the display listing
 
 v1.0.3
