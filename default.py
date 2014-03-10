@@ -243,6 +243,19 @@ class BaseExtrasItem():
     def getFilename(self):
         return self.filename
 
+    # Gets the file that needs to be passed to the player
+    def getMediaFilename(self):
+        # Check to see if the filename actually holds a directory
+        # If that is the case, we will only support it being a DVD Directory Image
+        # So check to see if the expected file is set
+        videoTSDir = os_path_join( self.filename, 'VIDEO_TS' )
+        if xbmcvfs.exists(videoTSDir):
+            ifoFile = os_path_join( videoTSDir, 'VIDEO_TS.IFO' )
+            if xbmcvfs.exists( ifoFile ):
+                return ifoFile
+        
+        return self.filename
+
     # Compare if a filename matches the existing one
     def isFilenameMatch(self, compareToFilename):
         srcFilename = self.filename
@@ -581,6 +594,12 @@ class ExtrasItem(BaseExtrasItem):
         return self.watched
     
     def setTotalDuration(self, totalDuration):
+        # Do not set the total duration on DVD Image directories as
+        # this will be incorrect
+        videoTSDir = os_path_join( self.filename, 'VIDEO_TS' )
+        if xbmcvfs.exists(videoTSDir):
+            return
+
         self.totalDuration = totalDuration
 
     def getTotalDuration(self):
@@ -590,6 +609,12 @@ class ExtrasItem(BaseExtrasItem):
         return BaseExtrasItem.getDisplayDuration(self, self.totalDuration)
 
     def setResumePoint(self, currentPoint):
+        # Do not set the resume point on DVD Image directories as
+        # this will be incorrect
+        videoTSDir = os_path_join( self.filename, 'VIDEO_TS' )
+        if xbmcvfs.exists(videoTSDir):
+            return
+
         # Now set the flag to show if it has been watched
         # Consider watched if within 15 seconds of the end
         if (currentPoint + 15 > self.totalDuration) and (self.totalDuration > 0):
@@ -613,6 +638,12 @@ class ExtrasItem(BaseExtrasItem):
         return True
 
     def saveState(self):
+        # Do not save the state on DVD Image directories as
+        # this will be incorrect
+        videoTSDir = os_path_join( self.filename, 'VIDEO_TS' )
+        if xbmcvfs.exists(videoTSDir):
+            return
+
         if self.extrasDb == None:
             log("ExtrasItem: Database not enabled")
             return
@@ -678,7 +709,7 @@ class ExtrasPlayer(xbmc.Player):
         play = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
         listitem = self._getListItem(extrasItem)
         play.clear()
-        play.add(extrasItem.getFilename(), listitem)
+        play.add(extrasItem.getMediaFilename(), listitem)
         xbmc.Player.play(self, play)
 
     # Play a list of extras
@@ -688,7 +719,7 @@ class ExtrasPlayer(xbmc.Player):
 
         for exItem in extrasItems:
             listitem = self._getListItem(exItem)
-            play.add(exItem.getFilename(), listitem)
+            play.add(exItem.getMediaFilename(), listitem)
 
         xbmc.Player.play(self, play)
 
@@ -865,6 +896,23 @@ class VideoExtrasFinder():
                     # Check if we are only looking for the first entry
                     if exitOnFirst == True:
                         break
+            # Now check all the directories in the "Extras" directory
+            # Need to see if they contain a DVD image
+            for dirName in dirs:
+                log( "VideoExtrasFinder: found directory: %s" % dirName)
+                # Check each directory to see if it should be skipped
+                if not self._shouldSkipFile(dirName):
+                    extrasSubDir = os_path_join( extrasDir, dirName )
+                    # Check to see if this sub-directory is a DVD directory by checking
+                    # to see if there is VIDEO_TS directory
+                    videoTSDir = os_path_join( extrasSubDir, 'VIDEO_TS' )
+                    if xbmcvfs.exists( videoTSDir ):
+                        extraItem = ExtrasItem(extrasDir, extrasSubDir, extrasDb=self.extrasDb)
+                        extras.append(extraItem)
+                    # Check if we are only looking for the first entry
+                    if exitOnFirst == True:
+                        break
+
         return extras
 
     def _getNestedExtrasFiles(self, basepath, filename, exitOnFirst=False):
@@ -1082,7 +1130,10 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             anItem.setInfo('video', { 'Title': SourceDetails.getTitle() })
             # We store the duration here, but it is only in minutes and does not
             # look very good if displayed, so we also set Label2 to a viewable value
-            anItem.setInfo('video', { 'Duration': int(anExtra.getDuration()/60) })
+            intDuration = anExtra.getDuration()
+            # Only add the duration if there is one
+            if intDuration > 0:
+                anItem.setInfo('video', { 'Duration': int(anExtra.getDuration()/60) })
             if SourceDetails.getTvShowTitle() != "":
                 anItem.setInfo('video', { 'TvShowTitle': SourceDetails.getTvShowTitle() })
 
