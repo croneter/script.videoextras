@@ -18,7 +18,6 @@ import sys
 import os
 import re
 import random
-import sqlite3
 import traceback
 import xml.etree.ElementTree as ET
 #Modules XBMC
@@ -44,120 +43,17 @@ __lib__  = xbmc.translatePath( os.path.join( __resource__, 'lib' ).encode("utf-8
 sys.path.append(__resource__)
 sys.path.append(__lib__)
 
+# Import the common settings
+from settings import Settings
+from settings import log
+from settings import os_path_join
+
+# Load the database interface
+from database import ExtrasDB
+
 from VideoParser import VideoParser
 
 
-def log(txt):
-    if __addon__.getSetting( "logEnabled" ) == "true":
-        if isinstance (txt,str):
-            txt = txt.decode("utf-8")
-        message = u'%s: %s' % (__addonid__, txt)
-        xbmc.log(msg=message.encode("utf-8"), level=xbmc.LOGDEBUG)
-
-# There has been problems with calling join with non ascii characters,
-# so we have this method to try and do the conversion for us
-def os_path_join( dir, file ):
-    # Convert each argument - if an error, then it will use the default value
-    # that was passed in
-    try:
-        dir = dir.decode("utf-8")
-    except:
-        pass
-    try:
-        file = file.decode("utf-8")
-    except:
-        pass
-    return os.path.join(dir, file)
-
-##############################
-# Stores Various Settings
-##############################
-class Settings():
-    @staticmethod
-    def getExcludeFiles():
-        return __addon__.getSetting( "excludeFiles" )
-
-    @staticmethod
-    def getExtrasDirName():
-        return __addon__.getSetting( "extrasDirName" )
-
-    @staticmethod
-    def getExtrasFileTag():
-        if  __addon__.getSetting( "enableFileTag" ) != "true":
-            return ""
-        return __addon__.getSetting( "extrasFileTag" )
-
-    @staticmethod
-    def isSearchNested():
-        return __addon__.getSetting( "searchNested" ) == "true"
-
-    @staticmethod
-    def isDetailedListScreen():
-        return __addon__.getSetting( "detailedList" ) == "true"
-
-    @staticmethod
-    def isMenuReturnVideoSelection():
-        settingsSelect = "extrasReturn"
-        if Settings.isDetailedListScreen():
-            settingsSelect = "detailedReturn"
-        return __addon__.getSetting( settingsSelect ) == __addon__.getLocalizedString(32007)
-
-    @staticmethod
-    def isMenuReturnHome():
-        settingsSelect = "extrasReturn"
-        if Settings.isDetailedListScreen():
-            settingsSelect = "detailedReturn"
-        return __addon__.getSetting( settingsSelect ) == __addon__.getLocalizedString(32009)
-
-    @staticmethod
-    def isMenuReturnInformation():
-        settingsSelect = "extrasReturn"
-        if Settings.isDetailedListScreen():
-            settingsSelect = "detailedReturn"
-        return __addon__.getSetting( settingsSelect ) == __addon__.getLocalizedString(32008)
-
-    @staticmethod
-    def isMenuReturnExtras():
-        if Settings.isDetailedListScreen():
-            return False
-        return __addon__.getSetting( "extrasReturn" ) == __addon__.getLocalizedString(32001)
-
-    @staticmethod
-    def isForceButtonDisplay():
-        return __addon__.getSetting( "forceButtonDisplay" ) == "true"
-
-    @staticmethod
-    def getAddonVersion():
-        return __addon__.getAddonInfo('version')
-
-    @staticmethod
-    def isDatabaseEnabled():
-        return __addon__.getSetting( "enableDB" ) == "true"
-
-    @staticmethod
-    def isCustomPathEnabled():
-        return __addon__.getSetting("custom_path_enable") == 'true'
-    
-    @staticmethod
-    def getCustomPath():
-        if Settings.isCustomPathEnabled():
-            return __addon__.getSetting("custom_path")
-        else:
-            return None
-
-    @staticmethod
-    def getCustomPathMoviesDir():
-        if Settings.isCustomPathEnabled():
-            return __addon__.getSetting("custom_path_movies")
-        else:
-            return ""
-
-    @staticmethod
-    def getCustomPathTvShowsDir():
-        if Settings.isCustomPathEnabled():
-            return __addon__.getSetting("custom_path_tvshows")
-        else:
-            return ""
 
 ###############################################################
 # Class to make it easier to see which screen is being checked
@@ -671,50 +567,22 @@ class ExtrasItem(BaseExtrasItem):
         
         log("ExtrasItem: Saving state for %s" % self.getFilename())
         
-        # Get a connection to the DB
-        conn = self.extrasDb.getConnection()
-        c = conn.cursor()
-        
-        insertData = (self.getFilename(), self.resumePoint, self.totalDuration, self.getWatched())
-        c.execute('''INSERT OR REPLACE INTO ExtrasFile(filename, resumePoint, duration, watched) VALUES (?,?,?,?)''', insertData)
-
-        rowId = c.lastrowid
-        conn.commit()
-        conn.close()
-        
+        rowId = self.extrasDb.insertOrUpdate(self.getFilename(), self.resumePoint, self.totalDuration, self.getWatched())
         return rowId
 
     def _loadState(self):
         if self.extrasDb == None:
             log("ExtrasItem: Database not enabled")
             return
-        
+
         log("ExtrasItem: Loading state for %s" % self.getFilename())
-        
-        # Get a connection to the DB
-        conn = self.extrasDb.getConnection()
-        c = conn.cursor()
-        # Select any existing data from the database
-        c.execute('SELECT * FROM ExtrasFile where filename = ?', (self.getFilename(),))
-        row = c.fetchone()
-        
-        if row == None:
-            log("ExtrasItem: No entry found in the database")
-            return
 
-        log("ExtrasItem: Database info: %s" % str(row))
+        returnData = self.extrasDb.select(self.getFilename())
 
-        # Return will contain
-        # row[0] - Unique Index in the DB
-        # row[1] - Name of the file
-        # row[2] - Current point played to (or -1 is not saved)
-        # row[3] - Total Duration of the video 
-        # row[4] - 0 if not watched 1 if watched
-        self.resumePoint = row[2]
-        self.totalDuration = row[3]
-        self.watched = row[4]
-
-        conn.close()
+        if returnData != None:
+            self.resumePoint = returnData['resumePoint']
+            self.totalDuration = returnData['totalDuration']
+            self.watched = returnData['watched']
 
 
 ###################################
@@ -1227,6 +1095,7 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         # Now update the database with the fact this has now been watched
         extraItem.saveState()
 
+
     # Search the list of extras for a given filename
     def _getCurrentSelection(self):
         self.lastRecordedListPosition = self.getCurrentListPosition()
@@ -1304,68 +1173,6 @@ class VideoExtrasResumeWindow(xbmcgui.WindowXMLDialog):
        
 
 
-#################################
-# Class to handle database access
-#################################
-class ExtrasDB():
-    def __init__( self ):
-        # Start by getting the database location
-        self.configPath = xbmc.translatePath(__addon__.getAddonInfo('profile'))
-        self.databasefile = os_path_join(self.configPath, "extras_database.db")
-        log("ExtrasDB: Database file location = %s" % self.databasefile)
-
-    def cleanDatabase(self):
-        isYes = xbmcgui.Dialog().yesno(__addon__.getLocalizedString(32102), __addon__.getLocalizedString(32024) + "?")
-        if isYes:
-            # If the database file exists, delete it
-            if xbmcvfs.exists(self.databasefile):
-                xbmcvfs.delete(self.databasefile)
-                log("ExtrasDB: Removed database: %s" % self.databasefile)
-            else:
-                log("ExtrasDB: No database exists: %s" % self.databasefile)
-    
-    def createDatabase(self):
-        # Make sure the database does not already exist
-        if not xbmcvfs.exists(self.databasefile):
-            # Get a connection to the database, this will create the file
-            conn = sqlite3.connect(self.databasefile)
-            conn.text_factory = str
-            c = conn.cursor()
-            
-            # Create the version number table, this is a simple table
-            # that just holds the version details of what created it
-            # It should make upgrade later easier
-            c.execute('''CREATE TABLE version (version text primary key)''')
-            
-            # Insert a row for the version
-            versionNum = "1"
-
-            # Run the statement passing in an array with one value
-            c.execute("INSERT INTO version VALUES (?)", (versionNum,))
-
-            # Create a table that will be used to store each extras file
-            # The "id" will be auto-generated as the primary key
-            c.execute('''CREATE TABLE ExtrasFile (id integer primary key, filename text unique, resumePoint integer, duration integer, watched integer)''')
-
-            # Save (commit) the changes
-            conn.commit()
-
-            # We can also close the connection if we are done with it.
-            # Just be sure any changes have been committed or they will be lost.
-            conn.close()
-        else:
-            # Check if this is an upgrade
-            conn = sqlite3.connect(self.databasefile)
-            c = conn.cursor()
-            c.execute('SELECT * FROM version')
-            log("Current version number in DB is: %s" % c.fetchone()[0])
-            conn.close()
-
-    # Get a connection to the current database
-    def getConnection(self):
-        conn = sqlite3.connect(self.databasefile)
-        conn.text_factory = str
-        return conn
 
 
 ##################################################
