@@ -26,6 +26,7 @@ import xbmc
 import xbmcgui
 import xbmcvfs
 import xbmcaddon
+import urllib
 
 # Add JSON support for queries
 if sys.version_info < (2, 7):
@@ -1040,6 +1041,9 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             # Set the background image
             anItem.setProperty( "Fanart_Image", anExtra.getFanArt() )
 
+            # Add the context menu
+            self._addContextMenu(anItem, anExtra.getFilename())
+
             self.addItem(anItem)
         
         # Before we return, set back the selected on screen item to the one just watched
@@ -1109,6 +1113,36 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
                 log("VideoExtrasWindow: Found  = %s" % filename)
                 return anExtra
         return None
+
+    # Creates a URL for a directory
+    def _build_url(self, query):
+        return __cwd__ + '?' + urllib.urlencode(query)
+
+
+    def _addContextMenu(self, listitem, filename):
+#        ACTION_RESUME_FROM = 'resume'
+        ACTION_MARK_AS_WATCHED = 'setWatched'
+        ACTION_MARK_AS_UNWATCHED = 'setUnwatched'
+
+        ctxtMenu = []
+        # Resume from
+#        cmd = self._build_url({'action': ACTION_RESUME_FROM, 'filename': filename})
+#        ctxtMenu.append(('Mark as unwatched', 'XBMC.RunPlugin(%s)' % cmd))
+        # Mark Watched
+        cmd = self._build_url({'action': ACTION_MARK_AS_WATCHED, 'filename': filename})
+        log("*** ROB ***: %s" % cmd)
+        log("*** ROB ***: sys.argv = %s" % str(sys.argv))
+        ctxtMenu.append(('Mark as watched', 'XBMC.RunPlugin(%s)' % cmd))
+        # Mark Unwatched
+        cmd = self._build_url({'action': ACTION_MARK_AS_UNWATCHED, 'filename': filename})
+        ctxtMenu.append(('Mark as unwatched', 'XBMC.RunPlugin(%s)' % cmd))
+        
+        # Other future options
+        # Edit Title (Could create an NFO file for you)
+
+        listitem.addContextMenuItems(ctxtMenu, replaceItems=True)
+
+
 
 
 ##################################################
