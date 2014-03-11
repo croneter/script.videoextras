@@ -248,13 +248,23 @@ class BaseExtrasItem():
         # Check to see if the filename actually holds a directory
         # If that is the case, we will only support it being a DVD Directory Image
         # So check to see if the expected file is set
+        vobFile = self.getVOBFile()
+        if vobFile != None:
+            return vobFile
+        
+        return self.filename
+
+    # Gets the path to the VOB playable file, or None if not a VOB
+    def getVOBFile(self):
+        # Check to see if the filename actually holds a directory
+        # If that is the case, we will only support it being a DVD Directory Image
+        # So check to see if the expected file is set
         videoTSDir = os_path_join( self.filename, 'VIDEO_TS' )
         if xbmcvfs.exists(videoTSDir):
             ifoFile = os_path_join( videoTSDir, 'VIDEO_TS.IFO' )
             if xbmcvfs.exists( ifoFile ):
                 return ifoFile
-        
-        return self.filename
+        return None
 
     # Compare if a filename matches the existing one
     def isFilenameMatch(self, compareToFilename):
@@ -592,12 +602,25 @@ class ExtrasItem(BaseExtrasItem):
     # http://forum.xbmc.org/showthread.php?tid=177368
     def getWatched(self):
         return self.watched
-    
+
+    # If the playing progress should be recorded for this file, things like
+    # ISO's and VOBs do not handle this well as the incorrect values are
+    # returned from the player
+    def shouldStoreProgress(self):
+        if self.getVOBFile() != None:
+            return False
+        # Get the extension of the file
+        fileExt = os.path.splitext( self.getFilename() )[1]
+        if (fileExt == None) or (fileExt == "") or (fileExt.lower() == '.iso') :
+            return False
+        # Default is true
+        return True
+
+
     def setTotalDuration(self, totalDuration):
-        # Do not set the total duration on DVD Image directories as
+        # Do not set the total duration on DVD Images as
         # this will be incorrect
-        videoTSDir = os_path_join( self.filename, 'VIDEO_TS' )
-        if xbmcvfs.exists(videoTSDir):
+        if not self.shouldStoreProgress():
             return
 
         self.totalDuration = totalDuration
@@ -609,10 +632,9 @@ class ExtrasItem(BaseExtrasItem):
         return BaseExtrasItem.getDisplayDuration(self, self.totalDuration)
 
     def setResumePoint(self, currentPoint):
-        # Do not set the resume point on DVD Image directories as
+        # Do not set the resume point on DVD Images as
         # this will be incorrect
-        videoTSDir = os_path_join( self.filename, 'VIDEO_TS' )
-        if xbmcvfs.exists(videoTSDir):
+        if not self.shouldStoreProgress():
             return
 
         # Now set the flag to show if it has been watched
@@ -638,10 +660,9 @@ class ExtrasItem(BaseExtrasItem):
         return True
 
     def saveState(self):
-        # Do not save the state on DVD Image directories as
+        # Do not save the state on DVD Images as
         # this will be incorrect
-        videoTSDir = os_path_join( self.filename, 'VIDEO_TS' )
-        if xbmcvfs.exists(videoTSDir):
+        if not self.shouldStoreProgress():
             return
 
         if self.extrasDb == None:
