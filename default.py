@@ -951,10 +951,21 @@ class VideoExtras():
             # "Info", "No extras found"
             xbmcgui.Dialog().ok(__addon__.getLocalizedString(32102), __addon__.getLocalizedString(32103))
         else:
+            isTvTunesAlreadySet = True
             needsWindowReset = True
             
             # Check which listing format to use
             if Settings.isDetailedListScreen():
+                # Check if TV Tunes override is already set
+                isTvTunesAlreadySet = (xbmcgui.Window( 12000 ).getProperty("TvTunesContinuePlaying").lower() == "true")
+                # If TV Tunes is running we want to ensure that we still keep the theme going
+                # so set this variable on the home screen
+                if not isTvTunesAlreadySet:
+                    log("VideoExtras: Setting TV Tunes override")
+                    xbmcgui.Window( 12000 ).setProperty( "TvTunesContinuePlaying", "True" )
+                else:
+                    log("VideoExtras: TV Tunes override already set")
+
                 extrasWindow = VideoExtrasWindow.createVideoExtrasWindow(files=files)
                 xbmc.executebuiltin( "Dialog.Close(movieinformation)", True )
                 extrasWindow.doModal()
@@ -987,6 +998,10 @@ class VideoExtras():
                             # Reshow the exList that was previously generated
                             self.run(files)
 
+            # Tidy up the TV Tunes flag if we set it
+            if not isTvTunesAlreadySet:
+                log("VideoExtras: Clearing TV Tunes override")
+                xbmcgui.Window( 12000 ).clearProperty( "TvTunesContinuePlaying" )
 
 
 #####################################################################
@@ -1040,9 +1055,6 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
 
             # Set the background image
             anItem.setProperty( "Fanart_Image", anExtra.getFanArt() )
-
-            # Add the context menu
-            self._addContextMenu(anItem, anExtra.getFilename())
 
             self.addItem(anItem)
         
@@ -1113,35 +1125,6 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
                 log("VideoExtrasWindow: Found  = %s" % filename)
                 return anExtra
         return None
-
-    # Creates a URL for a directory
-    def _build_url(self, query):
-        return __cwd__ + '?' + urllib.urlencode(query)
-
-
-    def _addContextMenu(self, listitem, filename):
-#        ACTION_RESUME_FROM = 'resume'
-        ACTION_MARK_AS_WATCHED = 'setWatched'
-        ACTION_MARK_AS_UNWATCHED = 'setUnwatched'
-
-        ctxtMenu = []
-        # Resume from
-#        cmd = self._build_url({'action': ACTION_RESUME_FROM, 'filename': filename})
-#        ctxtMenu.append(('Mark as unwatched', 'XBMC.RunPlugin(%s)' % cmd))
-        # Mark Watched
-        cmd = self._build_url({'action': ACTION_MARK_AS_WATCHED, 'filename': filename})
-        log("*** ROB ***: %s" % cmd)
-        log("*** ROB ***: sys.argv = %s" % str(sys.argv))
-        ctxtMenu.append(('Mark as watched', 'XBMC.RunPlugin(%s)' % cmd))
-        # Mark Unwatched
-        cmd = self._build_url({'action': ACTION_MARK_AS_UNWATCHED, 'filename': filename})
-        ctxtMenu.append(('Mark as unwatched', 'XBMC.RunPlugin(%s)' % cmd))
-        
-        # Other future options
-        # Edit Title (Could create an NFO file for you)
-
-        listitem.addContextMenuItems(ctxtMenu, replaceItems=True)
-
 
 
 
@@ -1328,3 +1311,4 @@ try:
                     videoExtras.run(files)
 except:
     log("ExtrasItem: %s" % traceback.format_exc())
+
