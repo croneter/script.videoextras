@@ -26,7 +26,6 @@ import xbmc
 import xbmcgui
 import xbmcvfs
 import xbmcaddon
-import urllib
 
 # Add JSON support for queries
 if sys.version_info < (2, 7):
@@ -551,6 +550,21 @@ class ExtrasItem(BaseExtrasItem):
     def getResumePoint(self):
         return self.resumePoint
 
+    # Get the string display version of the Resume time
+    def getDisplayResumePoint(self):
+        # Split the time up ready for display
+        minutes, seconds = divmod(self.resumePoint, 60)
+
+        hoursString = ""        
+        if minutes > 60:
+            # Need to collect hours if needed
+            hours, minutes = divmod(minutes, 60)
+            hoursString = "%02d:" % hours
+        
+        newLabel = "%s%02d:%02d" % (hoursString, minutes, seconds)
+        return newLabel
+
+
     def isResumable(self):
         if self.watched == 1 or self.resumePoint < 1:
             return False
@@ -1065,6 +1079,37 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         
         xbmcgui.WindowXML.onInit(self)
 
+    # Handle the close action and the context menu request
+    def onAction(self, action):
+        # actioncodes from https://github.com/xbmc/xbmc/blob/master/xbmc/guilib/Key.h
+        ACTION_PREVIOUS_MENU = 10
+        ACTION_NAV_BACK      = 92
+        ACTION_CONTEXT_MENU = 117
+
+        if (action == ACTION_PREVIOUS_MENU) or (action == ACTION_NAV_BACK):
+            log("VideoExtrasWindow: Close Action received: %s" % str(action))
+            self.close()
+        elif action == ACTION_CONTEXT_MENU:
+            # Get the item that was clicked on
+            extraItem = self._getCurrentSelection()
+            # create the context window
+            contextWindow = VideoExtrasContextMenu.createVideoExtrasContextMenu(extraItem)
+            contextWindow.doModal()
+            
+            # Check the return value, if exit, then we play nothing
+            if contextWindow.isExit():
+                return
+            # If requested to restart from beginning, reset the resume point before playing
+            if contextWindow.isRestart():
+                extraItem.setResumePoint(0)
+
+            # TODO: Handle extra operations
+            # TODO: More strings to Language files
+            # TODO: Add Confluence skin for Context Menu
+
+            self._performPlayAction(extraItem)
+
+
     def onClick(self, control):
         # Get the item that was clicked on
         extraItem = self._getCurrentSelection()
@@ -1074,8 +1119,9 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             log("VideoExtrasWindow: Unable to match item to current selection")
             return
         
+        # If part way viewed prompt the user for resume or play from beginning
         if extraItem.getResumePoint() > 0:
-            resumeWindow = VideoExtrasResumeWindow.createVideoExtrasResumeWindow(extraItem.getResumePoint())
+            resumeWindow = VideoExtrasResumeWindow.createVideoExtrasResumeWindow(extraItem.getDisplayResumePoint())
             resumeWindow.doModal()
             
             # Check the return value, if exit, then we play nothing
@@ -1085,7 +1131,12 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             if resumeWindow.isRestart():
                 extraItem.setResumePoint(0)
             # Default is to actually resume
+            
+        self._performPlayAction(extraItem)
         
+
+    # Calls the media player to play the selected item
+    def _performPlayAction(self, extraItem):
         extrasPlayer = ExtrasPlayer()
         extrasPlayer.play( extraItem )
         
@@ -1110,7 +1161,6 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         
         # Now update the database with the fact this has now been watched
         extraItem.saveState()
-
 
     # Search the list of extras for a given filename
     def _getCurrentSelection(self):
@@ -1152,17 +1202,7 @@ class VideoExtrasResumeWindow(xbmcgui.WindowXMLDialog):
         # Need to populate the resume point
         resumeButton = self.getControl(VideoExtrasResumeWindow.RESUME)
         currentLabel = resumeButton.getLabel()
-        
-        # Split the time up ready for display
-        minutes, seconds = divmod(self.resumetime, 60)
-
-        hoursString = ""        
-        if minutes > 60:
-            # Need to collect hours if needed
-            hours, minutes = divmod(minutes, 60)
-            hoursString = "%02d:" % hours
-        
-        newLabel = "%s %s%02d:%02d" % (currentLabel, hoursString, minutes, seconds)
+        newLabel = "%s %s" % (currentLabel, self.resumetime)
 
         # Reset the resume label with the addition of the time
         resumeButton.setLabel(newLabel)
@@ -1189,7 +1229,86 @@ class VideoExtrasResumeWindow(xbmcgui.WindowXMLDialog):
         return self.selectionMade == VideoExtrasResumeWindow.EXIT
        
 
+#######################################################
+# Context Menu
+#
+# - Resume From 00:00 (If started)
+# - Play From Start (If started)
+# - Play (If not started)
+# - Mark as watched (If not watched)
+# - Mark as unwatched (If watched)
+# - Set title (Write NFO file if directory writable)
+#######################################################
+class VideoExtrasContextMenu(xbmcgui.WindowXMLDialog):
+    EXIT = 1
+    RESUME = 2
+    RESTART = 40
+    WATCH_STATUS = 41
+    SET_TITLE = 42
+    
+    def __init__( self, *args, **kwargs ):
+        # Copy off the key-word arguments
+        # The non keyword arguments will be the ones passed to the main WindowXML
+        self.extraItem = kwargs.pop('extraItem')
+        self.selectionMade = VideoExtrasContextMenu.EXIT
 
+    # Static method to create the Window Dialog class
+    @staticmethod
+    def createVideoExtrasContextMenu(extraItem):
+        # Pull out the resume time as this will be processed by the base class
+        return VideoExtrasContextMenu("script-videoextras-context.xml", __addon__.getAddonInfo('path').decode("utf-8"), extraItem=extraItem)
+
+    def onInit(self):
+        # Need to populate the resume point
+        resumeButton = self.getControl(VideoExtrasContextMenu.RESUME)
+        currentLabel = resumeButton.getLabel()
+        newLabel = "%s %s" % (currentLabel, self.extraItem.getDisplayResumePoint())
+
+        # Reset the resume label with the addition of the time
+        resumeButton.setLabel(newLabel)
+        
+        # Check if the value is marked as watched as this will change if we are going to change the
+        # watch status
+        # Not watched, is the default
+        if self.extraItem.getWatched() > 0:
+            # Update the label to mark as unwatched
+            watchStatusButton = self.getControl(VideoExtrasContextMenu.WATCH_STATUS)
+            watchStatusButton.setLabel('Mark as unwatched')
+
+        xbmcgui.WindowXMLDialog.onInit(self)
+
+    def onClick(self, control):
+        # Save the item that was clicked
+        self.selectionMade = control
+        # If not resume or restart - we just want to exit without playing
+        if not (self.isResume() or self.isRestart() or self.isMarkWatched() or self.isMarkUnwatched() or self.isSetTitle()):
+            self.selectionMade = VideoExtrasContextMenu.EXIT
+        # Close the dialog after the selection
+        self.close()
+
+    def isResume(self):
+        return self.selectionMade == VideoExtrasContextMenu.RESUME
+    
+    def isRestart(self):
+        return self.selectionMade == VideoExtrasContextMenu.RESTART
+    
+    def isExit(self):
+        return self.selectionMade == VideoExtrasContextMenu.EXIT
+
+    def isMarkWatched(self):
+        if self.selectionMade == VideoExtrasContextMenu.WATCH_STATUS:
+            if not (self.extraItem.getWatched() > 0):
+                return True
+        return False
+
+    def isMarkUnwatched(self):
+        if self.selectionMade == VideoExtrasContextMenu.WATCH_STATUS:
+            if self.extraItem.getWatched() > 0:
+                return True
+        return False
+
+    def isSetTitle(self):
+        return self.selectionMade == VideoExtrasContextMenu.SET_TITLE
 
 
 ##################################################
