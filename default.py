@@ -458,8 +458,8 @@ class BaseExtrasItem():
         
         log("BaseExtrasItem: Searching for NFO file: %s" % nfoFileName)
         
-        if xbmcvfs.exists( nfoFileName ):
-            try:
+        try:
+            if xbmcvfs.exists( nfoFileName ):
                 # Need to first load the contents of the NFO file into
                 # a string, this is because the XML File Parse option will
                 # not handle formats like smb://
@@ -474,32 +474,43 @@ class BaseExtrasItem():
                 titleElement = nfoXml.find('title')
     
                 # Make sure the title exists in the file            
-                if not titleElement:
+                if titleElement == None:
                     log("BaseExtrasItem: title element not found")
-    
+                    return False
+
                 # Set the title to the new value
                 titleElement.text = newTitle
+
+                # Only set the sort title if already set
+                sorttitleElement = nfoXml.find('sorttitle')
+                if sorttitleElement != None:
+                    sorttitleElement.text = newTitle
                 
                 # Save the file back to the filesystem
                 nfoXml.write(nfoFileName)
         
                 del nfoXml
-            except:
-                log("BaseExtrasItem: Failed to process NFO: %s" % nfoFileName)
-                log("BaseExtrasItem: %s" % traceback.format_exc())
+            else:
+                # Need to create a new file if one does not exist
+                log("BaseExtrasItem: No NFO file found, creating new one: %s" % nfoFileName)
+                tagType = 'movie'
+                if SourceDetails.getTvShowTitle() != "":
+                    tagType = 'tvshow'
 
-        else:
-            # Need to create a new file if one does not exist
-            log("BaseExtrasItem: No NFO file found, creating new one: %s" % nfoFileName)
+                nfoContent = ("<%s>\n" % tagType)
+                nfoContent = nfoContent + ("    <title>%s</title>\n" % newTitle)
+                nfoContent = nfoContent + ("</%s>\n" % tagType)
+                
+                nfoFile = xbmcvfs.File(nfoFileName, 'w')
+                nfoFile.write(nfoContent)
+                nfoFile.close()
 
-            nfoContent = '<movie>\n'
-            nfoContent = nfoContent + ("    <title>%s</title>\n" % newTitle)
-            nfoContent = nfoContent + ("    <sorttitle>%s</sorttitle>\n" % newTitle)
-            nfoContent = nfoContent + '</movie>\n'
-            
-            nfoFile = xbmcvfs.File(nfoFileName, 'w')
-            nfoFile.write(nfoContent)
-            nfoFile.close()
+        except:
+            log("BaseExtrasItem: Failed to write NFO: %s" % nfoFileName)
+            log("BaseExtrasItem: %s" % traceback.format_exc())
+            return False
+        
+        return True
 
         
 
@@ -1199,11 +1210,10 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
                 if keyboard.isConfirmed():
                     # Only set the title if it has changed
                     if (keyboard.getText() != extraItem.getDisplayName()) and (len(keyboard.getText()) > 0):
-                        extraItem.setTitle(keyboard.getText())
+                        result = extraItem.setTitle(keyboard.getText())
+                        if not result:
+                            xbmcgui.Dialog().ok(__addon__.getLocalizedString(32102), __addon__.getLocalizedString(32109))
                         self.onInit()
-
-            # TODO: Add Confluence skin for Context Menu
-
 
 
     def onClick(self, control):

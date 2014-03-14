@@ -166,3 +166,7 @@ msgctxt "#32108"
 msgid "Edit title"
 msgstr ""
 
+msgctxt "#32109"
+msgid "Failed to update title"
+msgstr ""
+
