@@ -72,7 +72,7 @@
 				<label>$ADDON[script.videoextras 32105]</label>
 			</control>
 			<control type="button" id="41">
-				<description>Mart as watched</description>
+				<description>Mark as watched</description>
 				<width>300</width>
 				<height>40</height>
 				<textcolor>FF999999</textcolor>
@@ -84,7 +84,7 @@
 				<label>$ADDON[script.videoextras 32106]</label>
 			</control>
 			<control type="button" id="42">
-				<description>Mart as unwatched</description>
+				<description>Mark as unwatched</description>
 				<width>300</width>
 				<height>40</height>
 				<textcolor>FF999999</textcolor>

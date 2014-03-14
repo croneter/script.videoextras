@@ -448,6 +448,61 @@ class BaseExtrasItem():
 
         return returnValue
 
+    # Sets the title for a given extras file
+    def setTitle(self, newTitle):
+        log("BaseExtrasItem: Setting title to %s" % newTitle)
+        self.displayName = newTitle
+
+        # Find out the name of the NFO file
+        nfoFileName = os.path.splitext( self.filename )[0] + ".nfo"
+        
+        log("BaseExtrasItem: Searching for NFO file: %s" % nfoFileName)
+        
+        if xbmcvfs.exists( nfoFileName ):
+            try:
+                # Need to first load the contents of the NFO file into
+                # a string, this is because the XML File Parse option will
+                # not handle formats like smb://
+                nfoFile = xbmcvfs.File(nfoFileName)
+                nfoFileStr = nfoFile.read()
+                nfoFile.close()
+    
+                # Create an XML parser
+                nfoXml = ET.ElementTree(ET.fromstring(nfoFileStr))
+    
+                # Get the title element
+                titleElement = nfoXml.find('title')
+    
+                # Make sure the title exists in the file            
+                if not titleElement:
+                    log("BaseExtrasItem: title element not found")
+    
+                # Set the title to the new value
+                titleElement.text = newTitle
+                
+                # Save the file back to the filesystem
+                nfoXml.write(nfoFileName)
+        
+                del nfoXml
+            except:
+                log("BaseExtrasItem: Failed to process NFO: %s" % nfoFileName)
+                log("BaseExtrasItem: %s" % traceback.format_exc())
+
+        else:
+            # Need to create a new file if one does not exist
+            log("BaseExtrasItem: No NFO file found, creating new one: %s" % nfoFileName)
+
+            nfoContent = '<movie>\n'
+            nfoContent = nfoContent + ("    <title>%s</title>\n" % newTitle)
+            nfoContent = nfoContent + ("    <sorttitle>%s</sorttitle>\n" % newTitle)
+            nfoContent = nfoContent + '</movie>\n'
+            
+            nfoFile = xbmcvfs.File(nfoFileName, 'w')
+            nfoFile.write(nfoContent)
+            nfoFile.close()
+
+        
+
     # Reads the thumbnail information from an NFO file
     def _getNfoThumb(self, nfoXml):
         # Get the thumbnail
@@ -1135,7 +1190,18 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
                     extraItem.saveState()
                     self.onInit()
 
-            # TODO: Handle extra operations
+            if contextWindow.isEditTitle():
+                # Prompt the user for the new name
+                keyboard = xbmc.Keyboard()
+                keyboard.setDefault(extraItem.getDisplayName())
+                keyboard.doModal()
+                
+                if keyboard.isConfirmed():
+                    # Only set the title if it has changed
+                    if (keyboard.getText() != extraItem.getDisplayName()) and (len(keyboard.getText()) > 0):
+                        extraItem.setTitle(keyboard.getText())
+                        self.onInit()
+
             # TODO: Add Confluence skin for Context Menu
 
 
@@ -1303,7 +1369,7 @@ class VideoExtrasContextMenu(xbmcgui.WindowXMLDialog):
         # Save the item that was clicked
         self.selectionMade = control
         # If not resume or restart - we just want to exit without playing
-        if not (self.isResume() or self.isRestart() or self.isMarkWatched() or self.isMarkUnwatched() or self.isSetTitle()):
+        if not (self.isResume() or self.isRestart() or self.isMarkWatched() or self.isMarkUnwatched() or self.isEditTitle()):
             self.selectionMade = VideoExtrasContextMenu.EXIT
         # Close the dialog after the selection
         self.close()
