@@ -522,6 +522,8 @@ class ExtrasItem(BaseExtrasItem):
         self.totalDuration = totalDuration
 
     def getTotalDuration(self):
+        if self.totalDuration < 0:
+            self.totalDuration = self.getDuration()
         return self.totalDuration
 
     def getDisplayDuration(self):
@@ -581,8 +583,14 @@ class ExtrasItem(BaseExtrasItem):
             return
         
         log("ExtrasItem: Saving state for %s" % self.getFilename())
-        
-        rowId = self.extrasDb.insertOrUpdate(self.getFilename(), self.resumePoint, self.totalDuration, self.getWatched())
+
+        rowId = -1
+        # There are some cases where we want to remove the entries from the database
+        # This is the case where the resume point is 0, watched is 0
+        if (self.resumePoint == 0) and (self.watched == 0):
+            self.extrasDb.delete(self.getFilename())
+        else:
+            rowId = self.extrasDb.insertOrUpdate(self.getFilename(), self.resumePoint, self.totalDuration, self.getWatched())
         return rowId
 
     def _loadState(self):
@@ -968,49 +976,53 @@ class VideoExtras():
             isTvTunesAlreadySet = True
             needsWindowReset = True
             
-            # Check which listing format to use
-            if Settings.isDetailedListScreen():
-                # Check if TV Tunes override is already set
-                isTvTunesAlreadySet = (xbmcgui.Window( 12000 ).getProperty("TvTunesContinuePlaying").lower() == "true")
-                # If TV Tunes is running we want to ensure that we still keep the theme going
-                # so set this variable on the home screen
-                if not isTvTunesAlreadySet:
-                    log("VideoExtras: Setting TV Tunes override")
-                    xbmcgui.Window( 12000 ).setProperty( "TvTunesContinuePlaying", "True" )
+            # Make sure we don't leave global variables set
+            try:
+                # Check which listing format to use
+                if Settings.isDetailedListScreen():
+                    # Check if TV Tunes override is already set
+                    isTvTunesAlreadySet = (xbmcgui.Window( 12000 ).getProperty("TvTunesContinuePlaying").lower() == "true")
+                    # If TV Tunes is running we want to ensure that we still keep the theme going
+                    # so set this variable on the home screen
+                    if not isTvTunesAlreadySet:
+                        log("VideoExtras: Setting TV Tunes override")
+                        xbmcgui.Window( 12000 ).setProperty( "TvTunesContinuePlaying", "True" )
+                    else:
+                        log("VideoExtras: TV Tunes override already set")
+    
+                    extrasWindow = VideoExtrasWindow.createVideoExtrasWindow(files=files)
+                    xbmc.executebuiltin( "Dialog.Close(movieinformation)", True )
+                    extrasWindow.doModal()
                 else:
-                    log("VideoExtras: TV Tunes override already set")
-
-                extrasWindow = VideoExtrasWindow.createVideoExtrasWindow(files=files)
-                xbmc.executebuiltin( "Dialog.Close(movieinformation)", True )
-                extrasWindow.doModal()
-            else:
-                extrasWindow = VideoExtrasDialog()
-                needsWindowReset = extrasWindow.showList( files )
-            
-            # The video selection will be the default return location
-            if (not Settings.isMenuReturnVideoSelection()) and needsWindowReset:
-                if Settings.isMenuReturnHome():
-                    xbmc.executebuiltin("xbmc.ActivateWindow(home)", True)
-                else:
-                    infoDialogId = 12003
-                    # Put the information dialog back up
-                    xbmc.executebuiltin("xbmc.ActivateWindow(movieinformation)")
-                    if Settings.isMenuReturnExtras():
-                        # Wait for the Info window to open, it can take a while
-                        # this is to avoid the case where the exList dialog displays
-                        # behind the info dialog
-                        counter = 0
-                        while( xbmcgui.getCurrentWindowDialogId() != infoDialogId) and (counter <30):
-                            xbmc.sleep(100)
-                            counter = counter + 1
-                        # Allow time for the screen to load - this could result in an
-                        # action such as starting TvTunes
-                        xbmc.sleep(1000)
-                        # Before showing the list, check if someone has quickly
-                        # closed the info screen while it was opening and we were waiting
-                        if xbmcgui.getCurrentWindowDialogId() == infoDialogId:
-                            # Reshow the exList that was previously generated
-                            self.run(files)
+                    extrasWindow = VideoExtrasDialog()
+                    needsWindowReset = extrasWindow.showList( files )
+                
+                # The video selection will be the default return location
+                if (not Settings.isMenuReturnVideoSelection()) and needsWindowReset:
+                    if Settings.isMenuReturnHome():
+                        xbmc.executebuiltin("xbmc.ActivateWindow(home)", True)
+                    else:
+                        infoDialogId = 12003
+                        # Put the information dialog back up
+                        xbmc.executebuiltin("xbmc.ActivateWindow(movieinformation)")
+                        if Settings.isMenuReturnExtras():
+                            # Wait for the Info window to open, it can take a while
+                            # this is to avoid the case where the exList dialog displays
+                            # behind the info dialog
+                            counter = 0
+                            while( xbmcgui.getCurrentWindowDialogId() != infoDialogId) and (counter <30):
+                                xbmc.sleep(100)
+                                counter = counter + 1
+                            # Allow time for the screen to load - this could result in an
+                            # action such as starting TvTunes
+                            xbmc.sleep(1000)
+                            # Before showing the list, check if someone has quickly
+                            # closed the info screen while it was opening and we were waiting
+                            if xbmcgui.getCurrentWindowDialogId() == infoDialogId:
+                                # Reshow the exList that was previously generated
+                                self.run(files)
+            except:
+                log("ExtrasItem: %s" % traceback.format_exc())
 
             # Tidy up the TV Tunes flag if we set it
             if not isTvTunesAlreadySet:
@@ -1102,12 +1114,30 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             # If requested to restart from beginning, reset the resume point before playing
             if contextWindow.isRestart():
                 extraItem.setResumePoint(0)
+                self._performPlayAction(extraItem)
+                
+            if contextWindow.isResume():
+                self._performPlayAction(extraItem)
+
+            if contextWindow.isMarkUnwatched():
+                # Need to remove the row from the database
+                if Settings.isDatabaseEnabled():
+                    # Refresh the screen now that we have change the flag
+                    extraItem.setResumePoint(0)
+                    extraItem.saveState()
+                    self.onInit()
+
+            if contextWindow.isMarkWatched():
+                # If marking as watched we need to set the resume time so it doesn't
+                # start in the middle the next time it starts
+                if Settings.isDatabaseEnabled():
+                    extraItem.setResumePoint(extraItem.getTotalDuration())
+                    extraItem.saveState()
+                    self.onInit()
 
             # TODO: Handle extra operations
-            # TODO: More strings to Language files
             # TODO: Add Confluence skin for Context Menu
 
-            self._performPlayAction(extraItem)
 
 
     def onClick(self, control):
@@ -1232,9 +1262,8 @@ class VideoExtrasResumeWindow(xbmcgui.WindowXMLDialog):
 #######################################################
 # Context Menu
 #
-# - Resume From 00:00 (If started)
-# - Play From Start (If started)
-# - Play (If not started)
+# - Resume From 00:00
+# - Play From Start
 # - Mark as watched (If not watched)
 # - Mark as unwatched (If watched)
 # - Set title (Write NFO file if directory writable)
@@ -1243,8 +1272,9 @@ class VideoExtrasContextMenu(xbmcgui.WindowXMLDialog):
     EXIT = 1
     RESUME = 2
     RESTART = 40
-    WATCH_STATUS = 41
-    SET_TITLE = 42
+    MARK_WATCHED = 41
+    MARK_UNWATCHED = 42
+    EDIT_TITLE = 43
     
     def __init__( self, *args, **kwargs ):
         # Copy off the key-word arguments
@@ -1266,14 +1296,6 @@ class VideoExtrasContextMenu(xbmcgui.WindowXMLDialog):
 
         # Reset the resume label with the addition of the time
         resumeButton.setLabel(newLabel)
-        
-        # Check if the value is marked as watched as this will change if we are going to change the
-        # watch status
-        # Not watched, is the default
-        if self.extraItem.getWatched() > 0:
-            # Update the label to mark as unwatched
-            watchStatusButton = self.getControl(VideoExtrasContextMenu.WATCH_STATUS)
-            watchStatusButton.setLabel('Mark as unwatched')
 
         xbmcgui.WindowXMLDialog.onInit(self)
 
@@ -1296,19 +1318,13 @@ class VideoExtrasContextMenu(xbmcgui.WindowXMLDialog):
         return self.selectionMade == VideoExtrasContextMenu.EXIT
 
     def isMarkWatched(self):
-        if self.selectionMade == VideoExtrasContextMenu.WATCH_STATUS:
-            if not (self.extraItem.getWatched() > 0):
-                return True
-        return False
+        return self.selectionMade == VideoExtrasContextMenu.MARK_WATCHED
 
     def isMarkUnwatched(self):
-        if self.selectionMade == VideoExtrasContextMenu.WATCH_STATUS:
-            if self.extraItem.getWatched() > 0:
-                return True
-        return False
+        return self.selectionMade == VideoExtrasContextMenu.MARK_UNWATCHED
 
-    def isSetTitle(self):
-        return self.selectionMade == VideoExtrasContextMenu.SET_TITLE
+    def isEditTitle(self):
+        return self.selectionMade == VideoExtrasContextMenu.EDIT_TITLE
 
 
 ##################################################

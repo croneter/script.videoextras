@@ -3,6 +3,7 @@ import xbmc
 import xbmcaddon
 import xbmcvfs
 import sqlite3
+import xbmcgui
 
 __addon__     = xbmcaddon.Addon(id='script.videoextras')
 __addonid__   = __addon__.getAddonInfo('id')
@@ -122,3 +123,17 @@ class ExtrasDB():
 
         conn.close()
         return returnData
+
+    def delete(self, filename):
+        log("ExtrasDB: delete for %s" % filename)
+
+        # Get a connection to the DB
+        conn = self.getConnection()
+        c = conn.cursor()
+        # Select any existing data from the database
+        c.execute('delete FROM ExtrasFile where filename = ?', (filename,))
+        conn.commit()
+
+        log("ExtrasDB: delete for %s removed %d rows" % (filename, conn.total_changes))
+
+        conn.close()
