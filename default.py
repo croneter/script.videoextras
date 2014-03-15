@@ -848,6 +848,13 @@ class VideoExtrasFinder():
         if Settings.isSearchNested():
             files.extend( self._getNestedExtrasFiles( path, filename, exitOnFirst ) )
         files.sort()
+        
+        # Check if we have found any extras at this point
+        if not files:
+            # Check if we have a DVD image directory
+            if os.path.split(path)[1] == 'VIDEO_TS':
+                log("VideoExtrasFinder: DVD image directory detected, checking = %s" % os.path.split(path)[0])
+                files = self.findExtras(os.path.split(path)[0], filename, exitOnFirst)
         return files
 
     # Gets any extras files that are in the given extras directory
