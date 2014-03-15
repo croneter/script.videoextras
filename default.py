@@ -1208,9 +1208,14 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
                 keyboard.doModal()
                 
                 if keyboard.isConfirmed():
+                    try:
+                        newtitle = keyboard.getText().decode("utf-8")
+                    except:
+                        newtitle = keyboard.getText()
+                        
                     # Only set the title if it has changed
-                    if (keyboard.getText() != extraItem.getDisplayName()) and (len(keyboard.getText()) > 0):
-                        result = extraItem.setTitle(keyboard.getText())
+                    if (newtitle != extraItem.getDisplayName()) and (len(newtitle) > 0):
+                        result = extraItem.setTitle(newtitle)
                         if not result:
                             xbmcgui.Dialog().ok(__addon__.getLocalizedString(32102), __addon__.getLocalizedString(32109))
                         self.onInit()
