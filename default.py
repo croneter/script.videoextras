@@ -163,7 +163,7 @@ class BaseExtrasItem():
         # Also check for BluRay
         videoBluRayDir = os_path_join( self.filename, 'BDMV' )
         if xbmcvfs.exists(videoBluRayDir):
-            dbmvFile = os_path_join( videoBluRayDir, 'movieobject.dbmv' )
+            dbmvFile = os_path_join( videoBluRayDir, 'index.bdmv' )
             if xbmcvfs.exists( dbmvFile ):
                 return dbmvFile
         return None
