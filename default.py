@@ -366,9 +366,15 @@ class BaseExtrasItem():
             # Need to first load the contents of the NFO file into
             # a string, this is because the XML File Parse option will
             # not handle formats like smb://
-            nfoFile = xbmcvfs.File(nfoFileName)
+            nfoFile = xbmcvfs.File(nfoFileName, 'r')
             nfoFileStr = nfoFile.read()
             nfoFile.close()
+            
+            try:
+                # Try to convert what is possible, ignoring non UTF-8 characters
+                nfoFileStr = nfoFileStr.decode("utf-8", 'ignore')
+            except:
+                pass
 
             # Create an XML parser
             nfoXml = ET.ElementTree(ET.fromstring(nfoFileStr))
