@@ -498,7 +498,7 @@ class BaseExtrasItem():
                     tagType = 'tvshow'
 
                 nfoContent = ("<%s>\n" % tagType)
-                nfoContent = nfoContent + ("    <title>%s</title>\n" % newTitle)
+                nfoContent = nfoContent + ("    <title>%s</title>\n" % newTitle.encode("utf-8"))
                 nfoContent = nfoContent + ("</%s>\n" % tagType)
                 
                 nfoFile = xbmcvfs.File(nfoFileName, 'w')
@@ -1225,7 +1225,8 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
                         result = extraItem.setTitle(newtitle)
                         if not result:
                             xbmcgui.Dialog().ok(__addon__.getLocalizedString(32102), __addon__.getLocalizedString(32109))
-                        self.onInit()
+                        else:
+                            self.onInit()
 
 
     def onClick(self, control):
