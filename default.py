@@ -160,6 +160,12 @@ class BaseExtrasItem():
             ifoFile = os_path_join( videoTSDir, 'VIDEO_TS.IFO' )
             if xbmcvfs.exists( ifoFile ):
                 return ifoFile
+        # Also check for BluRay
+        videoBluRayDir = os_path_join( self.filename, 'BDMV' )
+        if xbmcvfs.exists(videoBluRayDir):
+            dbmvFile = os_path_join( videoBluRayDir, 'movieobject.dbmv' )
+            if xbmcvfs.exists( dbmvFile ):
+                return dbmvFile
         return None
 
     # Compare if a filename matches the existing one
@@ -851,8 +857,8 @@ class VideoExtrasFinder():
         
         # Check if we have found any extras at this point
         if not files:
-            # Check if we have a DVD image directory
-            if os.path.split(path)[1] == 'VIDEO_TS':
+            # Check if we have a DVD image directory or Bluray image directory
+            if (os.path.split(path)[1] == 'VIDEO_TS') or (os.path.split(path)[1] == 'BDMV'):
                 log("VideoExtrasFinder: DVD image directory detected, checking = %s" % os.path.split(path)[0])
                 files = self.findExtras(os.path.split(path)[0], filename, exitOnFirst)
         return files
@@ -891,9 +897,12 @@ class VideoExtrasFinder():
                     # Check to see if this sub-directory is a DVD directory by checking
                     # to see if there is VIDEO_TS directory
                     videoTSDir = os_path_join( extrasSubDir, 'VIDEO_TS' )
-                    if xbmcvfs.exists( videoTSDir ):
+                    # Also check for Bluray
+                    videoBluRayDir = os_path_join( extrasSubDir, 'BDMV' )
+                    if xbmcvfs.exists( videoTSDir ) or xbmcvfs.exists( videoBluRayDir ):
                         extraItem = ExtrasItem(extrasDir, extrasSubDir, extrasDb=self.extrasDb)
                         extras.append(extraItem)
+                        
                     # Check if we are only looking for the first entry
                     if exitOnFirst == True:
                         break
