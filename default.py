@@ -369,15 +369,14 @@ class BaseExtrasItem():
             nfoFile = xbmcvfs.File(nfoFileName, 'r')
             nfoFileStr = nfoFile.read()
             nfoFile.close()
-            
-            try:
-                # Try to convert what is possible, ignoring non UTF-8 characters
-                nfoFileStr = nfoFileStr.decode("utf-8", 'ignore')
-            except:
-                pass
 
             # Create an XML parser
-            nfoXml = ET.ElementTree(ET.fromstring(nfoFileStr))
+            try:
+                nfoXml = ET.ElementTree(ET.fromstring(nfoFileStr))
+            except:
+                log("BaseExtrasItem: Trying encoding to UTF-8 with ignore")
+                nfoXml = ET.ElementTree(ET.fromstring(nfoFileStr.decode("UTF-8", 'ignore')))
+
             rootElement = nfoXml.getroot()
             
             log("BaseExtrasItem: Root element is = %s" % rootElement.tag)
@@ -475,12 +474,16 @@ class BaseExtrasItem():
                 # Need to first load the contents of the NFO file into
                 # a string, this is because the XML File Parse option will
                 # not handle formats like smb://
-                nfoFile = xbmcvfs.File(nfoFileName)
+                nfoFile = xbmcvfs.File(nfoFileName, 'r')
                 nfoFileStr = nfoFile.read()
                 nfoFile.close()
     
                 # Create an XML parser
-                nfoXml = ET.ElementTree(ET.fromstring(nfoFileStr))
+                try:
+                    nfoXml = ET.ElementTree(ET.fromstring(nfoFileStr))
+                except:
+                    log("BaseExtrasItem: Trying encoding to UTF-8 with ignore")
+                    nfoXml = ET.ElementTree(ET.fromstring(nfoFileStr.decode("UTF-8", 'ignore')))
     
                 # Get the title element
                 titleElement = nfoXml.find('title')
@@ -499,8 +502,12 @@ class BaseExtrasItem():
                     sorttitleElement.text = newTitle
                 
                 # Save the file back to the filesystem
-                nfoXml.write(nfoFileName)
-        
+                newNfoContent = ET.tostring(nfoXml.getroot(), encoding="UTF-8")
+                
+                nfoFile = xbmcvfs.File(nfoFileName, 'w')
+                nfoFile.write(newNfoContent)
+                nfoFile.close()
+
                 del nfoXml
             else:
                 # Need to create a new file if one does not exist
@@ -510,11 +517,11 @@ class BaseExtrasItem():
                     tagType = 'tvshow'
 
                 nfoContent = ("<%s>\n" % tagType)
-                nfoContent = nfoContent + ("    <title>%s</title>\n" % newTitle.encode("utf-8"))
-                nfoContent = nfoContent + ("</%s>\n" % tagType)
+                nfoContent = ("%s    <title>%s</title>\n" % (nfoContent, newTitle.encode("utf-8")))
+                nfoContent = ("%s </%s>\n" % (nfoContent, tagType))
                 
                 nfoFile = xbmcvfs.File(nfoFileName, 'w')
-                nfoFile.write(nfoContent)
+                nfoFile.write(nfoContent.encode("utf-8"))
                 nfoFile.close()
 
         except:
