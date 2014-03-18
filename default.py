@@ -468,8 +468,11 @@ class BaseExtrasItem():
         nfoFileName = os.path.splitext( self.filename )[0] + ".nfo"
         
         log("BaseExtrasItem: Searching for NFO file: %s" % nfoFileName)
-        
+                
         try:
+            nfoFileStr = None
+            newNfoRequired = False
+            
             if xbmcvfs.exists( nfoFileName ):
                 # Need to first load the contents of the NFO file into
                 # a string, this is because the XML File Parse option will
@@ -478,51 +481,59 @@ class BaseExtrasItem():
                 nfoFileStr = nfoFile.read()
                 nfoFile.close()
     
-                # Create an XML parser
-                try:
-                    nfoXml = ET.ElementTree(ET.fromstring(nfoFileStr))
-                except:
-                    log("BaseExtrasItem: Trying encoding to UTF-8 with ignore")
-                    nfoXml = ET.ElementTree(ET.fromstring(nfoFileStr.decode("UTF-8", 'ignore')))
-    
-                # Get the title element
-                titleElement = nfoXml.find('title')
-    
-                # Make sure the title exists in the file            
-                if titleElement == None:
-                    log("BaseExtrasItem: title element not found")
-                    return False
-
-                # Set the title to the new value
-                titleElement.text = newTitle
-
-                # Only set the sort title if already set
-                sorttitleElement = nfoXml.find('sorttitle')
-                if sorttitleElement != None:
-                    sorttitleElement.text = newTitle
-                
-                # Save the file back to the filesystem
-                newNfoContent = ET.tostring(nfoXml.getroot(), encoding="UTF-8")
-                
-                nfoFile = xbmcvfs.File(nfoFileName, 'w')
-                nfoFile.write(newNfoContent)
-                nfoFile.close()
-
-                del nfoXml
-            else:
+            # Check to ensure we have some NFO data
+            if (nfoFileStr == None) or (nfoFileStr == ""):
+                # Create a default NFO File
                 # Need to create a new file if one does not exist
                 log("BaseExtrasItem: No NFO file found, creating new one: %s" % nfoFileName)
                 tagType = 'movie'
                 if SourceDetails.getTvShowTitle() != "":
                     tagType = 'tvshow'
 
-                nfoContent = ("<%s>\n" % tagType)
-                nfoContent = ("%s    <title>%s</title>\n" % (nfoContent, newTitle.encode("utf-8")))
-                nfoContent = ("%s </%s>\n" % (nfoContent, tagType))
+                nfoFileStr = ("<%s>\n    <title> </title>\n</%s>\n" % (tagType, tagType))
+                newNfoRequired = True
                 
-                nfoFile = xbmcvfs.File(nfoFileName, 'w')
-                nfoFile.write(nfoContent.encode("utf-8"))
+                
+            # Create an XML parser
+            try:
+                nfoXml = ET.ElementTree(ET.fromstring(nfoFileStr))
+            except:
+                log("BaseExtrasItem: Trying encoding to UTF-8 with ignore")
+                nfoXml = ET.ElementTree(ET.fromstring(nfoFileStr.decode("UTF-8", 'ignore')))
+
+            # Get the title element
+            titleElement = nfoXml.find('title')
+
+            # Make sure the title exists in the file            
+            if titleElement == None:
+                log("BaseExtrasItem: title element not found")
+                return False
+
+            # Set the title to the new value
+            titleElement.text = newTitle
+
+            # Only set the sort title if already set
+            sorttitleElement = nfoXml.find('sorttitle')
+            if sorttitleElement != None:
+                sorttitleElement.text = newTitle
+            
+            # Save the file back to the filesystem
+            newNfoContent = ET.tostring(nfoXml.getroot(), encoding="UTF-8")
+            del nfoXml
+            
+            nfoFile = xbmcvfs.File(nfoFileName, 'w')
+            try:
+                nfoFile.write(newNfoContent)
+            except:
+                log("BaseExtrasItem: Failed to write NFO: %s" % nfoFileName)
+                log("BaseExtrasItem: %s" % traceback.format_exc())
+                # Make sure we close the file handle
                 nfoFile.close()
+                # If there was no file before, make sure we delete and partial file
+                if newNfoRequired:
+                    xbmcvfs.delete(nfoFileName)
+                return False
+            nfoFile.close()
 
         except:
             log("BaseExtrasItem: Failed to write NFO: %s" % nfoFileName)
