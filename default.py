@@ -1263,6 +1263,11 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
 
 
     def onClick(self, control):
+        WINDOW_LIST_ID = 51
+        # Check to make sure that this click was for the extras list
+        if control != WINDOW_LIST_ID:
+            return
+        
         # Get the item that was clicked on
         extraItem = self._getCurrentSelection()
         
