@@ -281,7 +281,6 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
     # Static method to create the Window class
     @staticmethod
     def createVideoExtrasWindow(files):
-#        return VideoExtrasWindow("MyVideoNav.xml", os.getcwd(), files=files, src=src)
         return VideoExtrasWindow("script-videoextras-main.xml", __addon__.getAddonInfo('path').decode("utf-8"), files=files)
 
     def onInit(self):
@@ -597,13 +596,8 @@ try:
         # Load the details of the current source of the extras        
         SourceDetails.forceLoadDetails()
         
-        # Should the existing database be removed
-        if sys.argv[1] == "cleanDatabase":
-            extrasDb = ExtrasDB()
-            extrasDb.cleanDatabase()
-        
         # Check for a request to check for extras
-        elif len(sys.argv) > 3 and sys.argv[1] == "hasExtras":
+        if len(sys.argv) > 3 and sys.argv[1] == "hasExtras":
             
             if not ("plugin://" in sys.argv[3]):
                 videoExtras = VideoExtras(sys.argv[3])

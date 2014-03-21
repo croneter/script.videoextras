@@ -16,10 +16,8 @@
 # *
 import sys
 import os
-import re
 import traceback
 #Modules XBMC
-import xbmcplugin
 import xbmc
 import xbmcgui
 import xbmcvfs
