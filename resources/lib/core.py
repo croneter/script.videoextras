@@ -947,3 +947,40 @@ class WindowShowing():
 
         return False
 
+###############################################################
+# Base Class for handling videoExtras
+###############################################################
+class VideoExtrasBase():
+    def __init__( self, inputArg ):
+        log( "VideoExtrasBase: Finding extras for %s" % inputArg )
+        self.baseDirectory = inputArg
+        if self.baseDirectory.startswith("stack://"):
+            self.baseDirectory = self.baseDirectory.split(" , ")[0]
+            self.baseDirectory = self.baseDirectory.replace("stack://", "")
+        # There is a problem if some-one is using windows shares with
+        # \\SERVER\Name as when the addon gets called the first \ gets
+        # removed, making an invalid path, so we add it back here
+        elif self.baseDirectory.startswith("\\"):
+            self.baseDirectory = "\\" + self.baseDirectory
+
+        # Support special paths like smb:// means that we can not just call
+        # os.path.isfile as it will return false even if it is a file
+        # (A bit of a shame - but that's the way it is)
+        fileExt = os.path.splitext( self.baseDirectory )[1]
+        # If this is a file, then get it's parent directory
+        if fileExt != None and fileExt != "":
+            self.baseDirectory = os.path.dirname(self.baseDirectory)
+            self.filename = (os.path.split(inputArg))[1]
+        else:
+            self.filename = None
+        log( "VideoExtrasBase: Root directory: %s" % self.baseDirectory )
+
+    def findExtras(self, exitOnFirst=False, extrasDb=None):
+        files = []
+        try:
+            extrasFinder = VideoExtrasFinder(extrasDb)
+            files = extrasFinder.loadExtras(self.baseDirectory, self.filename, exitOnFirst )
+        except:
+            log("VideoExtrasBase: %s" % traceback.format_exc())
+        return files
+

@@ -24,6 +24,7 @@
 	<category label="32016">
 		<setting id="forceButtonDisplay" type="bool" label="32017" default="false"/>
 		<setting id="excludeFiles" type="text" label="32018" default="([A-Za-z0-9]*.(jpg|idx|srt|nfo|sub|db|txt))"/>
+		<setting id="serviceEnabled" type="bool" label="32027" default="true"/>
 		<setting label="32019" type="lsep"/>
 		<setting id="logEnabled" type="bool" label="32020" default="false"/>
 	</category>

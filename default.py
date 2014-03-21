@@ -52,6 +52,7 @@ from core import ExtrasItem
 from core import VideoExtrasFinder
 from core import SourceDetails
 from core import WindowShowing
+from core import VideoExtrasBase
 
 ###################################
 # Custom Player to play the extras
@@ -153,40 +154,12 @@ class VideoExtrasDialog(xbmcgui.Window):
 #################################
 # Main Class to control the work
 #################################
-class VideoExtras():
-    def __init__( self, inputArg ):
-        log( "VideoExtras: Finding extras for %s" % inputArg )
-        self.baseDirectory = inputArg
-        if self.baseDirectory.startswith("stack://"):
-            self.baseDirectory = self.baseDirectory.split(" , ")[0]
-            self.baseDirectory = self.baseDirectory.replace("stack://", "")
-        # There is a problem if some-one is using windows shares with
-        # \\SERVER\Name as when the addon gets called the first \ gets
-        # removed, making an invalid path, so we add it back here
-        elif self.baseDirectory.startswith("\\"):
-            self.baseDirectory = "\\" + self.baseDirectory
-
-        # Support special paths like smb:// means that we can not just call
-        # os.path.isfile as it will return false even if it is a file
-        # (A bit of a shame - but that's the way it is)
-        fileExt = os.path.splitext( self.baseDirectory )[1]
-        # If this is a file, then get it's parent directory
-        if fileExt != None and fileExt != "":
-            self.baseDirectory = os.path.dirname(self.baseDirectory)
-            self.filename = (os.path.split(inputArg))[1]
-        else:
-            self.filename = None
-        log( "VideoExtras: Root directory: %s" % self.baseDirectory )
+class VideoExtras(VideoExtrasBase):
 
     def findExtras(self, exitOnFirst=False, extrasDb=None):
         # Display the busy icon while searching for files
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-        files = []
-        try:
-            extrasFinder = VideoExtrasFinder(extrasDb)
-            files = extrasFinder.loadExtras(self.baseDirectory, self.filename, exitOnFirst )
-        except:
-            log("VideoExtras: %s" % traceback.format_exc())
+        files = VideoExtrasBase.findExtras(self, exitOnFirst, extrasDb)
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
         return files
 
