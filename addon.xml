@@ -4,6 +4,9 @@
     	<import addon="xbmc.python" version="2.1.0"/>
   	</requires>
   	<extension point="xbmc.python.script" library="default.py" />
+	<extension point="xbmc.service" library="service.py" start="login">
+		<provides>executable</provides>
+	</extension>
   	<extension point="xbmc.addon.metadata">
     	<summary lang="ca">Afegeix vídeos extres a les teves pel·lícules i sèries de televisió.</summary>
     	<summary lang="de">Video Extras zu deinen Filmen und TV-Sendungen hinzufügen</summary>
