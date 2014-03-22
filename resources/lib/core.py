@@ -47,6 +47,7 @@ class BaseExtrasItem():
     def __init__( self, directory, filename, isFileMatchExtra=False ):
         self.directory = directory
         self.filename = filename
+        self.plot = None
         # Setup the icon and thumbnail images
         self.thumbnailImage = ""
         self.iconImage = ""
@@ -137,6 +138,9 @@ class BaseExtrasItem():
     
     def getOrderKey(self):
         return self.orderKey
+
+    def getPlot(self):
+        return self.plot
 
     def getThumbnailImage(self):
         return self.thumbnailImage
@@ -338,6 +342,8 @@ class BaseExtrasItem():
                 self.displayName = nfoXml.findtext('title')
                 # Get the sort key
                 self.orderKey = nfoXml.findtext('sorttitle')
+                # Get the plot
+                self.plot = nfoXml.findtext('plot')
     
             elif rootElement.tag == "tvshow":
                 log("BaseExtrasItem: TvShow format NFO detected")
@@ -350,7 +356,9 @@ class BaseExtrasItem():
                 self.displayName = nfoXml.findtext('title')
                 # Get the sort key
                 self.orderKey = nfoXml.findtext('sorttitle')
-    
+                # Get the plot
+                self.plot = nfoXml.findtext('plot')
+
             elif rootElement.tag == "episodedetails":
                 log("BaseExtrasItem: TvEpisode format NFO detected")
                 #    <episodedetails>
@@ -361,6 +369,8 @@ class BaseExtrasItem():
     
                 # Get the title
                 self.displayName = nfoXml.findtext('title')
+                # Get the plot
+                self.plot = nfoXml.findtext('plot')
                 # Get the sort key
                 season = nfoXml.findtext('season')
                 episode = nfoXml.findtext('episode')

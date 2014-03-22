@@ -76,40 +76,48 @@ class VideoExtrasService():
         cachedValues = fileHandle.read()
         fileHandle.close()
         
-        propertyTag = ("VideoExtras_%s_List" % target.upper())
+        # Split the list into each of the DBID values
+        dbids = cachedValues.split(os.linesep)
         
-        # Now store the cached list as a property
-        xbmcgui.Window( 12000 ).setProperty( propertyTag, cachedValues )
+        for dbid in dbids:
+            # Generate the tag name
+            propertyTag = ("HasVideoExtras_%s_%s" % (target.upper(),dbid) )
+        
+            # Now store the cached list as a property
+            xbmcgui.Window( 12000 ).setProperty( propertyTag, "true" )
 
     # Regenerates all of the cached extras
     def cacheAllExtras(self):
-        self.createExtrasCache('GetMovies', 'movies')
-        self.createExtrasCache('GetTVShows', 'tvshows')
-        self.createExtrasCache('GetMusicVideos', 'musicvideos')
+        self.createExtrasCache('GetMovies', 'movies', 'movieid')
+        self.createExtrasCache('GetTVShows', 'tvshows', 'tvshowid')
+        self.createExtrasCache('GetMusicVideos', 'musicvideos', 'musicvideoid')
 
     # Checks all the given movies/TV/music videos to see if they have any extras
     # and if they do, then cretaes a cached file containing the titles of the video
     # that owns them
-    def createExtrasCache(self, jsonGet, target):
+    def createExtrasCache(self, jsonGet, target, dbid):
         log("VideoExtrasService: Creating cache for %s" % target)
         json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "VideoLibrary.%s", "params": { "properties": ["title", "file"] },  "id": 1}' % jsonGet)
         json_query = unicode(json_query, 'utf-8', errors='ignore')
         json_query = simplejson.loads(json_query)
     
         extrasCacheString = ""
-        extrasCacheString = ""
     
         if "result" in json_query and json_query['result'].has_key(target):
             # Get the list of movies paths from the movie list returned
             items = json_query['result'][target]
             for item in items:
+                # Check to see if exit has been called, if so stop
+                if xbmc.getCondVisibility("Window.IsVisible(shutdownmenu)") or xbmc.abortRequested:
+                    sys.exit()
+                
                 log("VideoExtrasService: %s detected: %s = %s" % (target, item['title'], item['file']))
                 videoExtras = VideoExtrasBase(item['file'])
                 firstExtraFile = videoExtras.findExtras(True)
                 # Check if any extras exist for this movie
                 if firstExtraFile:
-                    log("VideoExtrasService: Extras found for %s" % item['title'])
-                    extrasCacheString = ("%s[%s]\n" % (extrasCacheString, item['title']))
+                    log("VideoExtrasService: Extras found for (%d) %s" % (item[dbid], item['title']))
+                    extrasCacheString = ("%s[%d]%s" % (extrasCacheString, item[dbid], os.linesep))
 
         extrasCacheFile = self._getCacheFilenameForTarget(target)
 

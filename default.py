@@ -304,6 +304,15 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             if SourceDetails.getTvShowTitle() != "":
                 anItem.setInfo('video', { 'TvShowTitle': SourceDetails.getTvShowTitle() })
 
+            # If the plot is supplied, then set it
+            plot = anExtra.getPlot()
+            if (plot != None) and (plot != ""):
+                 anItem.setInfo('video', { 'Plot': plot })
+            # If the order sort title is supplied, then set it
+            orderKey = anExtra.getOrderKey()
+            if (orderKey != None) and (orderKey != ""):
+                 anItem.setInfo('video', { 'sorttitle': orderKey })
+
             # If both the Icon and Thumbnail is set, the list screen will choose to show
             # the thumbnail
             if anExtra.getIconImage() != "":
