@@ -153,7 +153,42 @@ class VideoExtrasService():
                 return
             fileHandle.close()
 
+    def _createOverlayFile(self, target, dbid):
+        # Get the path where the file exists
+        rootPath = os_path_join(__profile__, target)
+        if not xbmcvfs.exists(rootPath):
+            # Directory does not exist yet, create one
+            xbmcvfs.mkdirs(rootPath)
+        
+        # Generate the name of the file that the overlay will be copied to
+        targetFile = os_path_join(rootPath, ("%d.png" % dbid))
+        
+        # TODO: Move this section to the init of the class
+        # special://skin - This path points to the currently active skin's root directory. 
+        skinExtrasOverlay = xbmc.translatePath( "special://skin" ).decode("utf-8")
+        skinExtrasOverlay = os_path_join(skinExtrasOverlay, "videoextras_overlay.png")
 
+        if not xbmcvfs.exists(rootPath):
+            log("VideoExtrasService: No custom image, using default")
+            # TODO: Add default image setting to skinExtrasOverlay
+
+        # Now the path exists, need to copy the file over to it, giving it the name of the DBID
+        xbmcvfs.copy("WHERE THE ORIGINAL IMAGE FILE IS", targetFile)
+        
+
+#########################################
+# Change needed to skin
+#########################################
+# ViewsFileMode.xml - Line 554
+#<control type="image">
+#    <posx>950</posx>
+#    <posy>14</posy>
+#    <width>16</width>
+#    <height>16</height>
+#    <texture fallback="blank.png">special://profile/addon_data/script.videoextras/movies/$INFO[ListItem.DBID].png</texture>
+#    <visible>System.HasAddon(script.videoextras) + Window.IsVisible(Videos) + Container.Content(Movies)</visible>
+#</control>
+            
 
 
 ###################################
@@ -161,6 +196,8 @@ class VideoExtrasService():
 ###################################
 if __name__ == '__main__':
     log("VideoExtrasService: Starting service (version %s)" % __version__)
+
+    log("VideoExtrasService: Directory for overlay images is %s" % __profile__)
 
     # Make sure that the service option is enabled    
     if Settings.isServiceEnabled():
