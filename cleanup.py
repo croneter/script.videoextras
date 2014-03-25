@@ -41,15 +41,17 @@ from settings import os_path_join
 from database import ExtrasDB
 
 # Removes the cache file for a given type
-def removeCacheFile(target):
-    filename = ("%s_extras_cache.txt" % target)
-    fullFilename = os_path_join(__profile__, filename)
+def removeCacheFile(target, isDir=False):
+    fullFilename = os_path_join(__profile__, target)
 
     log("VideoExtrasCleanup: Checking cache file %s" % fullFilename)
 
     # If the file already exists, delete it
     if xbmcvfs.exists(fullFilename):
-        xbmcvfs.delete(fullFilename)
+        if isDir:
+            xbmcvfs.rmdir(fullFilename)
+        else:
+            xbmcvfs.delete(fullFilename)
 
 
 
@@ -65,9 +67,11 @@ if __name__ == '__main__':
         extrasDb.cleanDatabase()
 
         # Also tidy up any of the cache files that exist
-        removeCacheFile('movies')
-        removeCacheFile('tvshows')
-        removeCacheFile('musicvideos')
+        removeCacheFile('movies', True)
+        removeCacheFile('tvshows', True)
+        removeCacheFile('musicvideos', True)
+
+        removeCacheFile('overlay_image_used.txt')
 
     except:
         log("VideoExtrasCleanup: %s" % traceback.format_exc())

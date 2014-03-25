@@ -54,37 +54,47 @@ from core import VideoExtrasBase
 # Main class for the Extras Service
 #####################################
 class VideoExtrasService():
+    def __init__(self):
+        # special://skin - This path points to the currently active skin's root directory. 
+        self.skinExtrasOverlay = xbmc.translatePath( "special://skin" ).decode("utf-8")
+        self.skinExtrasOverlay = os_path_join(self.skinExtrasOverlay, "media")
+        self.skinExtrasOverlay = os_path_join(self.skinExtrasOverlay, "videoextras_overlay.png")
 
-    # Load all the cached data
-    def loadCached(self):
-        self.loadCacheToProperty('movies')
-        self.loadCacheToProperty('tvshows')
-        self.loadCacheToProperty('musicvideos')
+        log("VideoExtrasService: Looking for image overlay file: %s" % self.skinExtrasOverlay)
 
-    # Load a given cache into a property
-    def loadCacheToProperty(self, target):
-        log("VideoExtrasService: Loading cache for %s" % target)
-        extrasCacheFile = self._getCacheFilenameForTarget(target)
+        if not xbmcvfs.exists(self.skinExtrasOverlay):
+            log("VideoExtrasService: No custom image, using default")
+            # Add default image setting to skinExtrasOverlay
+            self.skinExtrasOverlay = os_path_join(__resource__, "skins")
+            self.skinExtrasOverlay = os_path_join(self.skinExtrasOverlay, "Default")
+            self.skinExtrasOverlay = os_path_join(self.skinExtrasOverlay, "media")
+            self.skinExtrasOverlay = os_path_join(self.skinExtrasOverlay, "overlay.png")
 
-        # check if the cached file exists
-        if not xbmcvfs.exists(extrasCacheFile):
-            log("VideoExtrasService: Cached file does not exist: %s" % extrasCacheFile)
-            return
+        self.forceOverlayOverwrite = False
         
-        # Read the contents of the file
-        fileHandle = xbmcvfs.File(extrasCacheFile, 'r')
-        cachedValues = fileHandle.read()
-        fileHandle.close()
-        
-        # Split the list into each of the DBID values
-        dbids = cachedValues.split(os.linesep)
-        
-        for dbid in dbids:
-            # Generate the tag name
-            propertyTag = ("HasVideoExtras_%s_%s" % (target.upper(),dbid) )
-        
-            # Now store the cached list as a property
-            xbmcgui.Window( 12000 ).setProperty( propertyTag, "true" )
+        # We now know the file that we are going to use for the overlay
+        # Check to see if this is different from the last overlay file used
+        filename = os_path_join(__profile__, "overlay_image_used.txt")
+        try:
+            previousOverlay = None
+            if xbmcvfs.exists(filename):
+                fileHandle = xbmcvfs.File(filename, 'r')
+                previousOverlay = fileHandle.read()
+                fileHandle.close()
+                
+            # Check if the overlay has changed
+            if self.skinExtrasOverlay != previousOverlay:
+                self.forceOverlayOverwrite = True
+                # Update the record of the file we are now using
+                if xbmcvfs.exists(filename):
+                    xbmcvfs.delete(filename)
+                fileHandle = xbmcvfs.File(filename, 'w')
+                fileHandle.write(self.skinExtrasOverlay.encode("UTF-8"))
+                fileHandle.close()
+        except:
+            log("VideoExtrasService: Failed to write: %s" % filename)
+            log("VideoExtrasService: %s" % traceback.format_exc())
+
 
     # Regenerates all of the cached extras
     def cacheAllExtras(self):
@@ -118,42 +128,15 @@ class VideoExtrasService():
                 if firstExtraFile:
                     log("VideoExtrasService: Extras found for (%d) %s" % (item[dbid], item['title']))
                     extrasCacheString = ("%s[%d]%s" % (extrasCacheString, item[dbid], os.linesep))
-
-        extrasCacheFile = self._getCacheFilenameForTarget(target)
-
-        self._saveToFile(extrasCacheFile, extrasCacheString)
-
-    # Generate the name used for the cache
-    def _getCacheFilenameForTarget(self, target):
-        filename = ("%s_extras_cache.txt" % target)
-        fullFilename = os_path_join(__profile__, filename)
-        return fullFilename
+                    # Add the overlay image for this item
+                    self._createOverlayFile(target, item[dbid])
+                else:
+                    # No extras so remove the file if it exists
+                    self._removeOverlayFile(target, item[dbid])
 
 
-    # Saves data to a file in the users addon area
-    def _saveToFile(self, filename, fileData):
-        log("VideoExtrasService: Saving to file %s" % filename)
-    
-        # If the file already exists, delete it
-        if xbmcvfs.exists(filename):
-            xbmcvfs.delete(filename)
-
-        if (fileData != None) and (fileData != ""): 
-            # Now save the new file list
-            fileHandle = xbmcvfs.File(filename, 'w')
-            try:
-                fileHandle.write(fileData.encode("UTF-8"))
-            except:
-                log("VideoExtrasService: Failed to write: %s" % filename)
-                log("VideoExtrasService: %s" % traceback.format_exc())
-                # Make sure we close the file handle
-                fileHandle.close()
-                # Do not leave a corrupt file
-                xbmcvfs.delete(filename)
-                return
-            fileHandle.close()
-
-    def _createOverlayFile(self, target, dbid):
+    # Calculates where a given overlay file should be
+    def _createTargetPath(self, target, dbid):
         # Get the path where the file exists
         rootPath = os_path_join(__profile__, target)
         if not xbmcvfs.exists(rootPath):
@@ -162,19 +145,37 @@ class VideoExtrasService():
         
         # Generate the name of the file that the overlay will be copied to
         targetFile = os_path_join(rootPath, ("%d.png" % dbid))
-        
-        # TODO: Move this section to the init of the class
-        # special://skin - This path points to the currently active skin's root directory. 
-        skinExtrasOverlay = xbmc.translatePath( "special://skin" ).decode("utf-8")
-        skinExtrasOverlay = os_path_join(skinExtrasOverlay, "videoextras_overlay.png")
+        return targetFile
 
-        if not xbmcvfs.exists(rootPath):
-            log("VideoExtrasService: No custom image, using default")
-            # TODO: Add default image setting to skinExtrasOverlay
+    # Creates the overlay file in the expected location
+    def _createOverlayFile(self, target, dbid):
+        # Generate the name of the file that the overlay will be copied to
+        targetFile = self._createTargetPath(target, dbid)
 
-        # Now the path exists, need to copy the file over to it, giving it the name of the DBID
-        xbmcvfs.copy("WHERE THE ORIGINAL IMAGE FILE IS", targetFile)
-        
+        # Check if the file exists
+        if xbmcvfs.exists(targetFile) and not self.forceOverlayOverwrite:
+            return
+
+        try:
+            # Now the path exists, need to copy the file over to it, giving it the name of the DBID
+            xbmcvfs.copy(self.skinExtrasOverlay, targetFile)
+        except:
+            log("VideoExtrasService: Failed to create file: %s" % targetFile)
+            log("VideoExtrasService: %s" % traceback.format_exc())
+
+    # Removes an overlay
+    def _removeOverlayFile(self, target, dbid):
+        # Generate the name of the file that the overlay will be removed from
+        targetFile = self._createTargetPath(target, dbid)
+
+        if xbmcvfs.exists(targetFile):
+            try:
+                # Now the path exists, need to copy the file over to it, giving it the name of the DBID
+                xbmcvfs.delete(targetFile)
+            except:
+                log("VideoExtrasService: Failed to delete file: %s" % targetFile)
+                log("VideoExtrasService: %s" % traceback.format_exc())
+
 
 #########################################
 # Change needed to skin
@@ -201,17 +202,15 @@ if __name__ == '__main__':
 
     # Make sure that the service option is enabled    
     if Settings.isServiceEnabled():
-        # Construct the service class
-        service = VideoExtrasService()
-    
-        # Start by loading the last cached version into the properties
-        service.loadCached()
-        
-        # Now refresh the caches
-        service.cacheAllExtras()
-        
-        # Reload the refreshed caches
-        service.loadCached()
+        try:
+            # Construct the service class
+            service = VideoExtrasService()
+            
+            # Refresh the caches
+            service.cacheAllExtras()
+
+        except:
+            log("VideoExtrasService: %s" % traceback.format_exc())
     else:
         # Service not enabled
         log("VideoExtrasService: Service disabled in settings")
