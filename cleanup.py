@@ -16,6 +16,7 @@
 # *
 import sys
 import os
+import re
 import traceback
 #Modules XBMC
 import xbmc
@@ -49,6 +50,14 @@ def removeCacheFile(target, isDir=False):
     # If the file already exists, delete it
     if xbmcvfs.exists(fullFilename):
         if isDir:
+            # Remove the png files in the directory first
+            dirs, files = xbmcvfs.listdir(fullFilename)
+            for aFile in files:
+                m = re.search("[0-9]+.png", aFile, re.IGNORECASE)
+                if m:
+                    pngFile = os_path_join( fullFilename, aFile )
+                    xbmcvfs.delete(pngFile)
+            # Now remove the actual directory
             xbmcvfs.rmdir(fullFilename)
         else:
             xbmcvfs.delete(fullFilename)
