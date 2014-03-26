@@ -186,7 +186,7 @@ class VideoExtrasService():
 #    <posy>14</posy>
 #    <width>16</width>
 #    <height>16</height>
-#    <texture fallback="blank.png">special://profile/addon_data/script.videoextras/movies/$INFO[ListItem.DBID].png</texture>
+#    <texture fallback="blank.png">$INFO[ListItem.DBID,special://profile/addon_data/script.videoextras/movies/,.png]</texture>
 #    <visible>System.HasAddon(script.videoextras) + Window.IsVisible(Videos) + Container.Content(Movies)</visible>
 #</control>
             

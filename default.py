@@ -578,37 +578,35 @@ class VideoExtrasContextMenu(xbmcgui.WindowXMLDialog):
 # Main
 #########################
 try:
-    if len(sys.argv) > 1:
+    if len(sys.argv) > 2:
         # get the type of operation
         log("Operation = %s" % sys.argv[1])
 
         # Load the details of the current source of the extras        
         SourceDetails.forceLoadDetails()
             
-        # All other operations require at least 2 arguments
-        if len(sys.argv) > 2:
-            # Make sure we are not passed a plugin path
-            if "plugin://" in sys.argv[2]:
-                if sys.argv[1] == "check":
-                    xbmcgui.Window( 12003 ).setProperty( "HideVideoExtrasButton", "true" )
+        # Make sure we are not passed a plugin path
+        if "plugin://" in sys.argv[2]:
+            if sys.argv[1] == "check":
+                xbmcgui.Window( 12003 ).setProperty( "HideVideoExtrasButton", "true" )
+        else:
+            # Create the extras class that deals with any extras request
+            videoExtras = VideoExtras(sys.argv[2])
+    
+            # We are either running the command or just checking for existence
+            if sys.argv[1] == "check":
+                videoExtras.checkButtonEnabled()
             else:
-                # Create the extras class that deals with any extras request
-                videoExtras = VideoExtras(sys.argv[2])
-        
-                # We are either running the command or just checking for existence
-                if sys.argv[1] == "check":
-                    videoExtras.checkButtonEnabled()
-                else:
-                    # Check if the use database setting is enabled
-                    extrasDb = None
-                    if Settings.isDatabaseEnabled():
-                        extrasDb = ExtrasDB()
-                        # Make sure the database has been created
-                        extrasDb.createDatabase()
-                    # Perform the search command
-                    files = videoExtras.findExtras(extrasDb=extrasDb)
-                    # need to display the extras
-                    videoExtras.run(files)
+                # Check if the use database setting is enabled
+                extrasDb = None
+                if Settings.isDatabaseEnabled():
+                    extrasDb = ExtrasDB()
+                    # Make sure the database has been created
+                    extrasDb.createDatabase()
+                # Perform the search command
+                files = videoExtras.findExtras(extrasDb=extrasDb)
+                # need to display the extras
+                videoExtras.run(files)
 except:
     log("VideoExtras: %s" % traceback.format_exc())
 
