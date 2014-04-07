@@ -668,6 +668,26 @@ class VideoExtrasFinder():
         
     # Controls the loading of the information for Extras Files
     def loadExtras(self, path, filename, exitOnFirst=False):
+        # First check to see if there is a videoextras.nfo file
+        extradirs, extras = self._getNfoInfo(path)
+        
+        if (len(extradirs) > 0) or (len(extras) > 0): 
+            # There are some extras defined via an NFO file
+            extrasList = []
+            # Read the extras files from the directories
+            for aDir in extradirs:
+                extrasList = extrasList + self.findExtras(aDir, filename, exitOnFirst, noExtrasDirNeeded=True)
+            
+            # For each of the files, get the directory and filename split
+            # and create the extrasItem
+            for anExtraFile in extras:
+                extraItem = ExtrasItem(os.path.split(anExtraFile)[0], anExtraFile, extrasDb=self.extrasDb)
+                extrasList.append(extraItem)
+
+            # Sort the list before returning
+            extrasList.sort()
+            return extrasList
+        
         # Check if the files are stored in a custom path
         if Settings.isCustomPathEnabled():
             filename = None
@@ -677,7 +697,7 @@ class VideoExtrasFinder():
                 return []
             else:
                 log("VideoExtrasFinder: Searching in custom path %s" % path)
-        return self.findExtras(path, filename, exitOnFirst)
+        return self.findExtras(path, filename, exitOnFirst, noExtrasDirNeeded=Settings.isCustomPathEnabled())
 
     # Calculates and checks the path that files should be in
     # if using a custom path
@@ -713,12 +733,83 @@ class VideoExtrasFinder():
                     custPath = None
 
         return custPath
+
+    def _getNfoInfo(self, directory):
+        # Find out the name of the NFO file
+        nfoFileName = os_path_join(directory, "videoextras.nfo")
         
+        log("VideoExtrasFinder: Searching for NFO file: %s" % nfoFileName)
+
+        extras = []
+        extradirs = []
+        
+        # Return None if file does not exist
+        if not xbmcvfs.exists( nfoFileName ):
+            log("VideoExtrasFinder: No NFO file found: %s" % nfoFileName)
+            return extradirs, extras
+
+        try:
+            # Need to first load the contents of the NFO file into
+            # a string, this is because the XML File Parse option will
+            # not handle formats like smb://
+            nfoFile = xbmcvfs.File(nfoFileName, 'r')
+            nfoFileStr = nfoFile.read()
+            nfoFile.close()
+
+            # Create an XML parser
+            nfoXml = ET.ElementTree(ET.fromstring(nfoFileStr))
+            rootElement = nfoXml.getroot()
+            
+            log("VideoExtrasFinder: Root element is = %s" % rootElement.tag)
+            
+            # Check which format if being used
+            if rootElement.tag == "videoextras":
+                log("VideoExtrasFinder: VideoExtras format NFO detected")
+                #    <videoextras>
+                #        <file>c:\my\extras\afile.avi</file>
+                #        <directory>c:\my\extras</directory>
+                #    </videoextras>
+
+                # There could be multiple file entries, so loop through all of them
+                for fileElem in nfoXml.findall('file'):
+                    file = None
+                    if fileElem != None:
+                        file = fileElem.text
+
+                    if (file != None) and (file != ""):
+                        if file.startswith('..') or ((not "/" in file) and (not "\\" in file)):
+                            # Make it a full path if it is not already
+                            file = os_path_join(directory, file)
+                        log("VideoExtrasFinder: file = %s" % file)
+                        extras.append(file)
+
+                # There could be multiple directory entries, so loop through all of them
+                for dirElem in nfoXml.findall('directory'):
+                    dir = None
+                    if dirElem != None:
+                        dir = dirElem.text
+
+                    if (dir != None) and (dir != ""):
+                        if dir.startswith('..') or ((not "/" in dir) and (not "\\" in dir)):
+                            # Make it a full path if it is not already
+                            dir = os_path_join(directory, dir)
+                        log("VideoExtrasFinder: directory = %s" % dir)
+                        extradirs.append(dir)
+            else:
+                log("VideoExtrasFinder: Unknown NFO format")
+
+            del nfoXml
+
+        except:
+            log("VideoExtrasFinder: Failed to process NFO: %s" % nfoFileName)
+            log("VideoExtrasFinder: %s" % traceback.format_exc())
+
+        return extradirs, extras
     
     # Searches a given path for extras files
-    def findExtras(self, path, filename, exitOnFirst=False):
+    def findExtras(self, path, filename, exitOnFirst=False, noExtrasDirNeeded=False):
         # Get the extras that are stored in the extras directory i.e. /Extras/
-        files = self._getExtrasDirFiles(path, exitOnFirst)
+        files = self._getExtrasDirFiles(path, exitOnFirst, noExtrasDirNeeded)
         
         # Check if we only want the first entry, in which case exit after
         # we find the first
@@ -734,7 +825,7 @@ class VideoExtrasFinder():
             return files
         
         if Settings.isSearchNested():
-            files.extend( self._getNestedExtrasFiles( path, filename, exitOnFirst ) )
+            files.extend( self._getNestedExtrasFiles( path, filename, exitOnFirst, noExtrasDirNeeded ) )
         files.sort()
         
         # Check if we have found any extras at this point
@@ -742,17 +833,17 @@ class VideoExtrasFinder():
             # Check if we have a DVD image directory or Bluray image directory
             if (os.path.split(path)[1] == 'VIDEO_TS') or (os.path.split(path)[1] == 'BDMV'):
                 log("VideoExtrasFinder: DVD image directory detected, checking = %s" % os.path.split(path)[0])
-                files = self.findExtras(os.path.split(path)[0], filename, exitOnFirst)
+                files = self.findExtras(os.path.split(path)[0], filename, exitOnFirst, noExtrasDirNeeded)
         return files
 
     # Gets any extras files that are in the given extras directory
-    def _getExtrasDirFiles(self, basepath, exitOnFirst=False):
+    def _getExtrasDirFiles(self, basepath, exitOnFirst=False, noExtrasDirNeeded=False):
         # If a custom path, then don't looks for the Extras directory
-        if not Settings.isCustomPathEnabled():
+        if noExtrasDirNeeded:
+            extrasDir = basepath
+        else:
             # Add the name of the extras directory to the end of the path
             extrasDir = os_path_join( basepath, Settings.getExtrasDirName() )
-        else:
-            extrasDir = basepath
         log( "VideoExtrasFinder: Checking existence for %s" % extrasDir )
         extras = []
         # Check if the extras directory exists
@@ -791,7 +882,7 @@ class VideoExtrasFinder():
 
         return extras
 
-    def _getNestedExtrasFiles(self, basepath, filename, exitOnFirst=False):
+    def _getNestedExtrasFiles(self, basepath, filename, exitOnFirst=False, noExtrasDirNeeded=False):
         extras = []
         if xbmcvfs.exists( basepath ):
             dirs, files = xbmcvfs.listdir( basepath )
@@ -800,7 +891,7 @@ class VideoExtrasFinder():
                 log( "VideoExtrasFinder: Nested check in directory: %s" % dirpath )
                 if( dirname != Settings.getExtrasDirName() ):
                     log( "VideoExtrasFinder: Check directory: %s" % dirpath )
-                    extras.extend( self._getExtrasDirFiles(dirpath, exitOnFirst) )
+                    extras.extend( self._getExtrasDirFiles(dirpath, exitOnFirst, noExtrasDirNeeded) )
                      # Check if we are only looking for the first entry
                     if files and (exitOnFirst == True):
                         break
@@ -808,7 +899,7 @@ class VideoExtrasFinder():
                      # Check if we are only looking for the first entry
                     if files and (exitOnFirst == True):
                         break
-                    extras.extend( self._getNestedExtrasFiles( dirpath, filename, exitOnFirst ) )
+                    extras.extend( self._getNestedExtrasFiles( dirpath, filename, exitOnFirst, noExtrasDirNeeded) )
                      # Check if we are only looking for the first entry
                     if files and (exitOnFirst == True):
                         break

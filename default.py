@@ -49,7 +49,6 @@ from VideoParser import VideoParser
 
 # Load the core Video Extras classes
 from core import ExtrasItem
-from core import VideoExtrasFinder
 from core import SourceDetails
 from core import WindowShowing
 from core import VideoExtrasBase

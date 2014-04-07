@@ -1,5 +1,5 @@
 v1.0.7
-- Updated language files from Transifex
+- Add support for videoextras.nfo file
 
 v1.0.6
 - Add support for plot tag in NFO files
