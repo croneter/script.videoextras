@@ -1,3 +1,6 @@
+v1.0.7
+- Updated language files from Transifex
+
 v1.0.6
 - Add support for plot tag in NFO files
 - Add support for caching extras on startup for overlay support
