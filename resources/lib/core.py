@@ -32,6 +32,7 @@ __addon__ = xbmcaddon.Addon(id='script.videoextras')
 from settings import Settings
 from settings import log
 from settings import os_path_join
+from settings import os_path_split
 
 # Load the database interface
 from database import ExtrasDB
@@ -276,7 +277,7 @@ class BaseExtrasItem():
     def _generateOrderAndDisplay(self, filename):
         # First thing is to trim the display name from the filename
         # Get just the filename, don't need the full path
-        displayName = os.path.split(filename)[1]
+        displayName = os_path_split(filename)[1]
         # Remove the file extension (e.g .avi)
         displayName = os.path.splitext( displayName )[0]
         # Remove anything before the -extras- tag (if it exists)
@@ -684,7 +685,7 @@ class VideoExtrasFinder():
             # For each of the files, get the directory and filename split
             # and create the extrasItem
             for anExtraFile in extras:
-                extraItem = ExtrasItem(os.path.split(anExtraFile)[0], anExtraFile, extrasDb=self.extrasDb)
+                extraItem = ExtrasItem(os_path_split(anExtraFile)[0], anExtraFile, extrasDb=self.extrasDb)
                 extrasList.append(extraItem)
                 # Don't look for more than one if we are only checking for existence of an extra
                 if exitOnFirst:
@@ -714,7 +715,7 @@ class VideoExtrasFinder():
             typeSection = Settings.getCustomPathTvShowsDir()
 
         # Get the last element of the path
-        pathLastDir = os.path.split(path)[1]
+        pathLastDir = os_path_split(path)[1]
 
         # Create the path with this added
         custPath = os_path_join(Settings.getCustomPath(), typeSection)
@@ -725,7 +726,7 @@ class VideoExtrasFinder():
         if not xbmcvfs.exists(custPath):
             # If it doesn't exist, check the path before that, this covers the
             # case where there is a TV Show with each season in it's own directory
-            path2ndLastDir = os.path.split((os.path.split(path)[0]))[1]
+            path2ndLastDir = os_path_split((os_path_split(path)[0]))[1]
             custPath = os_path_join(Settings.getCustomPath(), typeSection)
             custPath = os_path_join(custPath, path2ndLastDir)
             custPath = os_path_join(custPath, pathLastDir)
@@ -842,10 +843,10 @@ class VideoExtrasFinder():
         # Check if we have found any extras at this point
         if not files:
             # Check if we have a DVD image directory or Bluray image directory
-            if (os.path.split(path)[1] == 'VIDEO_TS') or (os.path.split(path)[1] == 'BDMV'):
-                log("VideoExtrasFinder: DVD image directory detected, checking = %s" % os.path.split(path)[0])
+            if (os_path_split(path)[1] == 'VIDEO_TS') or (os_path_split(path)[1] == 'BDMV'):
+                log("VideoExtrasFinder: DVD image directory detected, checking = %s" % os_path_split(path)[0])
                 # If nesting extras inside a Disc image - always needs an Extras directory
-                files = self.findExtras(os.path.split(path)[0], filename, exitOnFirst)
+                files = self.findExtras(os_path_split(path)[0], filename, exitOnFirst)
         return files
 
     # Gets any extras files that are in the given extras directory
@@ -1082,8 +1083,8 @@ class VideoExtrasBase():
         fileExt = os.path.splitext( self.baseDirectory )[1]
         # If this is a file, then get it's parent directory
         if fileExt != None and fileExt != "":
-            self.baseDirectory = os.path.dirname(self.baseDirectory)
-            self.filename = (os.path.split(inputArg))[1]
+            self.baseDirectory = (os_path_split(self.baseDirectory))[0]
+            self.filename = (os_path_split(inputArg))[1]
         else:
             self.filename = None
         log( "VideoExtrasBase: Root directory: %s" % self.baseDirectory )
