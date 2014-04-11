@@ -508,7 +508,7 @@ class BaseExtrasItem():
             # Found the thumb entry, check if this is a local path
             # which just has a filename, this is the case if there are
             # no forward slashes and no back slashes
-            if (not "/" in thumbnail) and (not "\\" in thumbnail):
+            if thumbnail.startswith('..') or ((not "/" in thumbnail) and (not "\\" in thumbnail)):
                 thumbnail = os_path_join(self.directory, thumbnail)
         else:
             thumbnail = None
@@ -522,7 +522,7 @@ class BaseExtrasItem():
             # Found the fanart entry, check if this is a local path
             # which just has a filename, this is the case if there are
             # no forward slashes and no back slashes
-            if (not "/" in fanart) and (not "\\" in fanart):
+            if fanart.startswith('..') or ((not "/" in fanart) and (not "\\" in fanart)):
                 fanart = os_path_join(self.directory, fanart)
         else:
             fanart = None
