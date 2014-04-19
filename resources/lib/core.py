@@ -25,6 +25,11 @@ import xbmcgui
 import xbmcvfs
 import xbmcaddon
 
+if sys.version_info < (2, 7):
+    import simplejson
+else:
+    import json as simplejson
+
 
 __addon__ = xbmcaddon.Addon(id='script.videoextras')
 
@@ -548,6 +553,11 @@ class ExtrasItem(BaseExtrasItem):
     # json_query = xbmc.executeJSONRPC('{"jsonrpc": "2.0", "method": "Files.GetFileDetails", "params": {"file": "%s", "media": "video", "properties": [ "playcount" ]},"id": 1 }' % filename)
     # Even posted on the forum, but this hasn't resolved it:
     # http://forum.xbmc.org/showthread.php?tid=177368
+    # UPDATE: Found out what the problem was, with window paths you need to additionally escape them!
+    #         self.getFilename().replace("\\", "\\\\")
+    # However, as it turns out, we can't use the official database, as it only stores the "playcount"
+    # (The number of time the file has been played) and nothing about the resume point for partially
+    # played files
     def getWatched(self):
         return self.watched
 
