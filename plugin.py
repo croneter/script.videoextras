@@ -66,22 +66,23 @@ class MenuNavigator():
 
     # Display the default list of items in the root menu
     def showRootMenu(self):
-        # Music Library
+        # Movies
         url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.MOVIES})
-#        li = xbmcgui.ListItem(__addon__.getLocalizedString(32100), iconImage=MediaFiles.MusicLibraryIcon)
-        li = xbmcgui.ListItem("Movies", iconImage=__icon__)
+        li = xbmcgui.ListItem(__addon__.getLocalizedString(32110), iconImage=__icon__)
         li.setProperty( "Fanart_Image", __fanart__ )
         li.addContextMenuItems( [], replaceItems=True )
         xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
     
+        # TV Shows
         url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.TVSHOWS})
-        li = xbmcgui.ListItem("TV Shows", iconImage=__icon__)
+        li = xbmcgui.ListItem(__addon__.getLocalizedString(32111), iconImage=__icon__)
         li.setProperty( "Fanart_Image", __fanart__ )
         li.addContextMenuItems( [], replaceItems=True )
         xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
+        # Music Videos
         url = self._build_url({'mode': 'folder', 'foldername': MenuNavigator.MUSICVIDEOS})
-        li = xbmcgui.ListItem("Music Videos", iconImage=__icon__)
+        li = xbmcgui.ListItem(__addon__.getLocalizedString(32112), iconImage=__icon__)
         li.setProperty( "Fanart_Image", __fanart__ )
         li.addContextMenuItems( [], replaceItems=True )
         xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
