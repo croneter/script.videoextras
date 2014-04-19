@@ -659,6 +659,47 @@ class ExtrasItem(BaseExtrasItem):
             self.totalDuration = returnData['totalDuration']
             self.watched = returnData['watched']
 
+    def createListItem(self):
+        # Label2 is used to store the duration in HH:MM:SS format
+        anItem = xbmcgui.ListItem(self.getDisplayName(), self.getDisplayDuration(), path=SourceDetails.getFilenameAndPath())
+        anItem.setProperty("FileName", self.getFilename())
+        anItem.setInfo('video', { 'PlayCount': self.getWatched() })
+        anItem.setInfo('video', { 'Title': SourceDetails.getTitle() })
+        # We store the duration here, but it is only in minutes and does not
+        # look very good if displayed, so we also set Label2 to a viewable value
+        intDuration = self.getDuration()
+        # Only add the duration if there is one
+        if intDuration > 0:
+            anItem.setInfo('video', { 'Duration': int(self.getDuration()/60) })
+        if SourceDetails.getTvShowTitle() != "":
+            anItem.setInfo('video', { 'TvShowTitle': SourceDetails.getTvShowTitle() })
+
+        # If the plot is supplied, then set it
+        plot = self.getPlot()
+        if (plot != None) and (plot != ""):
+             anItem.setInfo('video', { 'Plot': plot })
+        # If the order sort title is supplied, then set it
+        orderKey = self.getOrderKey()
+        if (orderKey != None) and (orderKey != ""):
+             anItem.setInfo('video', { 'sorttitle': orderKey })
+
+        # If both the Icon and Thumbnail is set, the list screen will choose to show
+        # the thumbnail
+        if self.getIconImage() != "":
+            anItem.setIconImage(self.getIconImage())
+        if self.getThumbnailImage() != "":
+            anItem.setThumbnailImage(self.getThumbnailImage())
+
+        # The following two will give us the resume flag
+        anItem.setProperty("TotalTime", str(self.getTotalDuration()))
+        anItem.setProperty("ResumeTime", str(self.getResumePoint()))
+
+        # Set the background image
+        anItem.setProperty( "Fanart_Image", self.getFanArt() )
+
+        return anItem
+
+
 
 ################################################
 # Class to control Searching for the extra files
@@ -861,7 +902,7 @@ class VideoExtrasFinder():
         extras = []
         # Check if the extras directory exists
         if xbmcvfs.exists( extrasDir ):
-            # lest everything in the extras directory
+            # list everything in the extras directory
             dirs, files = xbmcvfs.listdir( extrasDir )
             for filename in files:
                 log( "VideoExtrasFinder: found file: %s" % filename)
