@@ -1,4 +1,4 @@
-v1.0.7
+v1.1.0
 - Add support for videoextras.nfo file
 - Fix issue when having extras on different OS than XBMC is on
 - Support for new extras browse option
