@@ -48,6 +48,9 @@ from core import VideoExtrasBase
 # Load the Video Extras Player that handles playing the extras files
 from ExtrasPlayer import ExtrasPlayer
 
+# Load any common dialogs
+from dialogs import VideoExtrasResumeWindow
+
 ###################################################################
 # Class to handle the navigation information for the plugin
 ###################################################################
@@ -216,9 +219,21 @@ class MenuNavigator():
         for anExtra in files:
             if anExtra.isFilenameMatch( filename ):
                 log("MenuNavigator: Found  = %s" % filename)
-                ExtrasPlayer.performPlayAction(anExtra)
-       
+                # If part way viewed prompt the user for resume or play from beginning
+                if anExtra.getResumePoint() > 0:
+                    resumeWindow = VideoExtrasResumeWindow.createVideoExtrasResumeWindow(anExtra.getDisplayResumePoint())
+                    resumeWindow.doModal()
+                    
+                    # Check the return value, if exit, then we play nothing
+                    if resumeWindow.isExit():
+                        return
+                    # If requested to restart from beginning, reset the resume point before playing
+                    if resumeWindow.isRestart():
+                        anExtra.setResumePoint(0)
+                    # Default is to actually resume
 
+                ExtrasPlayer.performPlayAction(anExtra)
+    
 
 ################################
 # Main of the VideoExtras Plugin
