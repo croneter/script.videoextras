@@ -199,13 +199,14 @@ class MenuNavigator():
             li.setProperty("TotalTime", "")
 
             li.addContextMenuItems( [], replaceItems=True )
+            li.addContextMenuItems(self._getContextMenu(anExtra, target, path), replaceItems=True )
             url = self._build_url({'mode': 'playextra', 'foldername': target, 'path': path, 'filename': anExtra.getFilename().encode("utf-8")})
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=False)
 
         xbmcplugin.endOfDirectory(self.addon_handle)
 
 
-    def playExtra(self, path, filename):
+    def playExtra(self, path, filename, forceResume=False, fromStart=False):
          # Check if the use database setting is enabled
         extrasDb = None
         if Settings.isDatabaseEnabled():
@@ -219,8 +220,13 @@ class MenuNavigator():
         for anExtra in files:
             if anExtra.isFilenameMatch( filename ):
                 log("MenuNavigator: Found  = %s" % filename)
+                
+                # Check if we are forcing playback from the start
+                if fromStart != False:
+                    anExtra.setResumePoint(0)
+                
                 # If part way viewed prompt the user for resume or play from beginning
-                if anExtra.getResumePoint() > 0:
+                if (anExtra.getResumePoint()) > 0 and (forceResume != True):
                     resumeWindow = VideoExtrasResumeWindow.createVideoExtrasResumeWindow(anExtra.getDisplayResumePoint())
                     resumeWindow.doModal()
                     
@@ -233,7 +239,100 @@ class MenuNavigator():
                     # Default is to actually resume
 
                 ExtrasPlayer.performPlayAction(anExtra)
+
+    def markAsWatched(self, path, filename):
+        # If marking as watched we need to set the resume time so it doesn't
+        # start in the middle the next time it starts
+        if Settings.isDatabaseEnabled():
+            # Create the extras class that will be used to process the extras
+            videoExtras = VideoExtrasBase(path)
     
+            # Perform the search command
+            extrasDb = ExtrasDB()
+            files = videoExtras.findExtras(extrasDb=extrasDb)
+            for anExtra in files:
+                if anExtra.isFilenameMatch( filename ):
+                    log("MenuNavigator: Found  = %s" % filename)
+                    anExtra.setResumePoint(anExtra.getTotalDuration())
+                    anExtra.saveState()
+                    # Update the display
+                    xbmc.executebuiltin("Container.Refresh")
+
+    def markAsUnwatched(self, path, filename):
+        # If marking as watched we need to set the resume time so it doesn't
+        # start in the middle the next time it starts
+        if Settings.isDatabaseEnabled():
+            # Create the extras class that will be used to process the extras
+            videoExtras = VideoExtrasBase(path)
+    
+            # Perform the search command
+            extrasDb = ExtrasDB()
+            files = videoExtras.findExtras(extrasDb=extrasDb)
+            for anExtra in files:
+                if anExtra.isFilenameMatch( filename ):
+                    log("MenuNavigator: Found  = %s" % filename)
+                    anExtra.setResumePoint(0)
+                    anExtra.saveState()
+                    # Update the display
+                    xbmc.executebuiltin("Container.Refresh")
+
+    def editTitle(self, path, filename):
+        # Create the extras class that will be used to process the extras
+        videoExtras = VideoExtrasBase(path)
+
+        # Perform the search command
+        files = videoExtras.findExtras()
+        for anExtra in files:
+            if anExtra.isFilenameMatch( filename ):
+                log("MenuNavigator: Found  = %s" % filename)
+                
+                # Prompt the user for the new name
+                keyboard = xbmc.Keyboard()
+                keyboard.setDefault(anExtra.getDisplayName())
+                keyboard.doModal()
+                
+                if keyboard.isConfirmed():
+                    try:
+                        newtitle = keyboard.getText().decode("utf-8")
+                    except:
+                        newtitle = keyboard.getText()
+                        
+                    # Only set the title if it has changed
+                    if (newtitle != anExtra.getDisplayName()) and (len(newtitle) > 0):
+                        result = anExtra.setTitle(newtitle)
+                        if not result:
+                            xbmcgui.Dialog().ok(__addon__.getLocalizedString(32102), __addon__.getLocalizedString(32109))
+                        else:
+                            # Update the display
+                            xbmc.executebuiltin("Container.Refresh")
+
+    def _getContextMenu(self, extraItem, target, path):
+        ctxtMenu = []
+        # Resume
+        if extraItem.getResumePoint() > 0:
+            cmd = self._build_url({'mode': 'resumeextra', 'foldername': target, 'path': path, 'filename': extraItem.getFilename().encode("utf-8")})
+            ctxtMenu.append(("%s %s" % (__addon__.getLocalizedString(32104), extraItem.getDisplayResumePoint()), 'XBMC.RunPlugin(%s)' % cmd))
+
+        # Play Now
+        cmd = self._build_url({'mode': 'beginextra', 'foldername': target, 'path': path, 'filename': extraItem.getFilename().encode("utf-8")})
+        ctxtMenu.append((__addon__.getLocalizedString(32105), 'XBMC.RunPlugin(%s)' % cmd))
+
+        # Mark As Watched
+        if (extraItem.getWatched() == 0) or (extraItem.getResumePoint() > 0):
+            cmd = self._build_url({'mode': 'markwatched', 'foldername': target, 'path': path, 'filename': extraItem.getFilename().encode("utf-8")})
+            ctxtMenu.append((__addon__.getLocalizedString(32106), 'XBMC.RunPlugin(%s)' % cmd))
+
+        # Mark As Unwatched
+        if (extraItem.getWatched() != 0) or (extraItem.getResumePoint() > 0):
+            cmd = self._build_url({'mode': 'markunwatched', 'foldername': target, 'path': path, 'filename': extraItem.getFilename().encode("utf-8")})
+            ctxtMenu.append((__addon__.getLocalizedString(32107), 'XBMC.RunPlugin(%s)' % cmd))
+
+        # Edit Title
+        cmd = self._build_url({'mode': 'edittitle', 'foldername': target, 'path': path, 'filename': extraItem.getFilename().encode("utf-8")})
+        ctxtMenu.append((__addon__.getLocalizedString(32108), 'XBMC.RunPlugin(%s)' % cmd))
+
+        return ctxtMenu
+
 
 ################################
 # Main of the VideoExtras Plugin
@@ -294,5 +393,73 @@ if __name__ == '__main__':
             menuNav = MenuNavigator(base_url, addon_handle)
             menuNav.playExtra(path[0], filename[0])
 
+    elif mode[0] == 'resumeextra':
+        log("VideoExtrasPlugin: Mode is RESUME EXTRA")
 
+        # Get the actual path that was navigated to
+        path = args.get('path', None)
+        filename = args.get('filename', None)
+        
+        if (path != None) and (len(path) > 0) and (filename != None) and (len(filename) > 0):
+            log("VideoExtrasPlugin: Path to play extras for %s" % path[0])
+            log("VideoExtrasPlugin: Extras file to play %s" % filename[0])
+    
+            menuNav = MenuNavigator(base_url, addon_handle)
+            menuNav.playExtra(path[0], filename[0], forceResume=True)
+
+    elif mode[0] == 'beginextra':
+        log("VideoExtrasPlugin: Mode is BEGIN EXTRA")
+
+        # Get the actual path that was navigated to
+        path = args.get('path', None)
+        filename = args.get('filename', None)
+        
+        if (path != None) and (len(path) > 0) and (filename != None) and (len(filename) > 0):
+            log("VideoExtrasPlugin: Path to play extras for %s" % path[0])
+            log("VideoExtrasPlugin: Extras file to play %s" % filename[0])
+    
+            menuNav = MenuNavigator(base_url, addon_handle)
+            menuNav.playExtra(path[0], filename[0], fromStart=True)
+
+    elif mode[0] == 'markwatched':
+        log("VideoExtrasPlugin: Mode is MARK WATCHED")
+
+        # Get the actual path that was navigated to
+        path = args.get('path', None)
+        filename = args.get('filename', None)
+        
+        if (path != None) and (len(path) > 0) and (filename != None) and (len(filename) > 0):
+            log("VideoExtrasPlugin: Path to play extras for %s" % path[0])
+            log("VideoExtrasPlugin: Extras file to play %s" % filename[0])
+    
+            menuNav = MenuNavigator(base_url, addon_handle)
+            menuNav.markAsWatched(path[0], filename[0])
+ 
+    elif mode[0] == 'markunwatched':
+        log("VideoExtrasPlugin: Mode is MARK UNWATCHED")
+
+        # Get the actual path that was navigated to
+        path = args.get('path', None)
+        filename = args.get('filename', None)
+        
+        if (path != None) and (len(path) > 0) and (filename != None) and (len(filename) > 0):
+            log("VideoExtrasPlugin: Path to play extras for %s" % path[0])
+            log("VideoExtrasPlugin: Extras file to play %s" % filename[0])
+    
+            menuNav = MenuNavigator(base_url, addon_handle)
+            menuNav.markAsUnwatched(path[0], filename[0])
+
+    elif mode[0] == 'edittitle':
+        log("VideoExtrasPlugin: Mode is EDIT TITLE")
+
+        # Get the actual path that was navigated to
+        path = args.get('path', None)
+        filename = args.get('filename', None)
+        
+        if (path != None) and (len(path) > 0) and (filename != None) and (len(filename) > 0):
+            log("VideoExtrasPlugin: Path to play extras for %s" % path[0])
+            log("VideoExtrasPlugin: Extras file to play %s" % filename[0])
+    
+            menuNav = MenuNavigator(base_url, addon_handle)
+            menuNav.editTitle(path[0], filename[0])
  
