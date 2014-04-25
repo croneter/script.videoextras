@@ -187,6 +187,13 @@ class MenuNavigator():
         for anExtra in files:
             # Create the list item
             li = anExtra.createListItem()
+            # Hack, if the "TotalTime" and "ResumeTime" are set on the list item
+            # and it is partially watched, then XBMC will display the continue dialog
+            # However we can not get what the user selects from this dialog, so it
+            # will always continue.  Found out that we can hack this by clearing
+            # the "TotalTime" property
+            # http://forum.xbmc.org/showthread.php?tid=192627
+            li.setProperty("TotalTime", "")
 
             li.addContextMenuItems( [], replaceItems=True )
             url = self._build_url({'mode': 'playextra', 'foldername': target, 'path': path, 'filename': anExtra.getFilename().encode("utf-8")})
