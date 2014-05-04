@@ -92,7 +92,7 @@ class VideoExtrasDialog(xbmcgui.Window):
             # Give anything that was already playing time to stop
             while extrasPlayer.isPlaying():
                 xbmc.sleep(100)
-            if select == 0 and addPlayAll == True:
+            if (select == 0) and (addPlayAll == True):
                 playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
                 playlist.clear()
                 extrasPlayer.playAll( exList )
@@ -106,6 +106,11 @@ class VideoExtrasDialog(xbmcgui.Window):
                 extrasPlayer.play( exList[itemToPlay] )
             while extrasPlayer.isPlayingVideo():
                 xbmc.sleep(100)
+                
+                # If the user selected the "Play All" option, then we do not want to
+                # stop between the two videos, so do an extra wait
+                if (select == 0) and (addPlayAll == True) and (not extrasPlayer.isPlayingVideo()):
+                    xbmc.sleep(3000)      
         else:
             return False
         return True
