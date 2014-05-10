@@ -231,8 +231,11 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         self.clearList()
         
         # Start by adding an option to Play All
-        anItem = xbmcgui.ListItem(__addon__.getLocalizedString(32101))
-        self.addItem(anItem)
+        if len(self.files) > 0:
+            anItem = xbmcgui.ListItem(__addon__.getLocalizedString(32101))
+            # Get the first items fanart for the play all option
+            anItem.setProperty( "Fanart_Image", self.files[0].getFanArt() )
+            self.addItem(anItem)
         
         for anExtra in self.files:
             log("VideoExtrasWindow: filename: %s" % anExtra.getFilename())

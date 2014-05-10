@@ -189,6 +189,9 @@ class MenuNavigator():
         if len(files) > 0:
             # Start by adding an option to Play All
             anItem = xbmcgui.ListItem(__addon__.getLocalizedString(32101))
+            # Get the first items fanart for the play all option
+            anItem.setProperty( "Fanart_Image", files[0].getFanArt() )
+
             anItem.addContextMenuItems( [], replaceItems=True )
             url = self._build_url({'mode': 'playallextras', 'foldername': target, 'path': path})
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=anItem, isFolder=False)
