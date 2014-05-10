@@ -114,10 +114,17 @@ class MenuNavigator():
             li = xbmcgui.ListItem(videoItem['title'], iconImage=videoItem['thumbnail'])
             # Remove the default context menu
             li.addContextMenuItems( [], replaceItems=True )
+            # Get the title of the video owning the extras
+            parentTitle = ""
+            try:
+                parentTitle = videoItem['title'].encode("utf-8")
+            except:
+                log("setVideoList: failed to encode parent title %s" % parentTitle)
+            
             # Set the background image
             if videoItem['fanart'] != None:
                 li.setProperty( "Fanart_Image", videoItem['fanart'] )
-            url = self._build_url({'mode': 'listextras', 'foldername': target, 'path': videoItem['file'].encode("utf-8")})
+            url = self._build_url({'mode': 'listextras', 'foldername': target, 'path': videoItem['file'].encode("utf-8"), 'parentTitle': parentTitle})
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
         xbmcplugin.endOfDirectory(self.addon_handle)
@@ -174,7 +181,7 @@ class MenuNavigator():
         return False
 
     # Shows all the extras for a given movie or TV Show
-    def showExtras(self, path, target):
+    def showExtras(self, path, target, extrasParentTitle=""):
         # Check if the use database setting is enabled
         extrasDb = None
         if Settings.isDatabaseEnabled():
@@ -210,7 +217,7 @@ class MenuNavigator():
 
             li.addContextMenuItems( [], replaceItems=True )
             li.addContextMenuItems(self._getContextMenu(anExtra, target, path), replaceItems=True )
-            url = self._build_url({'mode': 'playextra', 'foldername': target, 'path': path, 'filename': anExtra.getFilename().encode("utf-8")})
+            url = self._build_url({'mode': 'playextra', 'foldername': target, 'path': path, 'filename': anExtra.getFilename().encode("utf-8"), 'parentTitle': extrasParentTitle})
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=False)
 
         xbmcplugin.endOfDirectory(self.addon_handle)
@@ -232,7 +239,10 @@ class MenuNavigator():
         extrasPlayer.playAll( files )
 
 
-    def playExtra(self, path, filename, forceResume=False, fromStart=False):
+    def playExtra(self, path, filename, extrasParentTitle="", forceResume=False, fromStart=False):
+        # This is a bit of a hack, set the global SoureDetails object with the title
+        SourceDetails.title = extrasParentTitle
+        
          # Check if the use database setting is enabled
         extrasDb = None
         if Settings.isDatabaseEnabled():
@@ -398,12 +408,16 @@ if __name__ == '__main__':
         # Get the actual path that was navigated to
         path = args.get('path', None)
         foldername = args.get('foldername', None)
+        parentTitle = args.get('parentTitle', None)
         
         if (path != None) and (len(path) > 0) and (foldername != None) and (len(foldername) > 0):
             log("VideoExtrasPlugin: Path to load extras for %s" % path[0])
+            extrasParentTitle = ""
+            if (parentTitle != None) and (len(parentTitle) > 0):
+                extrasParentTitle = parentTitle[0]
     
             menuNav = MenuNavigator(base_url, addon_handle)
-            menuNav.showExtras(path[0], foldername[0])
+            menuNav.showExtras(path[0], foldername[0], extrasParentTitle)
 
     elif mode[0] == 'playallextras':
         log("VideoExtrasPlugin: Mode is PLAY ALL EXTRAS")
@@ -424,13 +438,17 @@ if __name__ == '__main__':
         # Get the actual path that was navigated to
         path = args.get('path', None)
         filename = args.get('filename', None)
+        parentTitle = args.get('parentTitle', None)
         
         if (path != None) and (len(path) > 0) and (filename != None) and (len(filename) > 0):
             log("VideoExtrasPlugin: Path to play extras for %s" % path[0])
             log("VideoExtrasPlugin: Extras file to play %s" % filename[0])
+            extrasParentTitle = ""
+            if (parentTitle != None) and (len(parentTitle) > 0):
+                extrasParentTitle = parentTitle[0]
     
             menuNav = MenuNavigator(base_url, addon_handle)
-            menuNav.playExtra(path[0], filename[0])
+            menuNav.playExtra(path[0], filename[0], extrasParentTitle)
 
     elif mode[0] == 'resumeextra':
         log("VideoExtrasPlugin: Mode is RESUME EXTRA")
