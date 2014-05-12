@@ -90,16 +90,14 @@ class ExtrasPlayer(xbmc.Player):
         
         # If both the Icon and Thumbnail is set, the list screen will choose to show
         # the thumbnail
-#         if extrasItem.getIconImage() != "":
-#             listitem.setIconImage(extrasItem.getIconImage())
-#         if extrasItem.getThumbnailImage() != "":
-#             listitem.setThumbnailImage(extrasItem.getThumbnailImage())
-        
-        # Always set the icon the the video extras icon, this way users can
-        # tell they are playing an extra
-        listitem.setIconImage(__addon__.getAddonInfo('icon'))
-        listitem.setThumbnailImage(__addon__.getAddonInfo('icon'))
-        
+        if extrasItem.getIconImage() != "":
+            listitem.setIconImage(extrasItem.getIconImage())
+        # For the player OSD if there is no thumbnail, then show the VideoExtras icon
+        if extrasItem.getThumbnailImage() != "":
+            listitem.setThumbnailImage(extrasItem.getThumbnailImage())
+        else:
+            listitem.setThumbnailImage(__addon__.getAddonInfo('icon'))
+
         # Record if the video should start playing part-way through
         if extrasItem.isResumable():
             if extrasItem.getResumePoint() > 1:
