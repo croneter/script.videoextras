@@ -1,6 +1,7 @@
 v1.1.2
 - Display album art when Play All is selected
-- Use VideoExtras icon for OSD thumb-nail
+- Use VideoExtras icon for OSD thumb-nail (if no thumbnail set)
+- Record the play state of videos played via "Play All"
 
 v1.1.1
 - Fix bug with default name when accessing across file systems

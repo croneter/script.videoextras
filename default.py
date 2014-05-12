@@ -101,14 +101,7 @@ class VideoExtrasDialog(xbmcgui.Window):
                 if addPlayAll == True:
                     itemToPlay = itemToPlay - 1
                 log( "VideoExtrasDialog: Start playing %s" % exList[itemToPlay].getFilename() )
-                extrasPlayer.play( exList[itemToPlay] )
-            while extrasPlayer.isPlayingVideo():
-                xbmc.sleep(100)
-                
-                # If the user selected the "Play All" option, then we do not want to
-                # stop between the two videos, so do an extra wait
-                if (select == 0) and (addPlayAll == True) and (not extrasPlayer.isPlayingVideo()):
-                    xbmc.sleep(3000)      
+                extrasPlayer.performPlayAction( exList[itemToPlay] )
         else:
             return False
         return True
@@ -353,7 +346,7 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             if resumeWindow.isRestart():
                 extraItem.setResumePoint(0)
             # Default is to actually resume
-            
+
         ExtrasPlayer.performPlayAction(extraItem)
         
 
