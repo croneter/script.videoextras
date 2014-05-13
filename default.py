@@ -83,17 +83,16 @@ class VideoExtrasDialog(xbmcgui.Window):
         # User has made a selection, -1 is exit
         if select != -1:
             xbmc.executebuiltin("Dialog.Close(all, true)", True)
-            extrasPlayer = ExtrasPlayer()
             waitLoop = 0
-            while extrasPlayer.isPlaying() and waitLoop < 10:
+            while xbmc.Player.isPlaying() and waitLoop < 10:
                 xbmc.sleep(100)
                 waitLoop = waitLoop + 1
-            extrasPlayer.stop()
+            xbmc.Player.stop()
             # Give anything that was already playing time to stop
-            while extrasPlayer.isPlaying():
+            while xbmc.Player.isPlaying():
                 xbmc.sleep(100)
             if (select == 0) and (addPlayAll == True):
-                extrasPlayer.playAll( exList )
+                ExtrasPlayer.playAll( exList, SourceDetails.getTitle() )
             else:
                 itemToPlay = select
                 # If we added the PlayAll option to the list need to allow for it
@@ -101,7 +100,7 @@ class VideoExtrasDialog(xbmcgui.Window):
                 if addPlayAll == True:
                     itemToPlay = itemToPlay - 1
                 log( "VideoExtrasDialog: Start playing %s" % exList[itemToPlay].getFilename() )
-                extrasPlayer.performPlayAction( exList[itemToPlay] )
+                ExtrasPlayer.performPlayAction( exList[itemToPlay], SourceDetails.getTitle() )
         else:
             return False
         return True
@@ -272,10 +271,10 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             # If requested to restart from beginning, reset the resume point before playing
             if contextWindow.isRestart():
                 extraItem.setResumePoint(0)
-                ExtrasPlayer.performPlayAction(extraItem)
+                ExtrasPlayer.performPlayAction(extraItem, SourceDetails.getTitle())
                 
             if contextWindow.isResume():
-                ExtrasPlayer.performPlayAction(extraItem)
+                ExtrasPlayer.performPlayAction(extraItem, SourceDetails.getTitle())
 
             if contextWindow.isMarkUnwatched():
                 # Need to remove the row from the database
@@ -322,8 +321,7 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         
         # Check for the Play All case
         if self.getCurrentListPosition() == 0:
-            extrasPlayer = ExtrasPlayer()
-            extrasPlayer.playAll( self.files )
+            ExtrasPlayer.playAll( self.files, SourceDetails.getTitle() )
             return
         
         # Get the item that was clicked on
@@ -347,7 +345,7 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
                 extraItem.setResumePoint(0)
             # Default is to actually resume
 
-        ExtrasPlayer.performPlayAction(extraItem)
+        ExtrasPlayer.performPlayAction(extraItem, SourceDetails.getTitle())
         
 
     # Search the list of extras for a given filename

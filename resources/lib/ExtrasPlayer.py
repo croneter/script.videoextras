@@ -16,22 +16,21 @@ sys.path.append(__resource__)
 sys.path.append(__lib__)
 
 # Import the common settings
-from settings import Settings
 from settings import log
-from settings import os_path_join
 
 # Load the core Video Extras classes
 from core import ExtrasItem
-from core import SourceDetails
 
 
 ###################################
 # Custom Player to play the extras
 ###################################
 class ExtrasPlayer(xbmc.Player):
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
         self.isPlayAll = True
         self.currentlyPlaying=None
+        # Extract the title of the parent video that owns the extras
+        self.parentTitle = kwargs.pop('parentTitle', "")
         xbmc.Player.__init__(self, *args)
 
     # Play the given Extras File
@@ -43,27 +42,30 @@ class ExtrasPlayer(xbmc.Player):
         self.play(playlist)
 
     # Play a list of extras
-    def playAll(self, extrasItems):
+    @staticmethod
+    def playAll(extrasItems, parentTitle=""):
         log("ExtrasPlayer: playAll")
         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
         playlist.clear()
 
+        extrasPlayer = ExtrasPlayer(parentTitle=parentTitle)
+
         for exItem in extrasItems:
             # Get the list item, but not any resume information
-            listitem = self._getListItem(exItem, True)
+            listitem = extrasPlayer._getListItem(exItem, True)
             playlist.add(exItem.getMediaFilename(), listitem)
 
-        self.play(playlist)
+        extrasPlayer.play(playlist)
 
         # Now the list of videos is playing we need to keep track of
         # where they are and then save their current status
         currentTime = 0
         currentlyPlayingFile = ""
         currentExtrasItem = None
-        while self.isPlayingVideo():
+        while extrasPlayer.isPlayingVideo():
             try:
                 # Check if the same file as last time has started playing
-                if currentlyPlayingFile != self.getPlayingFile():
+                if currentlyPlayingFile != extrasPlayer.getPlayingFile():
                     # If there was previously a playing file, need to save it's state
                     if (currentlyPlayingFile != "") and (currentExtrasItem != None):
                         # Record the time that the player actually stopped
@@ -80,17 +82,17 @@ class ExtrasPlayer(xbmc.Player):
                     currentTime = 0
                     # Last operation may have taken a bit of time as it might have written to
                     # the database, so just make sure we are still playing
-                    if self.isPlayingVideo():
+                    if extrasPlayer.isPlayingVideo():
                         # Get the name of the currently playing file
-                        currentlyPlayingFile = self.getPlayingFile()
+                        currentlyPlayingFile = extrasPlayer.getPlayingFile()
                         for exItem in extrasItems:
                             if exItem.getMediaFilename() == currentlyPlayingFile:
                                 currentExtrasItem = exItem
                                 break
 
                 # Keep track of where the current video is up to
-                if self.isPlayingVideo():
-                    currentTime = int(self.getTime())
+                if extrasPlayer.isPlayingVideo():
+                    currentTime = int(extrasPlayer.getTime())
             except:
                 log("ExtrasPlayer: Failed to follow progress %s" % currentlyPlayingFile)
                 log("ExtrasPlayer: %s" % traceback.format_exc())
@@ -99,7 +101,7 @@ class ExtrasPlayer(xbmc.Player):
             
             # If the user selected the "Play All" option, then we do not want to
             # stop between the two videos, so do an extra wait
-            if not self.isPlayingVideo():
+            if not extrasPlayer.isPlayingVideo():
                 xbmc.sleep(3000)
 
         # Need to save the final file state
@@ -112,32 +114,13 @@ class ExtrasPlayer(xbmc.Player):
                 currentExtrasItem.saveState()
             else:
                 log("ExtrasPlayer: Only played to time = %d (Not saving state)" % currentTime)
-
-
-    def onPlayBackStarted(self):
-        log("ExtrasPlayer: onPlayBackStarted %s" % self.getPlayingFile())
-        xbmc.Player.onPlayBackStarted(self)
-
-    def onPlayBackEnded(self):
-        log("ExtrasPlayer: onPlayBackEnded")
-#        log("ExtrasPlayer: %s" % self.getPlayingFile())
-        xbmc.Player.onPlayBackEnded(self)
-
-    def onPlayBackStopped(self):
-        log("ExtrasPlayer: onPlayBackStopped")
-#        log("ExtrasPlayer: %s" % self.getPlayingFile())
-        xbmc.Player.onPlayBackStopped(self)
-
-    def onQueueNextItem(self):
-        log("ExtrasPlayer: onQueueNextItem")
-        xbmc.Player.onQueueNextItem(self)
         
 
     # Calls the media player to play the selected item
     @staticmethod
-    def performPlayAction(extraItem):
+    def performPlayAction(extraItem, parentTitle=""):
         log("ExtrasPlayer: Playing extra video = %s" % extraItem.getFilename())
-        extrasPlayer = ExtrasPlayer()
+        extrasPlayer = ExtrasPlayer(parentTitle=parentTitle)
         extrasPlayer.playExtraItem( extraItem )
         
         # Don't allow this to loop forever
@@ -174,7 +157,7 @@ class ExtrasPlayer(xbmc.Player):
     def _getListItem(self, extrasItem, ignoreResume=False):
         listitem = xbmcgui.ListItem()
         # Set the display title on the video play overlay
-        listitem.setInfo('video', {'studio': __addon__.getLocalizedString(32001) + " - " + SourceDetails.getTitle()})
+        listitem.setInfo('video', {'studio': __addon__.getLocalizedString(32001) + " - " + self.parentTitle})
         listitem.setInfo('video', {'Title': extrasItem.getDisplayName()})
         
         # If both the Icon and Thumbnail is set, the list screen will choose to show
