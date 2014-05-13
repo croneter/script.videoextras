@@ -50,9 +50,7 @@ from settings import os_path_join
 from database import ExtrasDB
 
 # Load the core Video Extras classes
-from core import ExtrasItem
-from core import SourceDetails
-from core import WindowShowing
+from ExtrasItem import ExtrasItem
 from core import VideoExtrasBase
 
 # Load the Video Extras Player that handles playing the extras files
@@ -60,6 +58,101 @@ from ExtrasPlayer import ExtrasPlayer
 
 # Load any common dialogs
 from dialogs import VideoExtrasResumeWindow
+
+##################################################
+# Class to store the details of the selected item
+##################################################
+class SourceDetails():
+    title = None
+    tvshowtitle = None
+    fanart = None
+    filenameAndPath = None
+    isTvSource = None
+
+    # Forces the loading of all the source details
+    # This is needed if the "Current Window" is going to
+    # change - and we need a reference to the source before
+    # it changes
+    @staticmethod
+    def forceLoadDetails():
+        SourceDetails.getFanArt()
+        SourceDetails.getFilenameAndPath()
+        SourceDetails.getTitle()
+        SourceDetails.getTvShowTitle()
+
+    @staticmethod
+    def getTitle():
+        if SourceDetails.title == None:
+            # Get the title of the Movie or TV Show
+            if SourceDetails.isTv():
+                SourceDetails.title = xbmc.getInfoLabel( "ListItem.TVShowTitle" )
+            else:
+                SourceDetails.title = xbmc.getInfoLabel( "ListItem.Title" )
+            # There are times when the title has a different encoding
+            try:
+                SourceDetails.title = SourceDetails.title.decode("utf-8")
+            except:
+                pass
+
+        return SourceDetails.title
+
+    @staticmethod
+    def getTvShowTitle():
+        if SourceDetails.tvshowtitle == None:
+            if SourceDetails.isTv():
+                SourceDetails.tvshowtitle = xbmc.getInfoLabel( "ListItem.TVShowTitle" )
+            else:
+                SourceDetails.tvshowtitle = ""
+            # There are times when the title has a different encoding
+            try:
+                SourceDetails.tvshowtitle = SourceDetails.tvshowtitle.decode("utf-8")
+            except:
+                pass
+
+        return SourceDetails.tvshowtitle
+
+    # This is a bit of a hack, when we set the path we need to set it an extra
+    # directory below where we really are - this path is not used to retrieve
+    # the extras files (This class highlights where the script was called from)
+    # It is used to trigger the TV Tunes, and for some reason between VideoExtras
+    # setting the value and TvTunes getting it, it loses the final directory
+    @staticmethod
+    def getFilenameAndPath():
+        if SourceDetails.filenameAndPath == None:
+            SourceDetails.filenameAndPath = xbmc.getInfoLabel( "ListItem.FilenameAndPath" ) + "Extras"
+        return SourceDetails.filenameAndPath
+    
+    @staticmethod
+    def getFanArt():
+        if SourceDetails.fanart == None:
+            # Save the background
+            SourceDetails.fanart = xbmc.getInfoLabel( "ListItem.Property(Fanart_Image)" )
+            if SourceDetails.fanart == None:
+                SourceDetails.fanart = ""
+        return SourceDetails.fanart
+
+    @staticmethod
+    def isTv():
+        if SourceDetails.isTvSource == None:
+            if xbmc.getCondVisibility("Container.Content(tvshows)"):
+                SourceDetails.isTvSource = True
+            if xbmc.getCondVisibility("Container.Content(Seasons)"):
+                SourceDetails.isTvSource = True
+            if xbmc.getCondVisibility("Container.Content(Episodes)"):
+                SourceDetails.isTvSource = True
+            
+            folderPathId = "videodb://2/2/"
+            # The ID for the TV Show Title changed in Gotham
+            if Settings.getXbmcMajorVersion() > 12:
+                folderPathId = "videodb://tvshows/titles/"
+            if xbmc.getInfoLabel( "container.folderpath" ) == folderPathId:
+                SourceDetails.isTvSource = True # TvShowTitles
+    
+            # If still not set
+            if SourceDetails.isTvSource == None:
+                SourceDetails.isTvSource = False
+        return SourceDetails.isTvSource
+
 
 ####################################################
 # Class to control displaying and playing the extras
@@ -111,10 +204,10 @@ class VideoExtrasDialog(xbmcgui.Window):
 #################################
 class VideoExtras(VideoExtrasBase):
 
-    def findExtras(self, exitOnFirst=False, extrasDb=None):
+    def findExtras(self, exitOnFirst=False, extrasDb=None, defaultFanArt=""):
         # Display the busy icon while searching for files
         xbmc.executebuiltin( "ActivateWindow(busydialog)" )
-        files = VideoExtrasBase.findExtras(self, exitOnFirst, extrasDb)
+        files = VideoExtrasBase.findExtras(self, exitOnFirst, extrasDb, defaultFanArt)
         xbmc.executebuiltin( "Dialog.Close(busydialog)" )
         return files
 
@@ -128,6 +221,7 @@ class VideoExtras(VideoExtrasBase):
         else:
             # Search for the extras, stopping when the first is found
             # only want to find out if the button should be available
+            # No need for DB or default fanart, as just checking for existence
             files = self.findExtras(True)
             if files:
                 # Set a flag on the window so we know there is data
@@ -194,7 +288,7 @@ class VideoExtras(VideoExtrasBase):
                                 # Reshow the exList that was previously generated
                                 self.run(files)
             except:
-                log("VideoExtras: %s" % traceback.format_exc())
+                log("VideoExtras: %s" % traceback.format_exc(), xbmc.LOGERROR)
 
             # Tidy up the TV Tunes flag if we set it
             if not isTvTunesAlreadySet:
@@ -233,7 +327,7 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             log("VideoExtrasWindow: filename: %s" % anExtra.getFilename())
 
             # Create the list item
-            anItem = anExtra.createListItem()
+            anItem = anExtra.createListItem(path=SourceDetails.getFilenameAndPath(), parentTitle=SourceDetails.getTitle(), tvShowTitle=SourceDetails.getTvShowTitle())
 
             self.addItem(anItem)
         
@@ -306,7 +400,7 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
                         
                     # Only set the title if it has changed
                     if (newtitle != extraItem.getDisplayName()) and (len(newtitle) > 0):
-                        result = extraItem.setTitle(newtitle)
+                        result = extraItem.setTitle(newtitle, isTV=SourceDetails.isTv())
                         if not result:
                             xbmcgui.Dialog().ok(__addon__.getLocalizedString(32102), __addon__.getLocalizedString(32109))
                         else:
@@ -463,7 +557,7 @@ if __name__ == '__main__':
                         # Make sure the database has been created
                         extrasDb.createDatabase()
                     # Perform the search command
-                    files = videoExtras.findExtras(extrasDb=extrasDb)
+                    files = videoExtras.findExtras(extrasDb=extrasDb, defaultFanArt=SourceDetails.getFanArt())
                     # need to display the extras
                     videoExtras.run(files)
         else:
@@ -499,5 +593,5 @@ if __name__ == '__main__':
             
 
     except:
-        log("VideoExtras: %s" % traceback.format_exc())
+        log("VideoExtras: %s" % traceback.format_exc(), xbmc.LOGERROR)
 

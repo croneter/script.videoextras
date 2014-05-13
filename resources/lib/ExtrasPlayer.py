@@ -19,7 +19,7 @@ sys.path.append(__lib__)
 from settings import log
 
 # Load the core Video Extras classes
-from core import ExtrasItem
+from ExtrasItem import ExtrasItem
 
 
 ###################################

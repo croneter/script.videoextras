@@ -8,12 +8,12 @@ __addonid__   = __addon__.getAddonInfo('id')
 
 
 # Common logging module
-def log(txt):
+def log(txt, loglevel=xbmc.LOGDEBUG):
     if __addon__.getSetting( "logEnabled" ) == "true":
         if isinstance (txt,str):
             txt = txt.decode("utf-8")
         message = u'%s: %s' % (__addonid__, txt)
-        xbmc.log(msg=message.encode("utf-8"), level=xbmc.LOGDEBUG)
+        xbmc.log(msg=message.encode("utf-8"), level=loglevel)
 
 
 # There has been problems with calling join with non ascii characters,
@@ -60,6 +60,23 @@ def os_path_split( fullpath ):
 # Stores Various Settings
 ##############################
 class Settings():
+    xbmcMajorVersion = 0
+
+    @staticmethod
+    def getXbmcMajorVersion():
+        if Settings.xbmcMajorVersion == 0:
+            xbmcVer = xbmc.getInfoLabel('system.buildversion')
+            log("Settings: XBMC Version = %s" % xbmcVer)
+            Settings.xbmcMajorVersion = 12
+            try:
+                # Get just the major version number
+                Settings.xbmcMajorVersion = int(xbmcVer.split(".", 1)[0])
+            except:
+                # Default to frodo as the default version if we fail to find it
+                log("Settings: Failed to get XBMC version")
+            log("Settings: XBMC Version %d (%s)" % (Settings.xbmcMajorVersion, xbmcVer))
+        return Settings.xbmcMajorVersion
+
     @staticmethod
     def getExcludeFiles():
         return __addon__.getSetting( "excludeFiles" )

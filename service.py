@@ -123,6 +123,7 @@ class VideoExtrasService():
                 
                 log("VideoExtrasService: %s detected: %s = %s" % (target, item['title'], item['file']))
                 videoExtras = VideoExtrasBase(item['file'])
+                # Only checking for the existence of extras - no need for DB or default Fanart
                 firstExtraFile = videoExtras.findExtras(True)
                 # Check if any extras exist for this movie
                 if firstExtraFile:
@@ -210,7 +211,7 @@ if __name__ == '__main__':
             service.cacheAllExtras()
 
         except:
-            log("VideoExtrasService: %s" % traceback.format_exc())
+            log("VideoExtrasService: %s" % traceback.format_exc(), xbmc.LOGERROR)
     else:
         # Service not enabled
         log("VideoExtrasService: Service disabled in settings")

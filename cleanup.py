@@ -83,5 +83,5 @@ if __name__ == '__main__':
         removeCacheFile('overlay_image_used.txt')
 
     except:
-        log("VideoExtrasCleanup: %s" % traceback.format_exc())
+        log("VideoExtrasCleanup: %s" % traceback.format_exc(), xbmc.LOGERROR)
 

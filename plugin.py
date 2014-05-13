@@ -41,8 +41,7 @@ from settings import os_path_split
 from database import ExtrasDB
 
 # Load the core Video Extras classes
-from core import ExtrasItem
-from core import SourceDetails
+from ExtrasItem import ExtrasItem
 from core import VideoExtrasBase
 
 # Load the Video Extras Player that handles playing the extras files
@@ -124,7 +123,9 @@ class MenuNavigator():
             # Set the background image
             if videoItem['fanart'] != None:
                 li.setProperty( "Fanart_Image", videoItem['fanart'] )
-            url = self._build_url({'mode': 'listextras', 'foldername': target, 'path': videoItem['file'].encode("utf-8"), 'parentTitle': parentTitle})
+            else:
+                videoItem['fanart'] = ""
+            url = self._build_url({'mode': 'listextras', 'foldername': target, 'path': videoItem['file'].encode("utf-8"), 'parentTitle': parentTitle, 'defaultFanArt': videoItem['fanart']})
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
         xbmcplugin.endOfDirectory(self.addon_handle)
@@ -173,6 +174,7 @@ class MenuNavigator():
         # extras files on the file system (This is much slower)
         else:
             videoExtras = VideoExtrasBase(file)
+            # We are only checking for existence of extras, no need for fanart
             firstExtraFile = videoExtras.findExtras(True)
             if firstExtraFile:
                 log("MenuNavigator: Extras found for (%d) %s" % (dbid, file))
@@ -181,7 +183,7 @@ class MenuNavigator():
         return False
 
     # Shows all the extras for a given movie or TV Show
-    def showExtras(self, path, target, extrasParentTitle=""):
+    def showExtras(self, path, target, extrasParentTitle="", extrasDefaultFanArt=""):
         # Check if the use database setting is enabled
         extrasDb = None
         if Settings.isDatabaseEnabled():
@@ -191,7 +193,7 @@ class MenuNavigator():
         videoExtras = VideoExtrasBase(path)
 
         # Perform the search command
-        files = videoExtras.findExtras(extrasDb=extrasDb)
+        files = videoExtras.findExtras(extrasDb=extrasDb, defaultFanArt=extrasDefaultFanArt)
 
         if len(files) > 0:
             # Start by adding an option to Play All
@@ -203,10 +205,14 @@ class MenuNavigator():
             url = self._build_url({'mode': 'playallextras', 'foldername': target, 'path': path, 'parentTitle': extrasParentTitle})
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=anItem, isFolder=False)
 
+        tvShowTitle = ""
+        if target == MenuNavigator.TVSHOWS:
+            tvShowTitle = extrasParentTitle
+
         # Add each of the extras to the list to display
         for anExtra in files:
             # Create the list item
-            li = anExtra.createListItem()
+            li = anExtra.createListItem(parentTitle=extrasParentTitle, tvShowTitle=tvShowTitle)
             # Hack, if the "TotalTime" and "ResumeTime" are set on the list item
             # and it is partially watched, then XBMC will display the continue dialog
             # However we can not get what the user selects from this dialog, so it
@@ -233,6 +239,7 @@ class MenuNavigator():
         videoExtras = VideoExtrasBase(path)
 
         # Perform the search command
+        # No need for fanart default as only getting a list to play, not display
         files = videoExtras.findExtras(extrasDb=extrasDb)
 
         ExtrasPlayer.playAll( files, extrasParentTitle )
@@ -248,6 +255,7 @@ class MenuNavigator():
         videoExtras = VideoExtrasBase(path)
 
         # Perform the search command
+        # No need for fanart default as only getting a list to play, not display
         files = videoExtras.findExtras(extrasDb=extrasDb)
         for anExtra in files:
             if anExtra.isFilenameMatch( filename ):
@@ -281,6 +289,7 @@ class MenuNavigator():
     
             # Perform the search command
             extrasDb = ExtrasDB()
+            # We are only updating the DB for an entry already shown, no need for fanart
             files = videoExtras.findExtras(extrasDb=extrasDb)
             for anExtra in files:
                 if anExtra.isFilenameMatch( filename ):
@@ -299,6 +308,7 @@ class MenuNavigator():
     
             # Perform the search command
             extrasDb = ExtrasDB()
+            # We are only updating the DB for an entry already shown, no need for fanart
             files = videoExtras.findExtras(extrasDb=extrasDb)
             for anExtra in files:
                 if anExtra.isFilenameMatch( filename ):
@@ -308,11 +318,12 @@ class MenuNavigator():
                     # Update the display
                     xbmc.executebuiltin("Container.Refresh")
 
-    def editTitle(self, path, filename):
+    def editTitle(self, target, path, filename):
         # Create the extras class that will be used to process the extras
         videoExtras = VideoExtrasBase(path)
 
         # Perform the search command
+        # We are only updating the NFO for an entry already shown, no need for fanart
         files = videoExtras.findExtras()
         for anExtra in files:
             if anExtra.isFilenameMatch( filename ):
@@ -331,7 +342,8 @@ class MenuNavigator():
                         
                     # Only set the title if it has changed
                     if (newtitle != anExtra.getDisplayName()) and (len(newtitle) > 0):
-                        result = anExtra.setTitle(newtitle)
+                        isTv = (target == MenuNavigator.TVSHOWS)
+                        result = anExtra.setTitle(newtitle, isTV=isTv)
                         if not result:
                             xbmcgui.Dialog().ok(__addon__.getLocalizedString(32102), __addon__.getLocalizedString(32109))
                         else:
@@ -405,15 +417,19 @@ if __name__ == '__main__':
         path = args.get('path', None)
         foldername = args.get('foldername', None)
         parentTitle = args.get('parentTitle', None)
+        defaultFanArt = args.get('defaultFanArt', None)
         
         if (path != None) and (len(path) > 0) and (foldername != None) and (len(foldername) > 0):
             log("VideoExtrasPlugin: Path to load extras for %s" % path[0])
             extrasParentTitle = ""
             if (parentTitle != None) and (len(parentTitle) > 0):
                 extrasParentTitle = parentTitle[0]
+            extrasDefaultFanArt = ""
+            if (defaultFanArt != None) and (len(defaultFanArt) > 0):
+                extrasDefaultFanArt = defaultFanArt[0]
     
             menuNav = MenuNavigator(base_url, addon_handle)
-            menuNav.showExtras(path[0], foldername[0], extrasParentTitle)
+            menuNav.showExtras(path[0], foldername[0], extrasParentTitle, extrasDefaultFanArt)
 
     elif mode[0] == 'playallextras':
         log("VideoExtrasPlugin: Mode is PLAY ALL EXTRAS")
@@ -520,11 +536,12 @@ if __name__ == '__main__':
         # Get the actual path that was navigated to
         path = args.get('path', None)
         filename = args.get('filename', None)
+        foldername = args.get('foldername', None)
         
-        if (path != None) and (len(path) > 0) and (filename != None) and (len(filename) > 0):
+        if (path != None) and (len(path) > 0) and (filename != None) and (len(filename) > 0) and (foldername != None) and (len(foldername) > 0):
             log("VideoExtrasPlugin: Path to play extras for %s" % path[0])
             log("VideoExtrasPlugin: Extras file to play %s" % filename[0])
     
             menuNav = MenuNavigator(base_url, addon_handle)
-            menuNav.editTitle(path[0], filename[0])
+            menuNav.editTitle(foldername[0], path[0], filename[0])
  

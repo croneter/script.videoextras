@@ -6,7 +6,6 @@ import sqlite3
 import xbmcgui
 
 __addon__     = xbmcaddon.Addon(id='script.videoextras')
-__addonid__   = __addon__.getAddonInfo('id')
 
 # Import the common settings
 from settings import Settings
