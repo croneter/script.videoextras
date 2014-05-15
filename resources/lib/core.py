@@ -41,9 +41,19 @@ from ExtrasItem import ExtrasItem
 # Class to control Searching for the extra files
 ################################################
 class VideoExtrasFinder():
-    def __init__(self, extrasDb=None, defaultFanArt="" ):
+    def __init__(self, extrasDb=None, defaultFanArt="", videoType=None):
         self.extrasDb = extrasDb
         self.defaultFanArt = defaultFanArt
+        self.videoType = videoType
+        # If no Video Type is supplied, try to work it out
+        if videoType == None:
+            if xbmc.getCondVisibility("Container.Content(movies)"):
+                self.videoType = Settings.MOVIES
+            elif xbmc.getCondVisibility("Container.Content(musicvideos)"):
+                self.videoType = Settings.MUSICVIDEOS
+            else:
+                self.videoType = Settings.TVSHOWS
+            
         
     # Controls the loading of the information for Extras Files
     def loadExtras(self, path, filename, exitOnFirst=False):
@@ -87,16 +97,11 @@ class VideoExtrasFinder():
     # Calculates and checks the path that files should be in
     # if using a custom path
     def _getCustomPathDir(self, path):
-        # Work out which section to look in
-        typeSection = Settings.getCustomPathMoviesDir()
-        if not xbmc.getCondVisibility("Container.Content(movies)"):
-            typeSection = Settings.getCustomPathTvShowsDir()
-
         # Get the last element of the path
         pathLastDir = os_path_split(path)[1]
 
         # Create the path with this added
-        custPath = os_path_join(Settings.getCustomPath(), typeSection)
+        custPath = Settings.getCustomPath(self.videoType)
         custPath = os_path_join(custPath, pathLastDir)
         log("VideoExtrasFinder: Checking existence of custom path %s" % custPath)
 
@@ -105,13 +110,13 @@ class VideoExtrasFinder():
             # If it doesn't exist, check the path before that, this covers the
             # case where there is a TV Show with each season in it's own directory
             path2ndLastDir = os_path_split((os_path_split(path)[0]))[1]
-            custPath = os_path_join(Settings.getCustomPath(), typeSection)
+            custPath = Settings.getCustomPath(self.videoType)
             custPath = os_path_join(custPath, path2ndLastDir)
             custPath = os_path_join(custPath, pathLastDir)
             log("VideoExtrasFinder: Checking existence of custom path %s" % custPath)
             if not xbmcvfs.exists(custPath):
                 # If it still does not exist then check just the 2nd to last path
-                custPath = os_path_join(Settings.getCustomPath(), typeSection)
+                custPath = Settings.getCustomPath(self.videoType)
                 custPath = os_path_join(custPath, path2ndLastDir)
                 log("VideoExtrasFinder: Checking existence of custom path %s" % custPath)
                 if not xbmcvfs.exists(custPath):
@@ -278,6 +283,10 @@ class VideoExtrasFinder():
         if xbmcvfs.exists( basepath ):
             dirs, files = xbmcvfs.listdir( basepath )
             for dirname in dirs:
+                # Do not search inside Bluray or DVD images
+                if (dirname == 'VIDEO_TS') or (dirname == 'BDMV'):
+                    continue
+                
                 dirpath = os_path_join( basepath, dirname )
                 log( "VideoExtrasFinder: Nested check in directory: %s" % dirpath )
                 if( dirname != Settings.getExtrasDirName() ):
@@ -336,9 +345,10 @@ class VideoExtrasFinder():
 # Base Class for handling videoExtras
 ###############################################################
 class VideoExtrasBase():
-    def __init__( self, inputArg ):
-        log( "VideoExtrasBase: Finding extras for %s" % inputArg )
-        self.baseDirectory = inputArg
+    def __init__( self, extrasParent, videoType=None ):
+        log( "VideoExtrasBase: Finding extras for %s" % extrasParent )
+        self.videoType = videoType
+        self.baseDirectory = extrasParent
         if self.baseDirectory.startswith("stack://"):
             self.baseDirectory = self.baseDirectory.split(" , ")[0]
             self.baseDirectory = self.baseDirectory.replace("stack://", "")
@@ -355,7 +365,7 @@ class VideoExtrasBase():
         # If this is a file, then get it's parent directory
         if fileExt != None and fileExt != "":
             self.baseDirectory = (os_path_split(self.baseDirectory))[0]
-            self.filename = (os_path_split(inputArg))[1]
+            self.filename = (os_path_split(extrasParent))[1]
         else:
             self.filename = None
         log( "VideoExtrasBase: Root directory: %s" % self.baseDirectory )
@@ -363,7 +373,7 @@ class VideoExtrasBase():
     def findExtras(self, exitOnFirst=False, extrasDb=None, defaultFanArt=""):
         files = []
         try:
-            extrasFinder = VideoExtrasFinder(extrasDb, defaultFanArt=defaultFanArt)
+            extrasFinder = VideoExtrasFinder(extrasDb, defaultFanArt=defaultFanArt, videoType=self.videoType)
             files = extrasFinder.loadExtras(self.baseDirectory, self.filename, exitOnFirst )
         except:
             log("VideoExtrasBase: %s" % traceback.format_exc(), xbmc.LOGERROR)

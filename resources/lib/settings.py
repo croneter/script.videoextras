@@ -62,6 +62,12 @@ def os_path_split( fullpath ):
 class Settings():
     xbmcMajorVersion = 0
 
+    # Flags to show which section something is in
+    MOVIES = 'movies'
+    TVSHOWS = 'tvshows'
+    MUSICVIDEOS = 'musicvideos'
+
+
     @staticmethod
     def getXbmcMajorVersion():
         if Settings.xbmcMajorVersion == 0:
@@ -147,22 +153,17 @@ class Settings():
         return __addon__.getSetting("custom_path_enable") == 'true'
     
     @staticmethod
-    def getCustomPath():
+    def getCustomPath(subtype=None):
         if Settings.isCustomPathEnabled():
-            return __addon__.getSetting("custom_path")
+            subTypeDir = ""
+            if subtype != None:
+                if subtype == Settings.MOVIES:
+                    subTypeDir = __addon__.getSetting("custom_path_movies")
+                elif subtype == Settings.TVSHOWS:
+                    subTypeDir = __addon__.getSetting("custom_path_tvshows")
+                elif subtype == Settings.MUSICVIDEOS:
+                    subTypeDir = __addon__.getSetting("custom_path_musicvideos")
+            
+            return os_path_join(__addon__.getSetting("custom_path"), subTypeDir)
         else:
             return None
-
-    @staticmethod
-    def getCustomPathMoviesDir():
-        if Settings.isCustomPathEnabled():
-            return __addon__.getSetting("custom_path_movies")
-        else:
-            return ""
-
-    @staticmethod
-    def getCustomPathTvShowsDir():
-        if Settings.isCustomPathEnabled():
-            return __addon__.getSetting("custom_path_tvshows")
-        else:
-            return ""
