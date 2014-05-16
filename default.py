@@ -554,8 +554,6 @@ if __name__ == '__main__':
                     extrasDb = None
                     if Settings.isDatabaseEnabled():
                         extrasDb = ExtrasDB()
-                        # Make sure the database has been created
-                        extrasDb.createDatabase()
                     # Perform the search command
                     files = videoExtras.findExtras(extrasDb=extrasDb, defaultFanArt=SourceDetails.getFanArt())
                     # need to display the extras
