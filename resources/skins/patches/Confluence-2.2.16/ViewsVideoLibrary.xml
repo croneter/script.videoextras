@@ -79,6 +79,21 @@
 							<effect type="slide" end="0,0" start="40,40" time="200"/>
 						</animation>
 					</control>
+					<!-- Add the Video Extras Icon -->
+					<control type="group">
+						<description>VideExtras Flagging Images</description>
+						<left>6</left>
+						<top>310</top>
+						<include>VideoExtrasOverlayIcon</include>
+						<animation type="focus">
+							<effect type="fade" start="0" end="100" time="200"/>
+							<effect type="slide" start="0,0" end="-20,40" time="200"/>
+						</animation>
+						<animation type="unfocus">
+							<effect type="fade" start="100" end="0" time="200"/>
+							<effect type="slide" end="0,0" start="-20,40" time="200"/>
+						</animation>
+					</control>
 				</focusedlayout>
 			</control>
 			<control type="scrollbar" id="60">
@@ -170,6 +185,8 @@
 				<include>AspectCodecFlaggingConditions</include>
 				<include>VideoStereoscopicsFlaggingConditions</include>
 				<include>VideoTypeHackFlaggingConditions</include>
+				<!-- Add the Video Extras Icon -->
+				<include>VideoExtrasLargeIcon</include>
 			</control>
 		</control>
 		<control type="group">
@@ -742,6 +759,8 @@
 				<include>AspectCodecFlaggingConditions</include>
 				<include>VideoStereoscopicsFlaggingConditions</include>
 				<include>VideoTypeHackFlaggingConditions</include>
+				<!-- Add the Video Extras Icon -->
+				<include>VideoExtrasLargeIcon</include>
 			</control>
 			<control type="grouplist">
 				<description>MPAA Rating Flagging Images</description>
@@ -1083,6 +1102,8 @@
 					<include>AspectCodecFlaggingConditions</include>
 					<include>VideoStereoscopicsFlaggingConditions</include>
 					<include>VideoTypeHackFlaggingConditions</include>
+					<!-- Add the Video Extras Icon -->
+					<include>VideoExtrasLargeIcon</include>
 				</control>
 				<control type="label">
 					<description>INFO txt</description>
@@ -1189,6 +1210,8 @@
 					<include>AspectCodecFlaggingConditions</include>
 					<include>VideoStereoscopicsFlaggingConditions</include>
 					<include>VideoTypeHackFlaggingConditions</include>
+					<!-- Add the Video Extras Icon -->
+					<include>VideoExtrasLargeIcon</include>
 				</control>
 				<control type="textbox">
 					<description>Description Value for Movie</description>
@@ -1243,7 +1266,7 @@
 						<label>$INFO[ListItem.Label]</label>
 					</control>
 					<control type="label">
-						<left>510</left>
+						<left>467</left>
 						<top>0</top>
 						<width>500</width>
 						<height>40</height>
@@ -1255,6 +1278,14 @@
 						<label>$INFO[ListItem.Label2]</label>
 						<visible>Window.IsVisible(Videos)</visible>
 						<animation effect="slide" start="0,0" end="40,0" delay="0" time="0" condition="![Container.Content(Movies) | Container.Content(Episodes) | Container.Content(MusicVideos)]">conditional</animation>
+					</control>
+					<!-- Add the Video Extras Icon -->
+					<control type="group">
+						<description>VideExtras Flagging Images</description>
+						<left>510</left>
+						<top>8</top>
+						<include>VideoExtrasListIcon</include>
+						<visible>Window.IsVisible(Videos) + Container.Content(TVShows)</visible>
 					</control>
 					<control type="image">
 						<left>515</left>
@@ -1331,7 +1362,7 @@
 						<label>$INFO[ListItem.Label]</label>
 					</control>
 					<control type="label">
-						<left>510</left>
+						<left>467</left>
 						<top>0</top>
 						<width>500</width>
 						<height>40</height>
@@ -1343,6 +1374,14 @@
 						<label>$INFO[ListItem.Label2]</label>
 						<visible>Window.IsVisible(Videos)</visible>
 						<animation effect="slide" start="0,0" end="40,0" delay="0" time="0" condition="![Container.Content(Movies) | Container.Content(Episodes) | Container.Content(MusicVideos)]">conditional</animation>
+					</control>
+					<!-- Add the Video Extras Icon -->
+					<control type="group">
+						<description>VideExtras Flagging Images</description>
+						<left>510</left>
+						<top>8</top>
+						<include>VideoExtrasListIcon</include>
+						<visible>Window.IsVisible(Videos) + Container.Content(TVShows)</visible>
 					</control>
 					<control type="image">
 						<left>515</left>
@@ -1428,7 +1467,7 @@
 					<description>Media Codec Flagging Images</description>
 					<left>0</left>
 					<top>290</top>
-					<width>510</width>
+					<width>430</width>
 					<align>center</align>
 					<itemgap>2</itemgap>
 					<orientation>horizontal</orientation>
@@ -1438,6 +1477,15 @@
 					<include>AspectCodecFlaggingConditions</include>
 					<include>VideoStereoscopicsFlaggingConditions</include>
 					<include>VideoTypeHackFlaggingConditions</include>
+				</control>
+				<!-- Add the Video Extras Icon -->
+				<control type="group">
+					<description>Media Codec Flagging Images</description>
+					<left>430</left>
+					<top>290</top>
+					<width>80</width>
+					<include>VideoExtrasLargeIcon</include>
+					<visible>Window.IsVisible(Videos) + !Container.Content(TVShows)</visible>
 				</control>
 				<control type="image">
 					<left>0</left>
@@ -1544,6 +1592,8 @@
 					<include>AspectCodecFlaggingConditions</include>
 					<include>VideoStereoscopicsFlaggingConditions</include>
 					<include>VideoTypeHackFlaggingConditions</include>
+					<!-- Add the Video Extras Icon -->
+					<include>VideoExtrasLargeIcon</include>
 				</control>
 				<control type="image">
 					<left>0</left>
@@ -1793,6 +1843,8 @@
 					<include>AspectCodecFlaggingConditions</include>
 					<include>VideoStereoscopicsFlaggingConditions</include>
 					<include>VideoTypeHackFlaggingConditions</include>
+					<!-- Add the Video Extras Icon -->
+					<include>VideoExtrasLargeIcon</include>
 				</control>
 				<control type="image">
 					<left>560</left>
@@ -1955,6 +2007,8 @@
 					<include>AspectCodecFlaggingConditions</include>
 					<include>VideoStereoscopicsFlaggingConditions</include>
 					<include>VideoTypeHackFlaggingConditions</include>
+					<!-- Add the Video Extras Icon -->
+					<include>VideoExtrasLargeIcon</include>
 				</control>
 				<control type="image">
 					<left>420</left>
