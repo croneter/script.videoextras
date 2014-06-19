@@ -49,6 +49,8 @@ from settings import os_path_join
 # Load the core Video Extras classes
 from core import VideoExtrasBase
 
+# Load the cache cleaner
+from CacheCleanup import CacheCleanup
 
 #####################################
 # Main class for the Extras Service
@@ -229,6 +231,8 @@ if __name__ == '__main__':
     else:
         # Service not enabled
         log("VideoExtrasService: Service disabled in settings")
+        # Clean any cached extras
+        CacheCleanup.removeAllCachedFiles()
     
     # Now just let the service exit - it has done it's job
 
