@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <includes>
+	<include file="IncludesVideoExtras.xml"/>
 	<include name="PosterWrapView">
 		<control type="grouplist">
 			<visible>Control.IsVisible(501)</visible>
@@ -1483,7 +1484,7 @@
 					<description>Media Codec Flagging Images</description>
 					<left>430</left>
 					<top>290</top>
-					<width>80</width>
+					<width>40</width>
 					<include>VideoExtrasLargeIcon</include>
 					<visible>Window.IsVisible(Videos) + !Container.Content(TVShows)</visible>
 				</control>

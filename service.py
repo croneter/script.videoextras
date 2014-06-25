@@ -56,7 +56,6 @@ from CacheCleanup import CacheCleanup
 # Main class for the Extras Service
 #####################################
 class VideoExtrasService():
-    WIDE_TAG = "_wide"
     LIST_TAG = "_list"
     
     def __init__(self):
@@ -64,8 +63,7 @@ class VideoExtrasService():
         skinExtrasOverlayBase = xbmc.translatePath( "special://skin" ).decode("utf-8")
         skinExtrasOverlayBase = os_path_join(skinExtrasOverlayBase, "media")
         self.skinExtrasOverlay = os_path_join(skinExtrasOverlayBase, "videoextras_overlay.png")
-        self.skinExtrasOverlayWide = os_path_join(skinExtrasOverlayBase, "videoextras_overlay" + VideoExtrasService.WIDE_TAG + ".png")
-        self.skinExtrasOverlayList = os_path_join(skinExtrasOverlayBase, "videoextras_overlay" + VideoExtrasService.WIDE_TAG + ".png")
+        self.skinExtrasOverlayList = os_path_join(skinExtrasOverlayBase, "videoextras_overlay" + VideoExtrasService.LIST_TAG + ".png")
 
         log("VideoExtrasService: Looking for image overlay file: %s" % self.skinExtrasOverlay)
 
@@ -76,16 +74,6 @@ class VideoExtrasService():
             self.skinExtrasOverlay = os_path_join(self.skinExtrasOverlay, "Default")
             self.skinExtrasOverlay = os_path_join(self.skinExtrasOverlay, "media")
             self.skinExtrasOverlay = os_path_join(self.skinExtrasOverlay, "overlay.png")
-
-        log("VideoExtrasService: Looking for wide image overlay file: %s" % self.skinExtrasOverlayWide)
-
-        if not xbmcvfs.exists(self.skinExtrasOverlayWide):
-            log("VideoExtrasService: No custom wide image, using default")
-            # Add default image setting to skinExtrasOverlay
-            self.skinExtrasOverlayWide = os_path_join(__resource__, "skins")
-            self.skinExtrasOverlayWide = os_path_join(self.skinExtrasOverlayWide, "Default")
-            self.skinExtrasOverlayWide = os_path_join(self.skinExtrasOverlayWide, "media")
-            self.skinExtrasOverlayWide = os_path_join(self.skinExtrasOverlayWide, "overlay" + VideoExtrasService.WIDE_TAG + ".png")
 
         log("VideoExtrasService: Looking for list image overlay file: %s" % self.skinExtrasOverlayList)
 
@@ -158,12 +146,10 @@ class VideoExtrasService():
                     extrasCacheString = ("%s[%d]%s" % (extrasCacheString, item[dbid], os.linesep))
                     # Add the overlay image for this item
                     self._createOverlayFile(target, item[dbid], self.skinExtrasOverlay)
-                    self._createOverlayFile(target, item[dbid], self.skinExtrasOverlayWide, VideoExtrasService.WIDE_TAG)
                     self._createOverlayFile(target, item[dbid], self.skinExtrasOverlayList, VideoExtrasService.LIST_TAG)
                 else:
                     # No extras so remove the file if it exists
                     self._removeOverlayFile(target, item[dbid])
-                    self._removeOverlayFile(target, item[dbid], VideoExtrasService.WIDE_TAG)
                     self._removeOverlayFile(target, item[dbid], VideoExtrasService.LIST_TAG)
 
 
