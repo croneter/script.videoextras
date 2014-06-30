@@ -195,19 +195,22 @@ class MenuNavigator():
         # Perform the search command
         files = videoExtras.findExtras(extrasDb=extrasDb, defaultFanArt=extrasDefaultFanArt)
 
+        tvShowTitle = ""
+        if target == MenuNavigator.TVSHOWS:
+            tvShowTitle = extrasParentTitle
+
         if len(files) > 0:
             # Start by adding an option to Play All
-            anItem = xbmcgui.ListItem(__addon__.getLocalizedString(32101))
+            anItem = xbmcgui.ListItem(__addon__.getLocalizedString(32101), path=path)
             # Get the first items fanart for the play all option
             anItem.setProperty( "Fanart_Image", files[0].getFanArt() )
+            
+            if tvShowTitle != "":
+                anItem.setInfo('video', { 'TvShowTitle': tvShowTitle })
 
             anItem.addContextMenuItems( [], replaceItems=True )
             url = self._build_url({'mode': 'playallextras', 'foldername': target, 'path': path, 'parentTitle': extrasParentTitle})
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=anItem, isFolder=False)
-
-        tvShowTitle = ""
-        if target == MenuNavigator.TVSHOWS:
-            tvShowTitle = extrasParentTitle
 
         # Add each of the extras to the list to display
         for anExtra in files:
