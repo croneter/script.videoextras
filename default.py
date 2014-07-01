@@ -177,12 +177,12 @@ class VideoExtrasDialog(xbmcgui.Window):
         if select != -1:
             xbmc.executebuiltin("Dialog.Close(all, true)", True)
             waitLoop = 0
-            while xbmc.Player.isPlaying() and waitLoop < 10:
+            while xbmc.Player().isPlaying() and waitLoop < 10:
                 xbmc.sleep(100)
                 waitLoop = waitLoop + 1
-            xbmc.Player.stop()
+            xbmc.Player().stop()
             # Give anything that was already playing time to stop
-            while xbmc.Player.isPlaying():
+            while xbmc.Player().isPlaying():
                 xbmc.sleep(100)
             if (select == 0) and (addPlayAll == True):
                 ExtrasPlayer.playAll( exList, SourceDetails.getTitle() )
