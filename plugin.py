@@ -203,6 +203,9 @@ class MenuNavigator():
             if tvShowTitle != "":
                 anItem.setInfo('video', {'TvShowTitle': tvShowTitle})
 
+            if extrasParentTitle != "":
+                anItem.setInfo('video', {'Title': extrasParentTitle})
+
             anItem.addContextMenuItems([], replaceItems=True)
             url = self._build_url({'mode': 'playallextras', 'foldername': target, 'path': path, 'parentTitle': extrasParentTitle})
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=anItem, isFolder=False)
