@@ -314,6 +314,13 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             anItem = xbmcgui.ListItem(__addon__.getLocalizedString(32101))
             # Get the first items fanart for the play all option
             anItem.setProperty("Fanart_Image", self.files[0].getFanArt())
+            
+            if SourceDetails.getTvShowTitle() != "":
+                anItem.setInfo('video', {'TvShowTitle': SourceDetails.getTvShowTitle()})
+
+            if SourceDetails.getTitle() != "":
+                anItem.setInfo('video', {'Title': SourceDetails.getTitle()})
+
             self.addItem(anItem)
 
         for anExtra in self.files:
