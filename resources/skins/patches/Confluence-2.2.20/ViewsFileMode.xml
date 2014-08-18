@@ -9,7 +9,6 @@
 			<left>70</left>
 				<top>78</top>
 				<width>690</width>
-				<width>690</width>
 				<height>561</height>
 				<onleft>2</onleft>
 				<onright>60</onright>
@@ -67,14 +66,14 @@
 					</control>
 					<!-- Add the Video Extras Icon -->
 					<control type="group">
-						<description>VideExtras Flagging Images</description>
+						<description>VideoExtras Flagging Images</description>
 						<left>625</left>
 						<top>8</top>
 						<include>VideoExtrasListIcon</include>
 						<visible>Window.IsVisible(Videos) + Container.Content(TVShows)</visible>
 					</control>
 					<control type="group">
-						<description>VideExtras Flagging Images</description>
+						<description>VideoExtras Flagging Images</description>
 						<left>583</left>
 						<top>8</top>
 						<include>VideoExtrasListIcon</include>
@@ -183,14 +182,14 @@
 					</control>
 					<!-- Add the Video Extras Icon -->
 					<control type="group">
-						<description>VideExtras Flagging Images</description>
+						<description>VideoExtras Flagging Images</description>
 						<left>625</left>
 						<top>8</top>
 						<include>VideoExtrasListIcon</include>
 						<visible>Window.IsVisible(Videos) + Container.Content(TVShows)</visible>
 					</control>
 					<control type="group">
-						<description>VideExtras Flagging Images</description>
+						<description>VideoExtras Flagging Images</description>
 						<left>583</left>
 						<top>8</top>
 						<include>VideoExtrasListIcon</include>
@@ -410,7 +409,7 @@
 					</control>
 					<!-- Add the Video Extras Icon -->
 					<control type="group">
-						<description>VideExtras Flagging Images</description>
+						<description>VideoExtras Flagging Images</description>
 						<left>10</left>
 						<top>205</top>
 						<include>VideoExtrasOverlayIcon</include>
@@ -448,7 +447,7 @@
 					</control>
 					<!-- Add the Video Extras Icon -->
 					<control type="group">
-						<description>VideExtras Flagging Images</description>
+						<description>VideoExtras Flagging Images</description>
 						<left>10</left>
 						<top>205</top>
 						<include>VideoExtrasOverlayIcon</include>
@@ -530,7 +529,7 @@
 					</control>
 					<!-- Add the Video Extras Icon -->
 					<control type="group">
-						<description>VideExtras Flagging Images</description>
+						<description>VideoExtras Flagging Images</description>
 						<left>5</left>
 						<top>65</top>
 						<include>VideoExtrasOverlayIcon</include>
@@ -722,7 +721,7 @@
 						<align>left</align>
 						<aligny>center</aligny>
 						<label>$INFO[ListItem.Label]</label>
-					</control>					
+					</control>
 					<control type="label">
 						<left>1060</left>
 						<top>0</top>
@@ -752,7 +751,7 @@
 					</control>
 					<!-- Add the Video Extras Icon -->
 					<control type="group">
-						<description>VideExtras Flagging Images</description>
+						<description>VideoExtras Flagging Images</description>
 						<left>1010</left>
 						<top>8</top>
 						<include>VideoExtrasListIcon</include>
@@ -760,7 +759,7 @@
 						<visible>!ListItem.IsStereoscopic</visible>
 					</control>
 					<control type="group">
-						<description>VideExtras Flagging Images</description>
+						<description>VideoExtras Flagging Images</description>
 						<left>968</left>
 						<top>8</top>
 						<include>VideoExtrasListIcon</include>
