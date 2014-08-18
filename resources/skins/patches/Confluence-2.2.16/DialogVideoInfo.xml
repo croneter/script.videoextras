@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <window>
+	<include file="IncludesVideoExtras.xml"/>
 	<defaultcontrol always="true">8</defaultcontrol>
 	<allowoverlay>no</allowoverlay>
 	<onload condition="Skin.HasSetting(ActivateTvTunes) + System.HasAddon(script.tvtunes)">XBMC.RunScript(script.tvtunes,backend=True)</onload>
@@ -65,6 +66,8 @@
 					<include>AspectCodecFlaggingConditions</include>
 					<include>VideoStereoscopicsFlaggingConditions</include>
 					<include>VideoTypeHackFlaggingConditions</include>
+					<!-- Add the Video Extras Icon -->
+					<include>VideoExtrasLargeIcon</include>
 				</control>
 				<control type="group">
 					<visible>Control.HasFocus(12)</visible>
