@@ -2,6 +2,7 @@ v1.1.5
 - Update Playall menu item with Path and TV Show Title
 - Update Confluence patch to include Extras icon
 - Update Confluence patches to Gotham 13.2 (Confluence 2.2.20)
+- Set default Icon Image for plugin extras list
 
 v1.1.4
 - Update Playall menu item with Path and TV Show Title
