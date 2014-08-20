@@ -69,6 +69,18 @@
 					<!-- Add the Video Extras Icon -->
 					<include>VideoExtrasLargeIcon</include>
 				</control>
+				<control type="grouplist">
+					<description>Add the Video Extras Icon For TV Show</description>
+					<left>200</left>
+					<top>480</top>
+					<width>600</width>
+					<align>left</align>
+					<itemgap>2</itemgap>
+					<orientation>horizontal</orientation>
+					<include>VisibleFadeEffect</include>
+					<visible>!Control.IsVisible(50) + Container.Content(tvshows) + !Container.Content(Episodes)</visible>
+					<include>VideoExtrasLargeIcon</include>
+				</control>
 				<control type="group">
 					<visible>Control.HasFocus(12)</visible>
 					<top>90</top>
