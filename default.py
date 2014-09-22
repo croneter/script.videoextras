@@ -535,29 +535,34 @@ if __name__ == '__main__':
             # get the type of operation
             log("Operation = %s" % sys.argv[1])
 
-            # Load the details of the current source of the extras
-            SourceDetails.forceLoadDetails()
-
-            # Make sure we are not passed a plugin path
-            if "plugin://" in sys.argv[2]:
-                if sys.argv[1] == "check":
-                    xbmcgui.Window(12003).setProperty("HideVideoExtrasButton", "true")
+            # Check to make sure that there was actually some data in the second argument
+            # it's possible that a skin has sent us an empty string
+            if (sys.argv[2] is None) or (len(sys.argv[2]) < 1):
+                log("VideoExtras: Called with empty final argument", xbmc.LOGERROR)
             else:
-                # Create the extras class that deals with any extras request
-                videoExtras = VideoExtras(sys.argv[2])
+                # Load the details of the current source of the extras
+                SourceDetails.forceLoadDetails()
 
-                # We are either running the command or just checking for existence
-                if sys.argv[1] == "check":
-                    videoExtras.checkButtonEnabled()
+                # Make sure we are not passed a plugin path
+                if "plugin://" in sys.argv[2]:
+                    if sys.argv[1] == "check":
+                        xbmcgui.Window(12003).setProperty("HideVideoExtrasButton", "true")
                 else:
-                    # Check if the use database setting is enabled
-                    extrasDb = None
-                    if Settings.isDatabaseEnabled():
-                        extrasDb = ExtrasDB()
-                    # Perform the search command
-                    files = videoExtras.findExtras(extrasDb=extrasDb, defaultFanArt=SourceDetails.getFanArt())
-                    # need to display the extras
-                    videoExtras.run(files)
+                    # Create the extras class that deals with any extras request
+                    videoExtras = VideoExtras(sys.argv[2])
+
+                    # We are either running the command or just checking for existence
+                    if sys.argv[1] == "check":
+                        videoExtras.checkButtonEnabled()
+                    else:
+                        # Check if the use database setting is enabled
+                        extrasDb = None
+                        if Settings.isDatabaseEnabled():
+                            extrasDb = ExtrasDB()
+                        # Perform the search command
+                        files = videoExtras.findExtras(extrasDb=extrasDb, defaultFanArt=SourceDetails.getFanArt())
+                        # need to display the extras
+                        videoExtras.run(files)
         else:
             # Close any open dialogs
             xbmc.executebuiltin("Dialog.Close(all, true)", True)
