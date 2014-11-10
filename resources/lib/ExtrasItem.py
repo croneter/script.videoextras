@@ -26,6 +26,7 @@ from settings import Settings
 from settings import log
 from settings import os_path_join
 from settings import os_path_split
+from settings import dir_exists
 
 from VideoParser import VideoParser
 
@@ -93,13 +94,13 @@ class BaseExtrasItem():
         # If that is the case, we will only support it being a DVD Directory Image
         # So check to see if the expected file is set
         videoTSDir = os_path_join(self.filename, 'VIDEO_TS')
-        if xbmcvfs.exists(videoTSDir):
+        if dir_exists(videoTSDir):
             ifoFile = os_path_join(videoTSDir, 'VIDEO_TS.IFO')
             if xbmcvfs.exists(ifoFile):
                 return ifoFile
         # Also check for BluRay
         videoBluRayDir = os_path_join(self.filename, 'BDMV')
-        if xbmcvfs.exists(videoBluRayDir):
+        if dir_exists(videoBluRayDir):
             dbmvFile = os_path_join(videoBluRayDir, 'index.bdmv')
             if xbmcvfs.exists(dbmvFile):
                 return dbmvFile
