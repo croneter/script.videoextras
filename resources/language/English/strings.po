@@ -213,7 +213,7 @@ msgstr ""
 #empty strings from id 32116 to 32149
 
 msgctxt "#32150"
-msgid "This action will update the file advancedsettings.xml to have the last saved excludes for Video Extras. Make sure any changes are saved before running, Continue?"
+msgid "This action will update the file advancedsettings.xml to ensure the extras files are handled correctly. Make sure any changes are saved before running. Continue?"
 msgstr ""
 
 msgctxt "#32151"
