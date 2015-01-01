@@ -42,7 +42,7 @@ class ConfUpdate():
 \t\t\t\t</control>
 \t\t\t\t<control type="grouplist">
 \t\t\t\t\t<description>Add the Video Extras Icon</description>
-\t\t\t\t\t<left>200</left>
+\t\t\t\t\t<left>210</left>
 \t\t\t\t\t<top>480</top>
 \t\t\t\t\t<width>600</width>
 \t\t\t\t\t<align>left</align>

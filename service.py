@@ -72,7 +72,7 @@ class VideoExtrasService():
         if self.skinExtrasOverlay in [None, '']:
             self.skinExtrasOverlay = os_path_join(skinExtrasOverlayBase, "videoextras_overlay.png")
         if self.skinExtrasOverlayList in [None, '']:
-            self.skinExtrasOverlayList = os_path_join(skinExtrasOverlayBase, "videoextras_overlay" + VideoExtrasService.LIST_TAG + ".png")
+            self.skinExtrasOverlayList = os_path_join(skinExtrasOverlayBase, "videoextras_overlay_list.png")
 
         log("VideoExtrasService: Looking for image overlay file: %s" % self.skinExtrasOverlay)
 
@@ -80,9 +80,8 @@ class VideoExtrasService():
             log("VideoExtrasService: No custom image, using default")
             # Add default image setting to skinExtrasOverlay
             self.skinExtrasOverlay = os_path_join(__resource__, "skins")
-            self.skinExtrasOverlay = os_path_join(self.skinExtrasOverlay, "Default")
-            self.skinExtrasOverlay = os_path_join(self.skinExtrasOverlay, "media")
-            self.skinExtrasOverlay = os_path_join(self.skinExtrasOverlay, "overlay.png")
+            self.skinExtrasOverlay = os_path_join(self.skinExtrasOverlay, "icons")
+            self.skinExtrasOverlay = os_path_join(self.skinExtrasOverlay, "overlay1.png")
 
         log("VideoExtrasService: Looking for list image overlay file: %s" % self.skinExtrasOverlayList)
 
@@ -90,9 +89,8 @@ class VideoExtrasService():
             log("VideoExtrasService: No custom wide image, using default")
             # Add default image setting to skinExtrasOverlay
             self.skinExtrasOverlayList = os_path_join(__resource__, "skins")
-            self.skinExtrasOverlayList = os_path_join(self.skinExtrasOverlayList, "Default")
-            self.skinExtrasOverlayList = os_path_join(self.skinExtrasOverlayList, "media")
-            self.skinExtrasOverlayList = os_path_join(self.skinExtrasOverlayList, "overlay" + VideoExtrasService.LIST_TAG + ".png")
+            self.skinExtrasOverlayList = os_path_join(self.skinExtrasOverlayList, "icons")
+            self.skinExtrasOverlayList = os_path_join(self.skinExtrasOverlayList, "list1.png")
 
         self.forceOverlayOverwrite = False
 
@@ -211,6 +209,22 @@ class VideoExtrasService():
 if __name__ == '__main__':
     log("VideoExtrasService: Starting service (version %s)" % __version__)
     log("VideoExtrasService: Directory for overlay images is %s" % __profile__)
+
+    # This is a bit of a hack, but we want to force the default paths for the
+    # images if they are not set.  This way it will point to the directory containing
+    # all the overlay images to start with, meaning that it will be the directory
+    # shown to the user if they choose to change the icons
+    if __addon__.getSetting("useCustomImages") != "true":
+        if __addon__.getSetting('overlayImage') in [None, '']:
+            skinExtrasOverlay = os_path_join(__resource__, "skins")
+            skinExtrasOverlay = os_path_join(skinExtrasOverlay, "icons")
+            skinExtrasOverlay = os_path_join(skinExtrasOverlay, "overlay1.png")
+            __addon__.setSetting('overlayImage', skinExtrasOverlay)
+        if __addon__.getSetting('listImage') in [None, '']:
+            skinExtrasList = os_path_join(__resource__, "skins")
+            skinExtrasList = os_path_join(skinExtrasList, "icons")
+            skinExtrasList = os_path_join(skinExtrasList, "list1.png")
+            __addon__.setSetting('listImage', skinExtrasList)
 
     # Make sure that the service option is enabled
     if Settings.isServiceEnabled():
