@@ -31,5 +31,7 @@
 		<setting id="serviceEnabled" type="bool" label="32027" default="true"/>
 		<setting label="32019" type="lsep"/>
 		<setting id="logEnabled" type="bool" label="32020" default="false"/>
+		<setting label="32023" type="lsep"/>
+		<setting label="32031" type="action" action="RunScript($CWD/confupdate.py)"/>
 	</category>
 </settings>

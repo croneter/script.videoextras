@@ -7,6 +7,7 @@ import xbmc
 import xbmcaddon
 import xbmcvfs
 import xbmcgui
+import datetime
 
 
 __addon__ = xbmcaddon.Addon(id='script.videoextras')
@@ -46,6 +47,7 @@ class AdvSettings():
         # Find out where the advancedsettings.xml file is located
         self.advSettingsXmlFile = xbmc.translatePath('special://masterprofile/advancedsettings.xml').decode("utf-8")
         log("Advancedsettings.xml Location: %s" % self.advSettingsXmlFile)
+        self.bak_timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
     # Will process the advanced settings file
     def updateAdvancedSettings(self):
@@ -95,7 +97,7 @@ class AdvSettings():
 
             # Make a backup of the file as we are going to change it
             if xmlFileStr is not None:
-                xbmcvfs.copy(self.advSettingsXmlFile, "%s.videoextras.bak" % self.advSettingsXmlFile)
+                xbmcvfs.copy(self.advSettingsXmlFile, "%s.videoextras-%s.bak" % (self.advSettingsXmlFile, self.bak_timestamp))
 
         else:
             # The file didn't exist, so create it from scratch
