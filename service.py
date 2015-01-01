@@ -121,9 +121,12 @@ class VideoExtrasService():
 
     # Regenerates all of the cached extras
     def cacheAllExtras(self):
-        self.createExtrasCache('GetMovies', Settings.MOVIES, 'movieid')
-        self.createExtrasCache('GetTVShows', Settings.TVSHOWS, 'tvshowid')
-        self.createExtrasCache('GetMusicVideos', Settings.MUSICVIDEOS, 'musicvideoid')
+        if not (xbmc.abortRequested or xbmc.getCondVisibility("Window.IsVisible(shutdownmenu)")):
+            self.createExtrasCache('GetMovies', Settings.MOVIES, 'movieid')
+        if not (xbmc.abortRequested or xbmc.getCondVisibility("Window.IsVisible(shutdownmenu)")):
+            self.createExtrasCache('GetTVShows', Settings.TVSHOWS, 'tvshowid')
+        if not (xbmc.abortRequested or xbmc.getCondVisibility("Window.IsVisible(shutdownmenu)")):
+            self.createExtrasCache('GetMusicVideos', Settings.MUSICVIDEOS, 'musicvideoid')
 
     # Checks all the given movies/TV/music videos to see if they have any extras
     # and if they do, then cretaes a cached file containing the titles of the video
