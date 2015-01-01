@@ -181,3 +181,15 @@ class Settings():
             return os_path_join(__addon__.getSetting("custom_path"), subTypeDir)
         else:
             return None
+
+    @staticmethod
+    def getCustomOverlayImage():
+        if __addon__.getSetting("useCustomImages") != "true":
+            return None
+        return __addon__.getSetting('overlayImage')
+
+    @staticmethod
+    def getCustomListImage():
+        if __addon__.getSetting("useCustomImages") != "true":
+            return None
+        return __addon__.getSetting('listImage')

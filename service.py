@@ -62,8 +62,17 @@ class VideoExtrasService():
         # special://skin - This path points to the currently active skin's root directory.
         skinExtrasOverlayBase = xbmc.translatePath("special://skin").decode("utf-8")
         skinExtrasOverlayBase = os_path_join(skinExtrasOverlayBase, "media")
-        self.skinExtrasOverlay = os_path_join(skinExtrasOverlayBase, "videoextras_overlay.png")
-        self.skinExtrasOverlayList = os_path_join(skinExtrasOverlayBase, "videoextras_overlay" + VideoExtrasService.LIST_TAG + ".png")
+
+        # Now check to see if the user has defines a different overlay image in the
+        # settings, as that is the main one that will be used
+        self.skinExtrasOverlay = Settings.getCustomOverlayImage()
+        self.skinExtrasOverlayList = Settings.getCustomListImage()
+
+        # Next check the skin specific overlay
+        if self.skinExtrasOverlay in [None, '']:
+            self.skinExtrasOverlay = os_path_join(skinExtrasOverlayBase, "videoextras_overlay.png")
+        if self.skinExtrasOverlayList in [None, '']:
+            self.skinExtrasOverlayList = os_path_join(skinExtrasOverlayBase, "videoextras_overlay" + VideoExtrasService.LIST_TAG + ".png")
 
         log("VideoExtrasService: Looking for image overlay file: %s" % self.skinExtrasOverlay)
 
@@ -208,7 +217,7 @@ if __name__ == '__main__':
 
             # Refresh the caches
             service.cacheAllExtras()
-
+            del service
         except:
             log("VideoExtrasService: %s" % traceback.format_exc(), xbmc.LOGERROR)
     else:

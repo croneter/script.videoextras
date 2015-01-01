@@ -1,5 +1,6 @@
 v1.2.0
 - Add support for advancedsettings.xml update
+- Allow users to specify their own overlay image
 
 v1.1.9
 - Update detailed list skin for Helix

@@ -152,7 +152,19 @@ msgctxt "#32031"
 msgid "Update Confluence Skin"
 msgstr ""
 
-#empty strings from id 32032 to 32100
+msgctxt "#32032"
+msgid "Use Custom Images"
+msgstr ""
+
+msgctxt "#32033"
+msgid "Overlay Image"
+msgstr ""
+
+msgctxt "#32034"
+msgid "List Image"
+msgstr ""
+
+#empty strings from id 32035 to 32100
 
 msgctxt "#32101"
 msgid "Play All"
