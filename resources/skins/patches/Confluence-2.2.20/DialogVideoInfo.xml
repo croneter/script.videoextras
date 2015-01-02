@@ -70,8 +70,8 @@
 					<include>VideoExtrasLargeIcon</include>
 				</control>
 				<control type="grouplist">
-					<description>Add the Video Extras Icon For TV Show</description>
-					<left>200</left>
+					<description>Add the Video Extras Icon</description>
+					<left>210</left>
 					<top>480</top>
 					<width>600</width>
 					<align>left</align>
@@ -1006,11 +1006,11 @@
 						<visible>Skin.HasSetting(ActivateTvTunes) + System.HasAddon(script.tvtunes) + [Container.Content(TVShows) | Container.Content(movies) | Container.Content(musicvideos)] + IsEmpty(Window(movieinformation).Property("TvTunes_HideVideoInfoButton"))</visible>
 					</control>
 					<control type="button" id="101">
-					    <description>Extras</description>
-					    <include>ButtonInfoDialogsCommonValues</include>
-					    <label>$ADDON[script.videoextras 32001]</label>
-					    <onclick>XBMC.RunScript(script.videoextras,display,"$INFO[ListItem.FilenameAndPath]")</onclick>
-					    <visible>System.HasAddon(script.videoextras) + [Container.Content(movies) | Container.Content(episodes) | Container.Content(TVShows) | Container.Content(musicvideos)] + IsEmpty(Window(movieinformation).Property("HideVideoExtrasButton"))</visible>
+						<description>Extras</description>
+						<include>ButtonInfoDialogsCommonValues</include>
+						<label>$ADDON[script.videoextras 32001]</label>
+						<onclick>XBMC.RunScript(script.videoextras,display,"$INFO[ListItem.FilenameAndPath]")</onclick>
+						<visible>System.HasAddon(script.videoextras) + [Container.Content(movies) | Container.Content(episodes) | Container.Content(TVShows) | Container.Content(musicvideos)] + IsEmpty(Window(movieinformation).Property("HideVideoExtrasButton"))</visible>
 					</control>
 				</control>
 			</control>

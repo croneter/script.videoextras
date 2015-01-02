@@ -988,6 +988,13 @@
 					<bordertexture border="8">ThumbShadow.png</bordertexture>
 					<bordersize>8</bordersize>
 				</control>
+				<!-- Add the Video Extras Icon -->
+				<control type="group">
+					<description>VideoExtras Flagging Images</description>
+					<left>10</left>
+					<top>60</top>
+					<include>VideoExtrasOverlayIcon</include>
+				</control>
 				<control type="label">
 					<description>Episodes txt</description>
 					<left>10</left>
@@ -1110,8 +1117,6 @@
 					<include>AspectCodecFlaggingConditions</include>
 					<include>VideoStereoscopicsFlaggingConditions</include>
 					<include>VideoTypeHackFlaggingConditions</include>
-					<!-- Add the Video Extras Icon -->
-					<include>VideoExtrasLargeIcon</include>
 				</control>
 				<control type="label">
 					<description>INFO txt</description>
@@ -1274,7 +1279,7 @@
 						<label>$INFO[ListItem.Label]</label>
 					</control>
 					<control type="label">
-						<left>467</left>
+						<left>510</left>
 						<top>0</top>
 						<width>500</width>
 						<height>40</height>
@@ -1286,14 +1291,6 @@
 						<label>$INFO[ListItem.Label2]</label>
 						<visible>Window.IsVisible(Videos)</visible>
 						<animation effect="slide" start="0,0" end="40,0" delay="0" time="0" condition="![Container.Content(Movies) | Container.Content(Episodes) | Container.Content(MusicVideos)]">conditional</animation>
-					</control>
-					<!-- Add the Video Extras Icon -->
-					<control type="group">
-						<description>VideoExtras Flagging Images</description>
-						<left>510</left>
-						<top>8</top>
-						<include>VideoExtrasListIcon</include>
-						<visible>Window.IsVisible(Videos) + Container.Content(TVShows)</visible>
 					</control>
 					<control type="image">
 						<left>515</left>
@@ -1370,7 +1367,7 @@
 						<label>$INFO[ListItem.Label]</label>
 					</control>
 					<control type="label">
-						<left>467</left>
+						<left>510</left>
 						<top>0</top>
 						<width>500</width>
 						<height>40</height>
@@ -1382,14 +1379,6 @@
 						<label>$INFO[ListItem.Label2]</label>
 						<visible>Window.IsVisible(Videos)</visible>
 						<animation effect="slide" start="0,0" end="40,0" delay="0" time="0" condition="![Container.Content(Movies) | Container.Content(Episodes) | Container.Content(MusicVideos)]">conditional</animation>
-					</control>
-					<!-- Add the Video Extras Icon -->
-					<control type="group">
-						<description>VideoExtras Flagging Images</description>
-						<left>510</left>
-						<top>8</top>
-						<include>VideoExtrasListIcon</include>
-						<visible>Window.IsVisible(Videos) + Container.Content(TVShows)</visible>
 					</control>
 					<control type="image">
 						<left>515</left>
@@ -1475,7 +1464,7 @@
 					<description>Media Codec Flagging Images</description>
 					<left>0</left>
 					<top>290</top>
-					<width>430</width>
+					<width>510</width>
 					<align>center</align>
 					<itemgap>2</itemgap>
 					<orientation>horizontal</orientation>
@@ -1485,15 +1474,19 @@
 					<include>AspectCodecFlaggingConditions</include>
 					<include>VideoStereoscopicsFlaggingConditions</include>
 					<include>VideoTypeHackFlaggingConditions</include>
+					<!-- Add the Video Extras Icon -->
+					<control type="group">
+						<include>VideoExtrasLargeIcon</include>
+						<visible>Container.Content(Movies)</visible>
+					</control>
 				</control>
 				<!-- Add the Video Extras Icon -->
 				<control type="group">
-					<description>VideoExtras Flagging Images</description>
-					<left>430</left>
-					<top>290</top>
-					<width>40</width>
+					<top>345</top>
+					<left>10</left>
+					<align>right</align>
 					<include>VideoExtrasLargeIcon</include>
-					<visible>Window.IsVisible(Videos) + !Container.Content(TVShows)</visible>
+					<visible>Container.Content(TVShows)</visible>
 				</control>
 				<control type="image">
 					<left>0</left>
@@ -1600,8 +1593,6 @@
 					<include>AspectCodecFlaggingConditions</include>
 					<include>VideoStereoscopicsFlaggingConditions</include>
 					<include>VideoTypeHackFlaggingConditions</include>
-					<!-- Add the Video Extras Icon -->
-					<include>VideoExtrasLargeIcon</include>
 				</control>
 				<control type="image">
 					<left>0</left>
@@ -1914,6 +1905,13 @@
 					<bordertexture border="8">ThumbShadow.png</bordertexture>
 					<bordersize>8</bordersize>
 				</control>
+				<!-- Add the Video Extras Icon -->
+				<control type="group">
+					<description>VideoExtras Flagging Images</description>
+					<left>570</left>
+					<top>535</top>
+					<include>VideoExtrasOverlayIcon</include>
+				</control>
 			</control>
 			<control type="group">
 				<left>470</left>
@@ -2015,8 +2013,6 @@
 					<include>AspectCodecFlaggingConditions</include>
 					<include>VideoStereoscopicsFlaggingConditions</include>
 					<include>VideoTypeHackFlaggingConditions</include>
-					<!-- Add the Video Extras Icon -->
-					<include>VideoExtrasLargeIcon</include>
 				</control>
 				<control type="image">
 					<left>420</left>

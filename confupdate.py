@@ -28,14 +28,14 @@ from settings import os_path_join
 # all manually without the aid of an XML parser
 #
 # The names in the Windows XML files map as follows to the display names
-# PosterWrapView            Poster Wrap          ViewVideoLibrary.xml    DONE
-# PosterWrapView2_Fanart    Fanart               ViewVideoLibrary.xml    DONE
-# MediaListView2            Media Info           ViewVideoLibrary.xml    DONE
-# MediaListView3            Media Info 2         ViewVideoLibrary.xml    DONE
-# MediaListView4            Media Info 3         ViewVideoLibrary.xml    DONE
-# CommonRootView            List                 ViewFileMode.xml        DONE
-# ThumbnailView             Thumbnail            ViewFileMode.xml        DONE
-# WideIconView              Wide (TV Only)       ViewFileMode.xml        DONE
+# PosterWrapView            Poster Wrap          ViewVideoLibrary.xml
+# PosterWrapView2_Fanart    Fanart               ViewVideoLibrary.xml
+# MediaListView2            Media Info           ViewVideoLibrary.xml
+# MediaListView3            Media Info 2         ViewVideoLibrary.xml
+# MediaListView4            Media Info 3         ViewVideoLibrary.xml
+# CommonRootView            List                 ViewFileMode.xml
+# ThumbnailView             Thumbnail            ViewFileMode.xml
+# WideIconView              Wide (TV Only)       ViewFileMode.xml
 # FullWidthList             Big List             ViewFileMode.xml
 # TODO: CHECK ALL OVERLAY ICONS WHEN ON REAL TV
 # TODO: Check it runs against Helix
@@ -792,7 +792,17 @@ class ConfUpdate():
             # Now update the value
             lines[labelLine] = "\t\t\t\t\t\t<left>%d</left>\n" % newLeftVal
 
-        # TODO: Need to update the other label 2 for non focused
+        # Now look back up for the itemlayout
+        while (labelLine > currentLine) and ('</itemlayout>' not in lines[labelLine]):
+            labelLine = labelLine - 1
+        # Then for the next label2
+        while (labelLine > currentLine) and ('$INFO[ListItem.Label2]' not in lines[labelLine]):
+            labelLine = labelLine - 1
+        # Now find the <left> element for this one
+        while (labelLine > currentLine) and ('<left>' not in lines[labelLine]):
+            labelLine = labelLine - 1
+        if labelLine > currentLine:
+            lines[labelLine] = "\t\t\t\t\t\t<left>%d</left>\n" % newLeftVal
 
         # Now find the end of the non focused section
         while (currentLine < totalNumLines) and ('</itemlayout>' not in lines[currentLine]):
@@ -801,7 +811,7 @@ class ConfUpdate():
         insertData = '''\t\t\t\t\t<!-- Add the Video Extras Icon -->
 \t\t\t\t\t<control type="group">
 \t\t\t\t\t\t<description>VideExtras Flagging Images</description>
-\t\t\t\t\t\t<left>1010</left>
+\t\t\t\t\t\t<left>{0}</left>
 \t\t\t\t\t\t<top>8</top>
 \t\t\t\t\t\t<include>VideoExtrasListIcon</include>
 \t\t\t\t\t\t<visible>Window.IsVisible(Videos) + Container.Content(TVShows)</visible>
@@ -809,12 +819,12 @@ class ConfUpdate():
 \t\t\t\t\t</control>
 \t\t\t\t\t<control type="group">
 \t\t\t\t\t\t<description>VideExtras Flagging Images</description>
-\t\t\t\t\t\t<left>968</left>
+\t\t\t\t\t\t<left>{1}</left>
 \t\t\t\t\t\t<top>8</top>
 \t\t\t\t\t\t<include>VideoExtrasListIcon</include>
 \t\t\t\t\t\t<visible>Window.IsVisible(Videos) + [Container.Content(Movies) | Container.Content(MusicVideos)]</visible>
 \t\t\t\t\t\t<visible>!ListItem.IsStereoscopic</visible>
-\t\t\t\t\t</control>\n'''
+\t\t\t\t\t</control>\n'''.format(newLeftVal + 45, newLeftVal + 3)
 
         if currentLine < totalNumLines:
             lines.insert(currentLine, insertData)
@@ -833,13 +843,6 @@ class ConfUpdate():
         else:
             log("FullWidthList: Focused icon not added", xbmc.LOGERROR)
             self.errorToLog = True
-
-        # TODO: Need to change the left value of the label2
-        # from <left>1005</left>
-        # to <left>965</left>
-        # Actually taking 40 off the current value would do the job
-        # Could also change the Extras insert to take the left value from (label2-orig-value + 5)
-        # This would make it more flexible
 
         # Now join all the data together
         return ''.join(lines)

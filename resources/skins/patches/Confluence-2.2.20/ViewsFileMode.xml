@@ -51,7 +51,7 @@
 						<visible>!Window.IsVisible(Videos)</visible>
 					</control>
 					<control type="label">
-						<left>580</left>
+						<left>620</left>
 						<top>0</top>
 						<width>400</width>
 						<height>40</height>
@@ -63,21 +63,6 @@
 						<label>$INFO[ListItem.Label2]</label>
 						<visible>Window.IsVisible(Videos)</visible>
 						<animation effect="slide" start="0,0" end="40,0" delay="0" time="0" condition="![Container.Content(Movies) | Container.Content(Episodes) | Container.Content(MusicVideos)]">conditional</animation>
-					</control>
-					<!-- Add the Video Extras Icon -->
-					<control type="group">
-						<description>VideoExtras Flagging Images</description>
-						<left>625</left>
-						<top>8</top>
-						<include>VideoExtrasListIcon</include>
-						<visible>Window.IsVisible(Videos) + Container.Content(TVShows)</visible>
-					</control>
-					<control type="group">
-						<description>VideoExtras Flagging Images</description>
-						<left>583</left>
-						<top>8</top>
-						<include>VideoExtrasListIcon</include>
-						<visible>Window.IsVisible(Videos) + [Container.Content(Movies) | Container.Content(Episodes) | Container.Content(MusicVideos)]</visible>
 					</control>
 					<control type="image">
 						<left>625</left>
@@ -167,7 +152,7 @@
 						<visible>!Window.IsVisible(Videos)</visible>
 					</control>
 					<control type="label">
-						<left>580</left>
+						<left>620</left>
 						<top>0</top>
 						<width>400</width>
 						<height>40</height>
@@ -179,21 +164,6 @@
 						<label>$INFO[ListItem.Label2]</label>
 						<visible>Window.IsVisible(Videos)</visible>
 						<animation effect="slide" start="0,0" end="40,0" delay="0" time="0" condition="![Container.Content(Movies) | Container.Content(Episodes) | Container.Content(MusicVideos)]">conditional</animation>
-					</control>
-					<!-- Add the Video Extras Icon -->
-					<control type="group">
-						<description>VideoExtras Flagging Images</description>
-						<left>625</left>
-						<top>8</top>
-						<include>VideoExtrasListIcon</include>
-						<visible>Window.IsVisible(Videos) + Container.Content(TVShows)</visible>
-					</control>
-					<control type="group">
-						<description>VideoExtras Flagging Images</description>
-						<left>583</left>
-						<top>8</top>
-						<include>VideoExtrasListIcon</include>
-						<visible>Window.IsVisible(Videos) + [Container.Content(Movies) | Container.Content(Episodes) | Container.Content(MusicVideos)]</visible>
 					</control>
 					<control type="image">
 						<left>625</left>
@@ -270,6 +240,13 @@
 					<aspectratio aligny="top">keep</aspectratio>
 					<fadetime>IconCrossfadeTime</fadetime>
 					<texture diffuse="diffuse_mirror3.png" flipy="true" background="true">$VAR[PosterThumb]</texture>
+				</control>
+				<!-- Add the Video Extras Icon -->
+				<control type="group">
+					<description>VideoExtras Flagging Images</description>
+					<left>10</left>
+					<top>490</top>
+					<include>VideoExtrasOverlayIcon</include>
 				</control>
 			</control>
 		</control>
@@ -369,7 +346,7 @@
 						<info>ListItem.Label</info>
 					</control>
 					<control type="image">
-						<left>170</left>
+						<left>180</left>
 						<top>130</top>
 						<width>30</width>
 						<height>30</height>
@@ -508,6 +485,13 @@
 						<aspectratio>keep</aspectratio>
 						<texture>$INFO[ListItem.Overlay]</texture>
 					</control>
+					<!-- Add the Video Extras Icon -->
+					<control type="group">
+						<description>VideoExtras Flagging Images</description>
+						<left>5</left>
+						<top>65</top>
+						<include>VideoExtrasOverlayIcon</include>
+					</control>
 				</itemlayout>
 				<focusedlayout height="110" width="540">
 					<control type="image">
@@ -624,23 +608,6 @@
 						<visible>Window.IsVisible(Videos)</visible>
 						<animation effect="slide" start="0,0" end="40,0" delay="0" time="0" condition="![Container.Content(Movies) | Container.Content(Episodes) | Container.Content(MusicVideos)]">conditional</animation>
 					</control>
-					<!-- Add the Video Extras Icon -->
-					<control type="group">
-						<description>VideExtras Flagging Images</description>
-						<left>1010</left>
-						<top>8</top>
-						<include>VideoExtrasListIcon</include>
-						<visible>Window.IsVisible(Videos) + Container.Content(TVShows)</visible>
-						<visible>!ListItem.IsStereoscopic</visible>
-					</control>
-					<control type="group">
-						<description>VideExtras Flagging Images</description>
-						<left>968</left>
-						<top>8</top>
-						<include>VideoExtrasListIcon</include>
-						<visible>Window.IsVisible(Videos) + [Container.Content(Movies) | Container.Content(Episodes) | Container.Content(MusicVideos)]</visible>
-						<visible>!ListItem.IsStereoscopic</visible>
-					</control>
 					<control type="image">
 						<left>1010</left>
 						<top>8</top>
@@ -674,6 +641,23 @@
 						<height>16</height>
 						<texture>OverlayWatching.png</texture>
 						<visible>Window.IsVisible(Videos) + ListItem.IsResumable</visible>
+					</control>
+					<!-- Add the Video Extras Icon -->
+					<control type="group">
+						<description>VideExtras Flagging Images</description>
+						<left>1010</left>
+						<top>8</top>
+						<include>VideoExtrasListIcon</include>
+						<visible>Window.IsVisible(Videos) + Container.Content(TVShows)</visible>
+						<visible>!ListItem.IsStereoscopic</visible>
+					</control>
+					<control type="group">
+						<description>VideExtras Flagging Images</description>
+						<left>968</left>
+						<top>8</top>
+						<include>VideoExtrasListIcon</include>
+						<visible>Window.IsVisible(Videos) + [Container.Content(Movies) | Container.Content(MusicVideos)]</visible>
+						<visible>!ListItem.IsStereoscopic</visible>
 					</control>
 				</itemlayout>
 				<focusedlayout height="40" width="1080">
@@ -749,23 +733,6 @@
 						<visible>Window.IsVisible(Videos)</visible>
 						<animation effect="slide" start="0,0" end="40,0" delay="0" time="0" condition="![Container.Content(Movies) | Container.Content(Episodes) | Container.Content(MusicVideos)]">conditional</animation>
 					</control>
-					<!-- Add the Video Extras Icon -->
-					<control type="group">
-						<description>VideoExtras Flagging Images</description>
-						<left>1010</left>
-						<top>8</top>
-						<include>VideoExtrasListIcon</include>
-						<visible>Window.IsVisible(Videos) + Container.Content(TVShows)</visible>
-						<visible>!ListItem.IsStereoscopic</visible>
-					</control>
-					<control type="group">
-						<description>VideoExtras Flagging Images</description>
-						<left>968</left>
-						<top>8</top>
-						<include>VideoExtrasListIcon</include>
-						<visible>Window.IsVisible(Videos) + [Container.Content(Movies) | Container.Content(Episodes) | Container.Content(MusicVideos)]</visible>
-						<visible>!ListItem.IsStereoscopic</visible>
-					</control>
 					<control type="image">
 						<left>1010</left>
 						<top>8</top>
@@ -799,6 +766,23 @@
 						<height>16</height>
 						<texture>OverlayWatching.png</texture>
 						<visible>Window.IsVisible(Videos) + ListItem.IsResumable</visible>
+					</control>
+					<!-- Add the Video Extras Icon -->
+					<control type="group">
+						<description>VideExtras Flagging Images</description>
+						<left>1010</left>
+						<top>8</top>
+						<include>VideoExtrasListIcon</include>
+						<visible>Window.IsVisible(Videos) + Container.Content(TVShows)</visible>
+						<visible>!ListItem.IsStereoscopic</visible>
+					</control>
+					<control type="group">
+						<description>VideExtras Flagging Images</description>
+						<left>968</left>
+						<top>8</top>
+						<include>VideoExtrasListIcon</include>
+						<visible>Window.IsVisible(Videos) + [Container.Content(Movies) | Container.Content(MusicVideos)]</visible>
+						<visible>!ListItem.IsStereoscopic</visible>
 					</control>
 				</focusedlayout>
 			</control>
