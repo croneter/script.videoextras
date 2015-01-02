@@ -52,6 +52,8 @@ class ConfUpdate():
 \t\t\t\t\t<visible>!Control.IsVisible(50) + Container.Content(tvshows) + !Container.Content(Episodes)</visible>
 \t\t\t\t\t<include>VideoExtrasLargeIcon</include>'''
 
+    LARGE_ICON_INCLUDE = '''\t\t\t\t<!-- Add the Video Extras Icon -->\n\t\t\t\t<include>VideoExtrasLargeIcon</include>'''
+
     def __init__(self):
         # Find out where the confluence skin files are located
         confAddon = xbmcaddon.Addon(id='skin.confluence')
@@ -69,6 +71,7 @@ class ConfUpdate():
         # Update the files one at a time
         self._addIncludeFile()
         self._updateDialogVideoInfo()
+        self._updateViewsVideoLibrary()
 
         # Now either print the complete message or the "check log" message
         if self.errorToLog:
@@ -150,9 +153,9 @@ class ConfUpdate():
         insertTxt = previousButton + "\n" + (ConfUpdate.DIALOG_VIDEO_INFO_BUTTON % idval)
         dialogXmlStr = dialogXmlStr.replace(previousButton, insertTxt)
 
-        # Now add the section for the icon overlay, we will skip this
+        # Now add the section for the icon overlay
         iconPrevious = 'VideoTypeHackFlaggingConditions</include>'
-        if previousOnLoad not in dialogXmlStr:
+        if iconPrevious not in dialogXmlStr:
             log("DialogVideoInfo: Could not find point to add icon overlay, skipping overlay addition", xbmc.LOGERROR)
             self.errorToLog = True
             return
@@ -160,7 +163,11 @@ class ConfUpdate():
         insertTxt = iconPrevious + "\n" + ConfUpdate.DIALOG_VIDEO_INFO_ICON
         dialogXmlStr = dialogXmlStr.replace(iconPrevious, insertTxt)
 
-        log("DialogVideoInfo: New file content: %s" % dialogXmlStr)
+        self._saveNewFile(dialogXml, dialogXmlStr)
+
+    # Save the new contents, taking a backup of the old file
+    def _saveNewFile(self, dialogXml, dialogXmlStr):
+        log("SaveNewFile: New file content: %s" % dialogXmlStr)
 
         # Now save the file to disk, start by backing up the old file
         xbmcvfs.copy(dialogXml, "%s.videoextras-%s.bak" % (dialogXml, self.bak_timestamp))
@@ -169,6 +176,50 @@ class ConfUpdate():
         dialogXmlFile = xbmcvfs.File(dialogXml, 'w')
         dialogXmlFile.write(dialogXmlStr)
         dialogXmlFile.close()
+
+    def _updateViewsVideoLibrary(self):
+        # Get the location of the information dialog XML file
+        dialogXml = os_path_join(self.confpath, 'ViewsVideoLibrary.xml')
+        log("ViewsVideoLibrary: Confluence dialog XML file: %s" % dialogXml)
+
+        # Make sure the file exists (It should always exist)
+        if not xbmcvfs.exists(dialogXml):
+            log("ViewsVideoLibrary: Unable to find the file ViewsVideoLibrary.xml, skipping file", xbmc.LOGERROR)
+            self.errorToLog = True
+            return
+
+        # Load the DialogVideoInfo.xml into a string
+        dialogXmlFile = xbmcvfs.File(dialogXml, 'r')
+        dialogXmlStr = dialogXmlFile.read()
+        dialogXmlFile.close()
+
+        # Now check to see if the skin file has already had the video extras bits added
+        if 'IncludesVideoExtras' in dialogXmlStr:
+            # Already have video extras referenced, so we do not want to do anything else
+            # to this file
+            log("ViewsVideoLibrary: Video extras already referenced in %s, skipping file" % dialogXml, xbmc.LOGINFO)
+            self.errorToLog = True
+            return
+
+        # Update the PosterWrapView part
+        dialogXmlStr = self._updatePosterWrapView(dialogXmlStr)
+        # Update the MediaListView2 part
+        dialogXmlStr = self._updateMediaListView2(dialogXmlStr)
+
+        # Now add the include link to the file
+        dialogXmlStr = self._addIncludeToXml(dialogXmlStr)
+
+        # Now add the section for the icon overlay
+        iconPrevious = 'VideoTypeHackFlaggingConditions</include>'
+        if iconPrevious not in dialogXmlStr:
+            log("DialogVideoInfo: Could not find point to add icon overlay, skipping overlay addition", xbmc.LOGERROR)
+            self.errorToLog = True
+            return
+
+        insertTxt = iconPrevious + "\n" + ConfUpdate.LARGE_ICON_INCLUDE
+        dialogXmlStr = dialogXmlStr.replace(iconPrevious, insertTxt)
+
+        self._saveNewFile(dialogXml, dialogXmlStr)
 
     # Adds the line to the XML that imports the extras include file
     def _addIncludeToXml(self, xmlStr):
@@ -185,6 +236,69 @@ class ConfUpdate():
                 updatedXml = updatedXml.replace(tag, insertTxt)
         return updatedXml
 
+    # Update the PosterWrapView section of the ViewsVideoLibrary.xml file
+    def _updatePosterWrapView(self, dialogXmlStr):
+        log("ViewsVideoLibrary: Updating PosterWrapView")
+        # Split the text up into lines, this will enable us to process each line
+        # to insert the data expected
+        lines = dialogXmlStr.splitlines(True)
+        totalNumLines = len(lines)
+        currentLine = 0
+
+        log("ViewsVideoLibrary: File split into %d lines" % totalNumLines)
+
+        # Go through each line of the original file until we get to the section
+        # we are looking for
+        while (currentLine < totalNumLines) and ('PosterWrapView' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        # Now we have started the PosterWrapView we need to go until we get to the tag
+        # that contains </itemlayout>
+        while (currentLine < totalNumLines) and ('</itemlayout>' not in lines[currentLine]):
+            # add the line to the newly created file
+            currentLine = currentLine + 1
+
+        if currentLine < totalNumLines:
+            insertData = '''\t\t\t\t\t<!-- Add the Video Extras Icon -->
+\t\t\t\t\t<control type="group">
+\t\t\t\t\t\t<description>VideoExtras Flagging Images</description>
+\t\t\t\t\t\t<left>10</left>
+\t\t\t\t\t\t<top>310</top>
+\t\t\t\t\t\t<include>VideoExtrasOverlayIcon</include>
+\t\t\t\t\t</control>\n'''
+            lines.insert(currentLine, insertData)
+            totalNumLines = totalNumLines + 1
+            currentLine = currentLine + 1
+
+        # Now work until the end of the focus layout as we want to add something before it
+        while (currentLine < totalNumLines) and ('</focusedlayout>' not in lines[currentLine]):
+            # add the line to the newly created file
+            currentLine = currentLine + 1
+
+        if currentLine < totalNumLines:
+            insertData = '''\t\t\t\t\t<!-- Add the Video Extras Icon -->
+\t\t\t\t\t<control type="group">
+\t\t\t\t\t\t<description>VideoExtras Flagging Images</description>
+\t\t\t\t\t\t<left>10</left>
+\t\t\t\t\t\t<top>300</top>
+\t\t\t\t\t\t<include>VideoExtrasOverlayIcon</include>
+\t\t\t\t\t\t<animation type="focus">
+\t\t\t\t\t\t\t<effect type="fade" start="0" end="100" time="200"/>
+\t\t\t\t\t\t\t<effect type="slide" start="0,0" end="-20,40" time="200"/>
+\t\t\t\t\t\t</animation>
+\t\t\t\t\t\t<animation type="unfocus">
+\t\t\t\t\t\t\t<effect type="fade" start="100" end="0" time="200"/>
+\t\t\t\t\t\t\t<effect type="slide" end="0,0" start="-20,40" time="200"/>
+\t\t\t\t\t\t</animation>
+\t\t\t\t\t</control>\n'''
+            lines.insert(currentLine, insertData)
+
+        # Now join all the data together
+        return ''.join(lines)
+
+    def _updateMediaListView2(self, dialogXmlStr):
+        # TODO:
+        return dialogXmlStr
 
 #########################
 # Main

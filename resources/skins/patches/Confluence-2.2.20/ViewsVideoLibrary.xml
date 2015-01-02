@@ -40,6 +40,13 @@
 						<bordersize>4</bordersize>
 						<texture background="true">$VAR[PosterThumb]</texture>
 					</control>
+					<!-- Add the Video Extras Icon -->
+					<control type="group">
+						<description>VideoExtras Flagging Images</description>
+						<left>10</left>
+						<top>310</top>
+						<include>VideoExtrasOverlayIcon</include>
+					</control>
 				</itemlayout>
 				<focusedlayout height="310" width="218">
 					<control type="image">
@@ -83,8 +90,8 @@
 					<!-- Add the Video Extras Icon -->
 					<control type="group">
 						<description>VideoExtras Flagging Images</description>
-						<left>6</left>
-						<top>310</top>
+						<left>10</left>
+						<top>300</top>
 						<include>VideoExtrasOverlayIcon</include>
 						<animation type="focus">
 							<effect type="fade" start="0" end="100" time="200"/>
