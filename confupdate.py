@@ -33,11 +33,12 @@ from settings import os_path_join
 # MediaListView2            Media Info           ViewVideoLibrary.xml    DONE
 # MediaListView3            Media Info 2         ViewVideoLibrary.xml    DONE
 # MediaListView4            Media Info 3         ViewVideoLibrary.xml    DONE
-# CommonRootView            List                 ViewFileMode.xml
-# ThumbnailView             Thumbnail            ViewFileMode.xml
-# WideIconView              Wide (TV Only)       ViewFileMode.xml
+# CommonRootView            List                 ViewFileMode.xml        DONE
+# ThumbnailView             Thumbnail            ViewFileMode.xml        DONE
+# WideIconView              Wide (TV Only)       ViewFileMode.xml        DONE
 # FullWidthList             Big List             ViewFileMode.xml
 # TODO: CHECK ALL OVERLAY ICONS WHEN ON REAL TV
+# TODO: Check it runs against Helix
 class ConfUpdate():
     def __init__(self):
         # Find out where the confluence skin files are located
@@ -57,6 +58,7 @@ class ConfUpdate():
         self._addIncludeFile()
         self._updateDialogVideoInfo()
         self._updateViewsVideoLibrary()
+        self._updateViewsFileMode()
 
         # Now either print the complete message or the "check log" message
         if self.errorToLog:
@@ -539,6 +541,305 @@ class ConfUpdate():
         else:
             log("MediaListView4: TVShows Overlay Icon not added", xbmc.LOGERROR)
             self.errorToLog = True
+
+        # Now join all the data together
+        return ''.join(lines)
+
+    ##########################################################################
+    # UPDATES FOR ViewsFileMode.xml
+    ##########################################################################
+    def _updateViewsFileMode(self):
+        # Get the location of the information dialog XML file
+        dialogXml = os_path_join(self.confpath, 'ViewsFileMode.xml')
+        log("ViewsVideoLibrary: Confluence dialog XML file: %s" % dialogXml)
+
+        # Make sure the file exists (It should always exist)
+        if not xbmcvfs.exists(dialogXml):
+            log("ViewsVideoLibrary: Unable to find the file ViewsFileMode.xml, skipping file", xbmc.LOGERROR)
+            self.errorToLog = True
+            return
+
+        # Load the DialogVideoInfo.xml into a string
+        dialogXmlFile = xbmcvfs.File(dialogXml, 'r')
+        dialogXmlStr = dialogXmlFile.read()
+        dialogXmlFile.close()
+
+        # Now check to see if the skin file has already had the video extras bits added
+        if 'IncludesVideoExtras' in dialogXmlStr:
+            # Already have video extras referenced, so we do not want to do anything else
+            # to this file
+            log("ViewsFileMode: Video extras already referenced in %s, skipping file" % dialogXml, xbmc.LOGINFO)
+            self.errorToLog = True
+            return
+
+        # Update the different view sections
+        dialogXmlStr = self._updateCommonRootView(dialogXmlStr)
+        dialogXmlStr = self._updateThumbnailView(dialogXmlStr)
+        dialogXmlStr = self._updateWideIconView(dialogXmlStr)
+        dialogXmlStr = self._updateFullWidthList(dialogXmlStr)
+
+        # Now add the include link to the file
+        dialogXmlStr = self._addIncludeToXml(dialogXmlStr)
+
+        self._saveNewFile(dialogXml, dialogXmlStr)
+
+    # Update the CommonRootView section of the ViewsFileMode.xml file
+    def _updateCommonRootView(self, dialogXmlStr):
+        log("ViewsFileMode: Updating CommonRootView")
+        # Split the text up into lines, this will enable us to process each line
+        # to insert the data expected
+        lines = dialogXmlStr.splitlines(True)
+        totalNumLines = len(lines)
+        currentLine = 0
+
+        log("ViewsFileMode: File split into %d lines" % totalNumLines)
+
+        # Go through each line of the original file until we get to the section
+        # we are looking for
+        while (currentLine < totalNumLines) and ('CommonRootView' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        # Found the start of the PosterWrapView2_Fanart, now find where it ends
+        sectionEnd = currentLine + 1
+        while (sectionEnd < totalNumLines) and ('<include name=' not in lines[sectionEnd]):
+            sectionEnd = sectionEnd + 1
+        # Set the totalNumLines to the end of this section
+        totalNumLines = sectionEnd
+
+        # Now find the end of the non focused section
+        while (currentLine < totalNumLines) and ('$VAR[PosterThumb]' not in lines[currentLine]):
+            currentLine = currentLine + 1
+        # We actually want the second one
+        currentLine = currentLine + 1
+        while (currentLine < totalNumLines) and ('$VAR[PosterThumb]' not in lines[currentLine]):
+            currentLine = currentLine + 1
+        # Now find the end of the control
+        while (currentLine < totalNumLines) and ('</control>' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        if currentLine < totalNumLines:
+            insertData = '''\t\t\t\t</control>\n\t\t\t\t<!-- Add the Video Extras Icon -->
+\t\t\t\t<control type="group">
+\t\t\t\t\t<description>VideoExtras Flagging Images</description>
+\t\t\t\t\t<left>10</left>
+\t\t\t\t\t<top>490</top>
+\t\t\t\t\t<include>VideoExtrasOverlayIcon</include>\n'''
+            lines.insert(currentLine, insertData)
+        else:
+            log("CommonRootView: Thumb overlay not added", xbmc.LOGERROR)
+            self.errorToLog = True
+
+        # Now join all the data together
+        return ''.join(lines)
+
+    # Update the ThumbnailView section of the ViewsFileMode.xml file
+    def _updateThumbnailView(self, dialogXmlStr):
+        log("ViewsFileMode: Updating ThumbnailView")
+        # Split the text up into lines, this will enable us to process each line
+        # to insert the data expected
+        lines = dialogXmlStr.splitlines(True)
+        totalNumLines = len(lines)
+        currentLine = 0
+
+        log("ViewsFileMode: File split into %d lines" % totalNumLines)
+
+        # Go through each line of the original file until we get to the section
+        # we are looking for
+        while (currentLine < totalNumLines) and ('ThumbnailView' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        # Found the start of the PosterWrapView2_Fanart, now find where it ends
+        sectionEnd = currentLine + 1
+        while (sectionEnd < totalNumLines) and ('<include name=' not in lines[sectionEnd]):
+            sectionEnd = sectionEnd + 1
+        # Set the totalNumLines to the end of this section
+        totalNumLines = sectionEnd
+
+        # Now find the end of the non focused section
+        while (currentLine < totalNumLines) and ('</itemlayout>' not in lines[currentLine]):
+            currentLine = currentLine + 1
+        # We actually want the second one, as the first section is not for videos
+        currentLine = currentLine + 1
+        while (currentLine < totalNumLines) and ('</itemlayout>' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        insertData = '''\t\t\t\t\t<!-- Add the Video Extras Icon -->
+\t\t\t\t\t<control type="group">
+\t\t\t\t\t\t<description>VideoExtras Flagging Images</description>
+\t\t\t\t\t\t<left>10</left>
+\t\t\t\t\t\t<top>205</top>
+\t\t\t\t\t\t<include>VideoExtrasOverlayIcon</include>
+\t\t\t\t\t</control>\n'''
+
+        if currentLine < totalNumLines:
+            lines.insert(currentLine, insertData)
+            totalNumLines = totalNumLines + 1
+            currentLine = currentLine + 1
+        else:
+            log("ThumbnailView: Non focused overlay not added", xbmc.LOGERROR)
+            self.errorToLog = True
+
+        # Now find the end of the focused section
+        while (currentLine < totalNumLines) and ('</focusedlayout>' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        if currentLine < totalNumLines:
+            lines.insert(currentLine, insertData)
+        else:
+            log("ThumbnailView: Focused overlay not added", xbmc.LOGERROR)
+            self.errorToLog = True
+
+        # Now join all the data together
+        return ''.join(lines)
+
+    # Update the WideIconView section of the ViewsFileMode.xml file
+    def _updateWideIconView(self, dialogXmlStr):
+        log("ViewsFileMode: Updating WideIconView")
+        # Split the text up into lines, this will enable us to process each line
+        # to insert the data expected
+        lines = dialogXmlStr.splitlines(True)
+        totalNumLines = len(lines)
+        currentLine = 0
+
+        log("ViewsFileMode: File split into %d lines" % totalNumLines)
+
+        # Go through each line of the original file until we get to the section
+        # we are looking for
+        while (currentLine < totalNumLines) and ('WideIconView' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        # Found the start of the PosterWrapView2_Fanart, now find where it ends
+        sectionEnd = currentLine + 1
+        while (sectionEnd < totalNumLines) and ('<include name=' not in lines[sectionEnd]):
+            sectionEnd = sectionEnd + 1
+        # Set the totalNumLines to the end of this section
+        totalNumLines = sectionEnd
+
+        # Now find the end of the non focused section
+        while (currentLine < totalNumLines) and ('</itemlayout>' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        insertData = '''\t\t\t\t\t<!-- Add the Video Extras Icon -->
+\t\t\t\t\t<control type="group">
+\t\t\t\t\t\t<description>VideoExtras Flagging Images</description>
+\t\t\t\t\t\t<left>5</left>
+\t\t\t\t\t\t<top>65</top>
+\t\t\t\t\t\t<include>VideoExtrasOverlayIcon</include>
+\t\t\t\t\t</control>\n'''
+
+        if currentLine < totalNumLines:
+            lines.insert(currentLine, insertData)
+            totalNumLines = totalNumLines + 1
+            currentLine = currentLine + 1
+        else:
+            log("WideIconView: Non focused overlay not added", xbmc.LOGERROR)
+            self.errorToLog = True
+
+        # Now find the end of the focused section
+        while (currentLine < totalNumLines) and ('</focusedlayout>' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        if currentLine < totalNumLines:
+            lines.insert(currentLine, insertData)
+        else:
+            log("WideIconView: Focused overlay not added", xbmc.LOGERROR)
+            self.errorToLog = True
+
+        # Now join all the data together
+        return ''.join(lines)
+
+    # Update the FullWidthList section of the ViewsFileMode.xml file
+    def _updateFullWidthList(self, dialogXmlStr):
+        log("ViewsFileMode: Updating FullWidthList")
+        # Split the text up into lines, this will enable us to process each line
+        # to insert the data expected
+        lines = dialogXmlStr.splitlines(True)
+        totalNumLines = len(lines)
+        currentLine = 0
+
+        log("ViewsFileMode: File split into %d lines" % totalNumLines)
+
+        # Go through each line of the original file until we get to the section
+        # we are looking for
+        while (currentLine < totalNumLines) and ('FullWidthList' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        # Found the start of the PosterWrapView2_Fanart, now find where it ends
+        sectionEnd = currentLine + 1
+        while (sectionEnd < totalNumLines) and ('<include name=' not in lines[sectionEnd]):
+            sectionEnd = sectionEnd + 1
+        # Set the totalNumLines to the end of this section
+        totalNumLines = sectionEnd
+
+        # This processing is a little different from the others, as we work backwards, as we
+        # want to read the element that is the label2 part first
+        newLeftVal = 965
+        labelLine = totalNumLines - 1
+        while (labelLine > currentLine) and ('$INFO[ListItem.Label2]' not in lines[labelLine]):
+            labelLine = labelLine - 1
+        # Now find the <left> element for this one
+        while (labelLine > currentLine) and ('<left>' not in lines[labelLine]):
+            labelLine = labelLine - 1
+        if labelLine > currentLine:
+            log("FullWidthList: Found the label2 left line: %s" % lines[labelLine].strip())
+            # Extract the current number for the left value
+            try:
+                newLeftVal = int(lines[labelLine].strip().replace('<left>', '').replace('</left>', '').strip())
+                newLeftVal = newLeftVal - 40
+            except:
+                newLeftVal = 965
+            log("FullWidthList: New value for label2 left element is: %d" % newLeftVal)
+            # Now update the value
+            lines[labelLine] = "\t\t\t\t\t\t<left>%d</left>\n" % newLeftVal
+
+        # TODO: Need to update the other label 2 for non focused
+
+        # Now find the end of the non focused section
+        while (currentLine < totalNumLines) and ('</itemlayout>' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        insertData = '''\t\t\t\t\t<!-- Add the Video Extras Icon -->
+\t\t\t\t\t<control type="group">
+\t\t\t\t\t\t<description>VideExtras Flagging Images</description>
+\t\t\t\t\t\t<left>1010</left>
+\t\t\t\t\t\t<top>8</top>
+\t\t\t\t\t\t<include>VideoExtrasListIcon</include>
+\t\t\t\t\t\t<visible>Window.IsVisible(Videos) + Container.Content(TVShows)</visible>
+\t\t\t\t\t\t<visible>!ListItem.IsStereoscopic</visible>
+\t\t\t\t\t</control>
+\t\t\t\t\t<control type="group">
+\t\t\t\t\t\t<description>VideExtras Flagging Images</description>
+\t\t\t\t\t\t<left>968</left>
+\t\t\t\t\t\t<top>8</top>
+\t\t\t\t\t\t<include>VideoExtrasListIcon</include>
+\t\t\t\t\t\t<visible>Window.IsVisible(Videos) + [Container.Content(Movies) | Container.Content(MusicVideos)]</visible>
+\t\t\t\t\t\t<visible>!ListItem.IsStereoscopic</visible>
+\t\t\t\t\t</control>\n'''
+
+        if currentLine < totalNumLines:
+            lines.insert(currentLine, insertData)
+            totalNumLines = totalNumLines + 1
+            currentLine = currentLine + 1
+        else:
+            log("FullWidthList: Non focused icon not added", xbmc.LOGERROR)
+            self.errorToLog = True
+
+        # Now find the end of the focused section
+        while (currentLine < totalNumLines) and ('</focusedlayout>' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        if currentLine < totalNumLines:
+            lines.insert(currentLine, insertData)
+        else:
+            log("FullWidthList: Focused icon not added", xbmc.LOGERROR)
+            self.errorToLog = True
+
+        # TODO: Need to change the left value of the label2
+        # from <left>1005</left>
+        # to <left>965</left>
+        # Actually taking 40 off the current value would do the job
+        # Could also change the Extras insert to take the left value from (label2-orig-value + 5)
+        # This would make it more flexible
 
         # Now join all the data together
         return ''.join(lines)
