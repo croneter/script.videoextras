@@ -26,6 +26,17 @@ from settings import os_path_join
 # However they all end up re-ordering the attributes, so doing a diff
 # between changed files is very hard, so for this reason we do it
 # all manually without the aid of an XML parser
+#
+# The names in the Windows XML files map as follows to the display names
+# PosterWrapView            Poster Wrap          ViewVideoLibrary.xml    DONE
+# PosterWrapView2_Fanart    Fanart               ViewVideoLibrary.xml    DONE
+# MediaListView2            Media Info           ViewVideoLibrary.xml    TV left to do (E in wrong place)
+# MediaListView3            Media Info 2         ViewVideoLibrary.xml    TV left to do
+# MediaListView4            Media Info 3         ViewVideoLibrary.xml    TV left to do
+# CommonRootView            List                 ViewFileMode.xml
+# ThumbnailView             Thumbnail            ViewFileMode.xml
+# WideIconView              Wide (TV Only)       ViewFileMode.xml
+# FullWidthList             Big List             ViewFileMode.xml
 class ConfUpdate():
     INCLUDE_CMD = '<include file="IncludesVideoExtras.xml"/>'
 
