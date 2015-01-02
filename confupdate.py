@@ -37,8 +37,6 @@ from settings import os_path_join
 # ThumbnailView             Thumbnail            ViewFileMode.xml
 # WideIconView              Wide (TV Only)       ViewFileMode.xml
 # FullWidthList             Big List             ViewFileMode.xml
-# TODO: CHECK ALL OVERLAY ICONS WHEN ON REAL TV
-# TODO: Check it runs against Helix
 class ConfUpdate():
     def __init__(self):
         # Find out where the confluence skin files are located
@@ -399,10 +397,10 @@ class ConfUpdate():
         if currentLine < totalNumLines:
             insertData = '''\t\t\t\t<!-- Add the Video Extras Icon -->
 \t\t\t\t<control type="group">
-\t\t\t\t\t<description>VideoExtras Flagging Images</description>
+\t\t\t\t\t<top>140</top>
 \t\t\t\t\t<left>10</left>
-\t\t\t\t\t<top>60</top>
-\t\t\t\t\t<include>VideoExtrasOverlayIcon</include>
+\t\t\t\t\t<align>left</align>
+\t\t\t\t\t<include>VideoExtrasLargeIcon</include>
 \t\t\t\t</control>\n'''
             lines.insert(currentLine + 1, insertData)
             totalNumLines = totalNumLines + 1
@@ -474,7 +472,7 @@ class ConfUpdate():
 \t\t\t\t<control type="group">
 \t\t\t\t\t<top>345</top>
 \t\t\t\t\t<left>10</left>
-\t\t\t\t\t<align>right</align>
+\t\t\t\t\t<align>left</align>
 \t\t\t\t\t<include>VideoExtrasLargeIcon</include>
 \t\t\t\t\t<visible>Container.Content(TVShows)</visible>\n'''
             lines.insert(currentLine + 1, insertData)
@@ -621,7 +619,7 @@ class ConfUpdate():
             insertData = '''\t\t\t\t</control>\n\t\t\t\t<!-- Add the Video Extras Icon -->
 \t\t\t\t<control type="group">
 \t\t\t\t\t<description>VideoExtras Flagging Images</description>
-\t\t\t\t\t<left>10</left>
+\t\t\t\t\t<left>15</left>
 \t\t\t\t\t<top>490</top>
 \t\t\t\t\t<include>VideoExtrasOverlayIcon</include>\n'''
             lines.insert(currentLine, insertData)
@@ -666,8 +664,8 @@ class ConfUpdate():
         insertData = '''\t\t\t\t\t<!-- Add the Video Extras Icon -->
 \t\t\t\t\t<control type="group">
 \t\t\t\t\t\t<description>VideoExtras Flagging Images</description>
-\t\t\t\t\t\t<left>10</left>
-\t\t\t\t\t\t<top>205</top>
+\t\t\t\t\t\t<left>30</left>
+\t\t\t\t\t\t<top>203</top>
 \t\t\t\t\t\t<include>VideoExtrasOverlayIcon</include>
 \t\t\t\t\t</control>\n'''
 
@@ -722,7 +720,7 @@ class ConfUpdate():
         insertData = '''\t\t\t\t\t<!-- Add the Video Extras Icon -->
 \t\t\t\t\t<control type="group">
 \t\t\t\t\t\t<description>VideoExtras Flagging Images</description>
-\t\t\t\t\t\t<left>5</left>
+\t\t\t\t\t\t<left>15</left>
 \t\t\t\t\t\t<top>65</top>
 \t\t\t\t\t\t<include>VideoExtrasOverlayIcon</include>
 \t\t\t\t\t</control>\n'''

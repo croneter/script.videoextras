@@ -990,10 +990,10 @@
 				</control>
 				<!-- Add the Video Extras Icon -->
 				<control type="group">
-					<description>VideoExtras Flagging Images</description>
+					<top>140</top>
 					<left>10</left>
-					<top>60</top>
-					<include>VideoExtrasOverlayIcon</include>
+					<align>left</align>
+					<include>VideoExtrasLargeIcon</include>
 				</control>
 				<control type="label">
 					<description>Episodes txt</description>
@@ -1484,7 +1484,7 @@
 				<control type="group">
 					<top>345</top>
 					<left>10</left>
-					<align>right</align>
+					<align>left</align>
 					<include>VideoExtrasLargeIcon</include>
 					<visible>Container.Content(TVShows)</visible>
 				</control>

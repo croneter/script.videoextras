@@ -18,6 +18,8 @@
 		<setting id="custom_path_movies" enable="eq(-2,true)" type="text" label="32014" default="Movies"/>
 		<setting id="custom_path_tvshows" enable="eq(-3,true)" type="text" label="32015" default="TvShows"/>
 		<setting id="custom_path_musicvideos" enable="eq(-4,true)" type="text" label="32029" default="MusicVideos"/>
+		<setting label="32019" type="lsep"/>
+		<setting id="logEnabled" type="bool" label="32020" default="false"/>
 	</category>
 	<category label="32021">
 		<setting id="enableDB" type="bool" label="32022" default="true"/>
@@ -32,8 +34,6 @@
 		<setting id="useCustomImages" enable="eq(-1,true)" type="bool" label="32032" default="false"/>
 		<setting id="overlayImage" label="32033" subsetting="true" visible="eq(-1,true)" type="image"/>
 		<setting id="listImage" label="32034" subsetting="true" visible="eq(-2,true)" type="image"/>
-		<setting label="32019" type="lsep"/>
-		<setting id="logEnabled" type="bool" label="32020" default="false"/>
 		<setting label="32023" type="lsep"/>
 		<setting label="32031" type="action" action="RunScript($CWD/confupdate.py)"/>
 	</category>
