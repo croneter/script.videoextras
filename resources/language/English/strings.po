@@ -263,3 +263,7 @@ msgstr ""
 msgctxt "#32158"
 msgid "Confluence Skin Updated"
 msgstr ""
+
+msgctxt "#32159"
+msgid "It is recommended that you now restart Kodi"
+msgstr ""

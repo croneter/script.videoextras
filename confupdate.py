@@ -30,41 +30,15 @@ from settings import os_path_join
 # The names in the Windows XML files map as follows to the display names
 # PosterWrapView            Poster Wrap          ViewVideoLibrary.xml    DONE
 # PosterWrapView2_Fanart    Fanart               ViewVideoLibrary.xml    DONE
-# MediaListView2            Media Info           ViewVideoLibrary.xml    TV left to do (E in wrong place)
-# MediaListView3            Media Info 2         ViewVideoLibrary.xml    TV left to do
-# MediaListView4            Media Info 3         ViewVideoLibrary.xml    TV left to do
+# MediaListView2            Media Info           ViewVideoLibrary.xml    DONE
+# MediaListView3            Media Info 2         ViewVideoLibrary.xml    DONE
+# MediaListView4            Media Info 3         ViewVideoLibrary.xml    DONE
 # CommonRootView            List                 ViewFileMode.xml
 # ThumbnailView             Thumbnail            ViewFileMode.xml
 # WideIconView              Wide (TV Only)       ViewFileMode.xml
 # FullWidthList             Big List             ViewFileMode.xml
+# TODO: CHECK ALL OVERLAY ICONS WHEN ON REAL TV
 class ConfUpdate():
-    INCLUDE_CMD = '<include file="IncludesVideoExtras.xml"/>'
-
-    DIALOG_VIDEO_INFO_ONLOAD = '<onload condition="System.HasAddon(script.videoextras)">XBMC.RunScript(script.videoextras,check,"$INFO[ListItem.FilenameAndPath]")</onload>'
-
-    DIALOG_VIDEO_INFO_BUTTON = '''\t\t\t\t\t</control>\n\t\t\t\t\t<control type="button" id="%d">
-\t\t\t\t\t\t<description>Extras</description>
-\t\t\t\t\t\t<include>ButtonInfoDialogsCommonValues</include>
-\t\t\t\t\t\t<label>$ADDON[script.videoextras 32001]</label>
-\t\t\t\t\t\t<onclick>XBMC.RunScript(script.videoextras,display,"$INFO[ListItem.FilenameAndPath]")</onclick>
-\t\t\t\t\t\t<visible>System.HasAddon(script.videoextras) + [Container.Content(movies) | Container.Content(episodes) | Container.Content(TVShows) | Container.Content(musicvideos)] + IsEmpty(Window(movieinformation).Property("HideVideoExtrasButton"))</visible>'''
-
-    DIALOG_VIDEO_INFO_ICON = '''\t\t\t\t\t<!-- Add the Video Extras Icon -->\n\t\t\t\t\t<include>VideoExtrasLargeIcon</include>
-\t\t\t\t</control>
-\t\t\t\t<control type="grouplist">
-\t\t\t\t\t<description>Add the Video Extras Icon</description>
-\t\t\t\t\t<left>210</left>
-\t\t\t\t\t<top>480</top>
-\t\t\t\t\t<width>600</width>
-\t\t\t\t\t<align>left</align>
-\t\t\t\t\t<itemgap>2</itemgap>
-\t\t\t\t\t<orientation>horizontal</orientation>
-\t\t\t\t\t<include>VisibleFadeEffect</include>
-\t\t\t\t\t<visible>!Control.IsVisible(50) + Container.Content(tvshows) + !Container.Content(Episodes)</visible>
-\t\t\t\t\t<include>VideoExtrasLargeIcon</include>'''
-
-    LARGE_ICON_INCLUDE = '''\t\t\t\t<!-- Add the Video Extras Icon -->\n\t\t\t\t<include>VideoExtrasLargeIcon</include>'''
-
     def __init__(self):
         # Find out where the confluence skin files are located
         confAddon = xbmcaddon.Addon(id='skin.confluence')
@@ -88,7 +62,7 @@ class ConfUpdate():
         if self.errorToLog:
             xbmcgui.Dialog().ok(__addon__.getLocalizedString(32001), __addon__.getLocalizedString(32157), __addon__.getLocalizedString(32152))
         else:
-            xbmcgui.Dialog().ok(__addon__.getLocalizedString(32001), __addon__.getLocalizedString(32158))
+            xbmcgui.Dialog().ok(__addon__.getLocalizedString(32001), __addon__.getLocalizedString(32158), __addon__.getLocalizedString(32159))
 
     # Copies over the include file used for icon overlays
     def _addIncludeFile(self):
@@ -100,6 +74,37 @@ class ConfUpdate():
         log("IncludesVideoExtras: Copy from %s to %s" % (incFile, tgtFile))
         xbmcvfs.copy(incFile, tgtFile)
 
+    # Save the new contents, taking a backup of the old file
+    def _saveNewFile(self, dialogXml, dialogXmlStr):
+        log("SaveNewFile: New file content: %s" % dialogXmlStr)
+
+        # Now save the file to disk, start by backing up the old file
+        xbmcvfs.copy(dialogXml, "%s.videoextras-%s.bak" % (dialogXml, self.bak_timestamp))
+
+        # Now save the new file
+        dialogXmlFile = xbmcvfs.File(dialogXml, 'w')
+        dialogXmlFile.write(dialogXmlStr)
+        dialogXmlFile.close()
+
+    # Adds the line to the XML that imports the extras include file
+    def _addIncludeToXml(self, xmlStr):
+        INCLUDE_CMD = '<include file="IncludesVideoExtras.xml"/>'
+        updatedXml = xmlStr
+        # First check if the include command is already in the XML
+        if INCLUDE_CMD not in updatedXml:
+            # We want the include at the top, so add it after the first window
+            tag = '<window>'
+            if tag not in updatedXml:
+                tag = '<includes>'
+            # Make sure the tag we are about to use is still there
+            if tag in updatedXml:
+                insertTxt = tag + "\n\t" + INCLUDE_CMD
+                updatedXml = updatedXml.replace(tag, insertTxt)
+        return updatedXml
+
+    ##########################################################################
+    # UPDATES FOR DialogVideoInfo.xml
+    ##########################################################################
     # Makes all the required changes to DialogVideoInfo.xml
     def _updateDialogVideoInfo(self):
         # Get the location of the information dialog XML file
@@ -138,7 +143,8 @@ class ConfUpdate():
             return
 
         # Now add the Video Extras onLoad command after the TvTunes one
-        insertTxt = previousOnLoad + "\n\t" + ConfUpdate.DIALOG_VIDEO_INFO_ONLOAD
+        DIALOG_VIDEO_INFO_ONLOAD = '\n\t<onload condition="System.HasAddon(script.videoextras)">XBMC.RunScript(script.videoextras,check,"$INFO[ListItem.FilenameAndPath]")</onload>'
+        insertTxt = previousOnLoad + DIALOG_VIDEO_INFO_ONLOAD
         dialogXmlStr = dialogXmlStr.replace(previousOnLoad, insertTxt)
 
         # Now we need to add the button after the TvTunes button
@@ -161,7 +167,14 @@ class ConfUpdate():
                 idval = idval + 1
 
         # Now add the Video Extras button after the TvTunes one
-        insertTxt = previousButton + "\n" + (ConfUpdate.DIALOG_VIDEO_INFO_BUTTON % idval)
+        DIALOG_VIDEO_INFO_BUTTON = '''\n\t\t\t\t\t</control>\n\t\t\t\t\t<control type="button" id="%d">
+\t\t\t\t\t\t<description>Extras</description>
+\t\t\t\t\t\t<include>ButtonInfoDialogsCommonValues</include>
+\t\t\t\t\t\t<label>$ADDON[script.videoextras 32001]</label>
+\t\t\t\t\t\t<onclick>XBMC.RunScript(script.videoextras,display,"$INFO[ListItem.FilenameAndPath]")</onclick>
+\t\t\t\t\t\t<visible>System.HasAddon(script.videoextras) + [Container.Content(movies) | Container.Content(episodes) | Container.Content(TVShows) | Container.Content(musicvideos)] + IsEmpty(Window(movieinformation).Property("HideVideoExtrasButton"))</visible>'''
+
+        insertTxt = previousButton + (DIALOG_VIDEO_INFO_BUTTON % idval)
         dialogXmlStr = dialogXmlStr.replace(previousButton, insertTxt)
 
         # Now add the section for the icon overlay
@@ -171,23 +184,29 @@ class ConfUpdate():
             self.errorToLog = True
             return
 
-        insertTxt = iconPrevious + "\n" + ConfUpdate.DIALOG_VIDEO_INFO_ICON
+        DIALOG_VIDEO_INFO_ICON = '''\n\t\t\t\t\t<!-- Add the Video Extras Icon -->
+\t\t\t\t\t<include>VideoExtrasLargeIcon</include>
+\t\t\t\t</control>
+\t\t\t\t<control type="grouplist">
+\t\t\t\t\t<description>Add the Video Extras Icon</description>
+\t\t\t\t\t<left>210</left>
+\t\t\t\t\t<top>480</top>
+\t\t\t\t\t<width>600</width>
+\t\t\t\t\t<align>left</align>
+\t\t\t\t\t<itemgap>2</itemgap>
+\t\t\t\t\t<orientation>horizontal</orientation>
+\t\t\t\t\t<include>VisibleFadeEffect</include>
+\t\t\t\t\t<visible>!Control.IsVisible(50) + Container.Content(tvshows) + !Container.Content(Episodes)</visible>
+\t\t\t\t\t<include>VideoExtrasLargeIcon</include>'''
+
+        insertTxt = iconPrevious + DIALOG_VIDEO_INFO_ICON
         dialogXmlStr = dialogXmlStr.replace(iconPrevious, insertTxt)
 
         self._saveNewFile(dialogXml, dialogXmlStr)
 
-    # Save the new contents, taking a backup of the old file
-    def _saveNewFile(self, dialogXml, dialogXmlStr):
-        log("SaveNewFile: New file content: %s" % dialogXmlStr)
-
-        # Now save the file to disk, start by backing up the old file
-        xbmcvfs.copy(dialogXml, "%s.videoextras-%s.bak" % (dialogXml, self.bak_timestamp))
-
-        # Now save the new file
-        dialogXmlFile = xbmcvfs.File(dialogXml, 'w')
-        dialogXmlFile.write(dialogXmlStr)
-        dialogXmlFile.close()
-
+    ##########################################################################
+    # UPDATES FOR ViewsVideoLibrary.xml
+    ##########################################################################
     def _updateViewsVideoLibrary(self):
         # Get the location of the information dialog XML file
         dialogXml = os_path_join(self.confpath, 'ViewsVideoLibrary.xml')
@@ -212,40 +231,17 @@ class ConfUpdate():
             self.errorToLog = True
             return
 
-        # Update the PosterWrapView part
+        # Update the different view sections
         dialogXmlStr = self._updatePosterWrapView(dialogXmlStr)
-        # Update the MediaListView2 part
+        dialogXmlStr = self._updatePosterWrapView2_Fanart(dialogXmlStr)
+        dialogXmlStr = self._updateMediaListView3(dialogXmlStr)
         dialogXmlStr = self._updateMediaListView2(dialogXmlStr)
+        dialogXmlStr = self._updateMediaListView4(dialogXmlStr)
 
         # Now add the include link to the file
         dialogXmlStr = self._addIncludeToXml(dialogXmlStr)
 
-        # Now add the section for the icon overlay
-        iconPrevious = 'VideoTypeHackFlaggingConditions</include>'
-        if iconPrevious not in dialogXmlStr:
-            log("DialogVideoInfo: Could not find point to add icon overlay, skipping overlay addition", xbmc.LOGERROR)
-            self.errorToLog = True
-            return
-
-        insertTxt = iconPrevious + "\n" + ConfUpdate.LARGE_ICON_INCLUDE
-        dialogXmlStr = dialogXmlStr.replace(iconPrevious, insertTxt)
-
         self._saveNewFile(dialogXml, dialogXmlStr)
-
-    # Adds the line to the XML that imports the extras include file
-    def _addIncludeToXml(self, xmlStr):
-        updatedXml = xmlStr
-        # First check if the include command is already in the XML
-        if ConfUpdate.INCLUDE_CMD not in updatedXml:
-            # We want the include at the top, so add it after the first window
-            tag = '<window>'
-            if tag not in updatedXml:
-                tag = '<includes>'
-            # Make sure the tagwe are about to use is still there
-            if tag in updatedXml:
-                insertTxt = tag + "\n\t" + ConfUpdate.INCLUDE_CMD
-                updatedXml = updatedXml.replace(tag, insertTxt)
-        return updatedXml
 
     # Update the PosterWrapView section of the ViewsVideoLibrary.xml file
     def _updatePosterWrapView(self, dialogXmlStr):
@@ -263,10 +259,16 @@ class ConfUpdate():
         while (currentLine < totalNumLines) and ('PosterWrapView' not in lines[currentLine]):
             currentLine = currentLine + 1
 
+        # Found the start of the PosterWrapView, now find where it ends
+        sectionEnd = currentLine + 1
+        while (sectionEnd < totalNumLines) and ('<include name=' not in lines[sectionEnd]):
+            sectionEnd = sectionEnd + 1
+        # Set the totalNumLines to the end of this section
+        totalNumLines = sectionEnd
+
         # Now we have started the PosterWrapView we need to go until we get to the tag
         # that contains </itemlayout>
         while (currentLine < totalNumLines) and ('</itemlayout>' not in lines[currentLine]):
-            # add the line to the newly created file
             currentLine = currentLine + 1
 
         if currentLine < totalNumLines:
@@ -280,10 +282,12 @@ class ConfUpdate():
             lines.insert(currentLine, insertData)
             totalNumLines = totalNumLines + 1
             currentLine = currentLine + 1
+        else:
+            log("PosterWrapView: Icon Overlay for non selected thumbnails not added", xbmc.LOGERROR)
+            self.errorToLog = True
 
         # Now work until the end of the focus layout as we want to add something before it
         while (currentLine < totalNumLines) and ('</focusedlayout>' not in lines[currentLine]):
-            # add the line to the newly created file
             currentLine = currentLine + 1
 
         if currentLine < totalNumLines:
@@ -303,13 +307,242 @@ class ConfUpdate():
 \t\t\t\t\t\t</animation>
 \t\t\t\t\t</control>\n'''
             lines.insert(currentLine, insertData)
+            totalNumLines = totalNumLines + 1
+            currentLine = currentLine + 1
+        else:
+            log("PosterWrapView: Icon Overlay for selected thumbnails not added", xbmc.LOGERROR)
+            self.errorToLog = True
+
+        # Now find the Codec flag section and add the extras flag to it
+        while (currentLine < totalNumLines) and ('VideoTypeHackFlaggingConditions' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        if currentLine < totalNumLines:
+            insertData = '\t\t\t\t<!-- Add the Video Extras Icon -->\n\t\t\t\t<include>VideoExtrasLargeIcon</include>\n'
+            lines.insert(currentLine + 1, insertData)
+        else:
+            log("PosterWrapView: Codec Icon not added", xbmc.LOGERROR)
+            self.errorToLog = True
 
         # Now join all the data together
         return ''.join(lines)
 
+    # Update the PosterWrapView2_Fanart section of the ViewsVideoLibrary.xml file
+    def _updatePosterWrapView2_Fanart(self, dialogXmlStr):
+        log("ViewsVideoLibrary: Updating PosterWrapView2_Fanart")
+        # Split the text up into lines, this will enable us to process each line
+        # to insert the data expected
+        lines = dialogXmlStr.splitlines(True)
+        totalNumLines = len(lines)
+        currentLine = 0
+
+        log("ViewsVideoLibrary: File split into %d lines" % totalNumLines)
+
+        # Go through each line of the original file until we get to the section
+        # we are looking for
+        while (currentLine < totalNumLines) and ('PosterWrapView2_Fanart' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        # Found the start of the PosterWrapView2_Fanart, now find where it ends
+        sectionEnd = currentLine + 1
+        while (sectionEnd < totalNumLines) and ('<include name=' not in lines[sectionEnd]):
+            sectionEnd = sectionEnd + 1
+        # Set the totalNumLines to the end of this section
+        totalNumLines = sectionEnd
+
+        # Now find the Codec flag section and add the extras flag to it
+        while (currentLine < totalNumLines) and ('VideoTypeHackFlaggingConditions' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        if currentLine < totalNumLines:
+            insertData = '\t\t\t\t<!-- Add the Video Extras Icon -->\n\t\t\t\t<include>VideoExtrasLargeIcon</include>\n'
+            lines.insert(currentLine + 1, insertData)
+        else:
+            log("PosterWrapView2_Fanart: Codec Icon not added", xbmc.LOGERROR)
+            self.errorToLog = True
+
+        # Now join all the data together
+        return ''.join(lines)
+
+    # Update the MediaListView3 section of the ViewsVideoLibrary.xml file
+    def _updateMediaListView3(self, dialogXmlStr):
+        log("ViewsVideoLibrary: Updating MediaListView3")
+        # Split the text up into lines, this will enable us to process each line
+        # to insert the data expected
+        lines = dialogXmlStr.splitlines(True)
+        totalNumLines = len(lines)
+        currentLine = 0
+
+        log("ViewsVideoLibrary: File split into %d lines" % totalNumLines)
+
+        # Go through each line of the original file until we get to the section
+        # we are looking for
+        while (currentLine < totalNumLines) and ('MediaListView3' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        # Found the start of the MediaListView3, now find where it ends
+        sectionEnd = currentLine + 1
+        while (sectionEnd < totalNumLines) and ('<include name=' not in lines[sectionEnd]):
+            sectionEnd = sectionEnd + 1
+        # Set the totalNumLines to the end of this section
+        totalNumLines = sectionEnd
+
+        # Need to add an overlay image for when it is a TV Show
+        while (currentLine < totalNumLines) and ('$VAR[BannerThumb]' not in lines[currentLine]):
+            currentLine = currentLine + 1
+        # Now skip to the end of the control with the banner on, we will overlay our image there
+        while (currentLine < totalNumLines) and ('</control>' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        if currentLine < totalNumLines:
+            insertData = '''\t\t\t\t<!-- Add the Video Extras Icon -->
+\t\t\t\t<control type="group">
+\t\t\t\t\t<description>VideoExtras Flagging Images</description>
+\t\t\t\t\t<left>10</left>
+\t\t\t\t\t<top>60</top>
+\t\t\t\t\t<include>VideoExtrasOverlayIcon</include>
+\t\t\t\t</control>\n'''
+            lines.insert(currentLine + 1, insertData)
+            totalNumLines = totalNumLines + 1
+            currentLine = currentLine + 1
+        else:
+            log("MediaListView3: Overlay for TV Shows not added", xbmc.LOGERROR)
+            self.errorToLog = True
+
+        # There are 2 occurrences of the codec flags, one is for TV Episodes, which do not get flagged
+        # So skip the first one
+        while (currentLine < totalNumLines) and ('VideoTypeHackFlaggingConditions' not in lines[currentLine]):
+            currentLine = currentLine + 1
+        currentLine = currentLine + 1
+        # Now find the Codec flag section and add the extras flag to it
+        while (currentLine < totalNumLines) and ('VideoTypeHackFlaggingConditions' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        if currentLine < totalNumLines:
+            insertData = '\t\t\t\t\t<!-- Add the Video Extras Icon -->\n\t\t\t\t\t<include>VideoExtrasLargeIcon</include>\n'
+            lines.insert(currentLine + 1, insertData)
+        else:
+            log("MediaListView3: Codec Icon not added", xbmc.LOGERROR)
+            self.errorToLog = True
+
+        # Now join all the data together
+        return ''.join(lines)
+
+    # Update the MediaListView2 section of the ViewsVideoLibrary.xml file
     def _updateMediaListView2(self, dialogXmlStr):
-        # TODO:
-        return dialogXmlStr
+        log("ViewsVideoLibrary: Updating MediaListView2")
+        # Split the text up into lines, this will enable us to process each line
+        # to insert the data expected
+        lines = dialogXmlStr.splitlines(True)
+        totalNumLines = len(lines)
+        currentLine = 0
+
+        log("ViewsVideoLibrary: File split into %d lines" % totalNumLines)
+
+        # Go through each line of the original file until we get to the section
+        # we are looking for
+        while (currentLine < totalNumLines) and ('MediaListView2' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        # Found the start of the MediaListView2, now find where it ends
+        sectionEnd = currentLine + 1
+        while (sectionEnd < totalNumLines) and ('<include name=' not in lines[sectionEnd]):
+            sectionEnd = sectionEnd + 1
+        # Set the totalNumLines to the end of this section
+        totalNumLines = sectionEnd
+
+        # There are 2 occurrences of the codec flags, one is for TV Episodes, which do not get flagged
+        # That is the second, so just do the first
+
+        # Now find the Codec flag section and add the extras flag to it
+        while (currentLine < totalNumLines) and ('VideoTypeHackFlaggingConditions' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        if currentLine < totalNumLines:
+            # Need to make sure this one only appears on the movies, otherwise it will
+            # position it over the image
+            # We add a separate control after that for the TV Show
+            insertData = '''\t\t\t\t\t<!-- Add the Video Extras Icon -->
+\t\t\t\t\t<control type="group">
+\t\t\t\t\t\t<include>VideoExtrasLargeIcon</include>
+\t\t\t\t\t\t<visible>Container.Content(Movies)</visible>
+\t\t\t\t\t</control>
+\t\t\t\t</control>
+\t\t\t\t<!-- Add the Video Extras Icon -->
+\t\t\t\t<control type="group">
+\t\t\t\t\t<top>345</top>
+\t\t\t\t\t<left>10</left>
+\t\t\t\t\t<align>right</align>
+\t\t\t\t\t<include>VideoExtrasLargeIcon</include>
+\t\t\t\t\t<visible>Container.Content(TVShows)</visible>\n'''
+            lines.insert(currentLine + 1, insertData)
+        else:
+            log("MediaListView2: Codec Icon not added", xbmc.LOGERROR)
+            self.errorToLog = True
+
+        # Now join all the data together
+        return ''.join(lines)
+
+    # Update the MediaListView4 section of the ViewsVideoLibrary.xml file
+    def _updateMediaListView4(self, dialogXmlStr):
+        log("ViewsVideoLibrary: Updating MediaListView4")
+        # Split the text up into lines, this will enable us to process each line
+        # to insert the data expected
+        lines = dialogXmlStr.splitlines(True)
+        totalNumLines = len(lines)
+        currentLine = 0
+
+        log("ViewsVideoLibrary: File split into %d lines" % totalNumLines)
+
+        # Go through each line of the original file until we get to the section
+        # we are looking for
+        while (currentLine < totalNumLines) and ('MediaListView4' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        # Found the start of the MediaListView4, now find where it ends
+        sectionEnd = currentLine + 1
+        while (sectionEnd < totalNumLines) and ('<include name=' not in lines[sectionEnd]):
+            sectionEnd = sectionEnd + 1
+        # Set the totalNumLines to the end of this section
+        totalNumLines = sectionEnd
+
+        # There are 2 occurrences of the codec flags, one is for TV Episodes, which do not get flagged
+        # That is the second, so just do the first
+
+        # Now find the Codec flag section and add the extras flag to it
+        while (currentLine < totalNumLines) and ('VideoTypeHackFlaggingConditions' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        if currentLine < totalNumLines:
+            insertData = '\t\t\t\t\t<!-- Add the Video Extras Icon -->\n\t\t\t\t\t<include>VideoExtrasLargeIcon</include>\n'
+            lines.insert(currentLine + 1, insertData)
+        else:
+            log("MediaListView4: Codec Icon not added", xbmc.LOGERROR)
+            self.errorToLog = True
+
+        # Now add the overlay image for the TV Show
+        # Go to the TVSHow section
+        while (currentLine < totalNumLines) and ('Container.Content(TVShows)' not in lines[currentLine]):
+            currentLine = currentLine + 1
+        # Now move forward to the next </bordersize>
+        while (currentLine < totalNumLines) and ('</bordersize>' not in lines[currentLine]):
+            currentLine = currentLine + 1
+
+        if currentLine < totalNumLines:
+            insertData = '''\t\t\t\t</control>\n\t\t\t\t<!-- Add the Video Extras Icon -->
+\t\t\t\t<control type="group">
+\t\t\t\t\t<description>VideoExtras Flagging Images</description>
+\t\t\t\t\t<left>570</left>
+\t\t\t\t\t<top>535</top>
+\t\t\t\t\t<include>VideoExtrasOverlayIcon</include>\n'''
+            lines.insert(currentLine + 1, insertData)
+        else:
+            log("MediaListView4: TVShows Overlay Icon not added", xbmc.LOGERROR)
+            self.errorToLog = True
+
+        # Now join all the data together
+        return ''.join(lines)
+
 
 #########################
 # Main
