@@ -104,7 +104,9 @@ class AdvSettings():
             xmlFileStr = AdvSettings.ADV_SET_START + "\n"
             xmlFileStr += '    ' + AdvSettings.VIDEO_SECTION_START + "\n"
             xmlFileStr += '        ' + AdvSettings.HEADER + "\n"
-            xmlFileStr += self._getNewSettingsXml()
+            # Need to reduce the escaping of the forward-slash as we will not
+            # be parsing this string again
+            xmlFileStr += self._getNewSettingsXml().replace('\\\\\\', '\\\\')
             xmlFileStr += '        ' + AdvSettings.FOOTER + "\n"
             xmlFileStr += '    ' + AdvSettings.VIDEO_SECTION_END + "\n"
             xmlFileStr += AdvSettings.ADV_SET_END + "\n"

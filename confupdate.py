@@ -134,7 +134,7 @@ class ConfUpdate():
         dialogXmlStr = self._addIncludeToXml(dialogXmlStr)
 
         # Start by adding the onLoad section
-        previousOnLoad = 'XBMC.RunScript(script.tvtunes,backend=True)</onload>'
+        previousOnLoad = 'RunScript(script.tvtunes,backend=True)</onload>'
 
         if previousOnLoad not in dialogXmlStr:
             # The file has had a standard component deleted, so quit
@@ -809,7 +809,7 @@ class ConfUpdate():
         insertData = '''\t\t\t\t\t<!-- Add the Video Extras Icon -->
 \t\t\t\t\t<control type="group">
 \t\t\t\t\t\t<description>VideExtras Flagging Images</description>
-\t\t\t\t\t\t<left>{0}</left>
+\t\t\t\t\t\t<left>1010</left>
 \t\t\t\t\t\t<top>8</top>
 \t\t\t\t\t\t<include>VideoExtrasListIcon</include>
 \t\t\t\t\t\t<visible>Window.IsVisible(Videos) + Container.Content(TVShows)</visible>
@@ -817,12 +817,12 @@ class ConfUpdate():
 \t\t\t\t\t</control>
 \t\t\t\t\t<control type="group">
 \t\t\t\t\t\t<description>VideExtras Flagging Images</description>
-\t\t\t\t\t\t<left>{1}</left>
+\t\t\t\t\t\t<left>968</left>
 \t\t\t\t\t\t<top>8</top>
 \t\t\t\t\t\t<include>VideoExtrasListIcon</include>
 \t\t\t\t\t\t<visible>Window.IsVisible(Videos) + [Container.Content(Movies) | Container.Content(MusicVideos)]</visible>
 \t\t\t\t\t\t<visible>!ListItem.IsStereoscopic</visible>
-\t\t\t\t\t</control>\n'''.format(newLeftVal + 45, newLeftVal + 3)
+\t\t\t\t\t</control>\n'''
 
         if currentLine < totalNumLines:
             lines.insert(currentLine, insertData)
