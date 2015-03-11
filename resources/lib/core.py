@@ -188,8 +188,8 @@ class VideoExtrasFinder():
             del nfoXml
 
         except:
-            log("VideoExtrasFinder: Failed to process NFO: %s" % nfoFileName)
-            log("VideoExtrasFinder: %s" % traceback.format_exc())
+            log("VideoExtrasFinder: Failed to process NFO: %s" % nfoFileName, xbmc.LOGERROR)
+            log("VideoExtrasFinder: %s" % traceback.format_exc(), xbmc.LOGERROR)
 
         return extradirs, extras
 
