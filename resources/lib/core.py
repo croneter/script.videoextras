@@ -195,6 +195,16 @@ class VideoExtrasFinder():
 
     # Searches a given path for extras files
     def findExtras(self, path, filename, exitOnFirst=False, noExtrasDirNeeded=False):
+        # Make sure that the path and filename are OK
+        try:
+            path = path.encode('utf-8')
+        except:
+            pass
+        try:
+            filename = filename.encode('utf-8')
+        except:
+            pass
+
         # Get the extras that are stored in the extras directory i.e. /Extras/
         files = self._getExtrasDirFiles(path, exitOnFirst, noExtrasDirNeeded)
 
