@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-# Reference:
-# http://wiki.xbmc.org/index.php?title=Audio/Video_plugin_tutorial
 import sys
 import os
 import urllib
@@ -99,13 +97,17 @@ class MenuNavigator():
         elif foldername == MenuNavigator.MUSICVIDEOS:
             self.setVideoList('GetMusicVideos', MenuNavigator.MUSICVIDEOS, 'musicvideoid')
 
-    # Produce the list of videos and flag which ones have themes
+    # Produce the list of videos and flag which ones have Extras
     def setVideoList(self, jsonGet, target, dbid):
         videoItems = self.getVideos(jsonGet, target, dbid)
 
         for videoItem in videoItems:
             if not self.hasVideoExtras(target, videoItem['dbid'], videoItem['file']):
-                continue
+                # Check if we are supporting YouTube Searches, if so it doesn't matter
+                # If we do not have any Extras yet
+                if not Settings.isYouTubeSearchSupportEnabled():
+                    continue
+
             # Create the list-item for this video
             li = xbmcgui.ListItem(videoItem['title'], iconImage=videoItem['thumbnail'])
             # Remove the default context menu
@@ -213,6 +215,17 @@ class MenuNavigator():
             anItem.addContextMenuItems([], replaceItems=True)
             url = self._build_url({'mode': 'playallextras', 'foldername': target, 'path': path, 'parentTitle': extrasParentTitle})
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=anItem, isFolder=False)
+
+        # Check if we want to have YouTube Extra Support
+        if Settings.isYouTubeSearchSupportEnabled():
+            # Create the message to the YouTube Plugin
+            url = "plugin://plugin.video.youtube/search/?q=%s+Extras" % extrasParentTitle.replace(" ", "+")
+            li = xbmcgui.ListItem(__addon__.getLocalizedString(32116))
+            # Use the DVD Cover artwork for the logo (Same as the others)
+            if extrasDefaultIconImage != "":
+                li.setIconImage(extrasDefaultIconImage)
+            li.addContextMenuItems([], replaceItems=True)
+            xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
         # Add each of the extras to the list to display
         for anExtra in files:

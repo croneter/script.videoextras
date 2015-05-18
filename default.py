@@ -201,7 +201,8 @@ class VideoExtras(VideoExtrasBase):
     def checkButtonEnabled(self):
         # See if the option to force the extras button is enabled,
         # if which case just make sure the hide option is cleared
-        if Settings.isForceButtonDisplay():
+        # Also if we are using YouTube, we want to always display the button
+        if Settings.isForceButtonDisplay() or Settings.isYouTubeSearchSupportEnabled():
             xbmcgui.Window(12003).clearProperty("HideVideoExtrasButton")
             log("VideoExtras: Force VideoExtras Button Enabled")
         else:
@@ -220,7 +221,7 @@ class VideoExtras(VideoExtrasBase):
 
     def run(self, files):
         # All the files have been retrieved, now need to display them
-        if not files:
+        if not files and not Settings.isYouTubeSearchSupportEnabled():
             # "Info", "No extras found"
             xbmcgui.Dialog().ok(__addon__.getLocalizedString(32102), __addon__.getLocalizedString(32103))
         else:
@@ -314,6 +315,20 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
                 anItem.setInfo('video', {'Title': SourceDetails.getTitle()})
 
             self.addItem(anItem)
+
+        # Check if we want to have YouTube Extra Support
+        if Settings.isYouTubeSearchSupportEnabled():
+            # Create the message to the YouTube Plugin
+            li = xbmcgui.ListItem(__addon__.getLocalizedString(32116))
+            # Need to set the title to get it in the header
+            if SourceDetails.getTvShowTitle() != "":
+                li.setInfo('video', {'TvShowTitle': SourceDetails.getTvShowTitle()})
+            if SourceDetails.getTitle() != "":
+                li.setInfo('video', {'Title': SourceDetails.getTitle()})
+
+            li.setProperty("Fanart_Image", SourceDetails.getFanArt())
+            li.setProperty("search", "/search/?q=%s+Extras" % SourceDetails.getTitle().replace(" ", "+"))
+            self.addItem(li)
 
         for anExtra in self.files:
             log("VideoExtrasWindow: filename: %s" % anExtra.getFilename())
@@ -422,6 +437,19 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
         WINDOW_LIST_ID = 51
         # Check to make sure that this click was for the extras list
         if control != WINDOW_LIST_ID:
+            return
+
+        # Check the YouTube Search first, as if there are no Extras on disk
+        # There will not be a PlayAll button and it will just be the YouTube Link
+        youtubePosition = 0
+        if len(self.files) > 0:
+            youtubePosition = youtubePosition + 1
+
+        if Settings.isYouTubeSearchSupportEnabled() and self.getCurrentListPosition() == youtubePosition:
+            anItem = self.getListItem(youtubePosition)
+            searchDetails = anItem.getProperty("search")
+            log("VideoExtras: Running YouTube Addon/Plugin with search %s" % searchDetails)
+            xbmc.executebuiltin("RunAddon(plugin.video.youtube,%s)" % searchDetails)
             return
 
         # Check for the Play All case
