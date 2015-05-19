@@ -102,14 +102,21 @@ class MenuNavigator():
         videoItems = self.getVideos(jsonGet, target, dbid)
 
         for videoItem in videoItems:
+            # Create the list-item for this video
+            li = xbmcgui.ListItem(videoItem['title'], iconImage=videoItem['thumbnail'])
+
             if not self.hasVideoExtras(target, videoItem['dbid'], videoItem['file']):
                 # Check if we are supporting YouTube Searches, if so it doesn't matter
                 # If we do not have any Extras yet
                 if not Settings.isYouTubeSearchSupportEnabled():
                     continue
+            else:
+                # There are extras, if so then we should check to see if we are actually
+                # showing all the Videos, as if we are and YouTube is being used, we
+                # should flag the ones with physical extras
+                if Settings.isYouTubeSearchSupportEnabled():
+                    li.setInfo('video', {'PlayCount': 1})
 
-            # Create the list-item for this video
-            li = xbmcgui.ListItem(videoItem['title'], iconImage=videoItem['thumbnail'])
             # Remove the default context menu
             li.addContextMenuItems([], replaceItems=True)
             # Get the title of the video owning the extras
