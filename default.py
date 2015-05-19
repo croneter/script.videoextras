@@ -151,8 +151,15 @@ class VideoExtrasDialog(xbmcgui.Window):
             log("VideoExtrasDialog: filename: %s" % anExtra.getFilename())
             displayNameList.append(anExtra.getDisplayName())
 
+        # Check if we are supporting YouTube Search
+        youtubePosition = -3
+        if Settings.isYouTubeSearchSupportEnabled():
+            youtubePosition = 0
+            displayNameList.insert(0, __addon__.getLocalizedString(32116))
+
         addPlayAll = (len(exList) > 1)
         if addPlayAll:
+            youtubePosition = youtubePosition + 1
             # Play All Selection Option
             displayNameList.insert(0, __addon__.getLocalizedString(32101))
 
@@ -172,6 +179,10 @@ class VideoExtrasDialog(xbmcgui.Window):
                 xbmc.sleep(100)
             if (select == 0) and (addPlayAll is True):
                 ExtrasPlayer.playAll(exList, SourceDetails.getTitle())
+            elif select == youtubePosition:
+                searchDetails = "/search/?q=%s+Extras" % SourceDetails.getTitle().replace(" ", "+")
+                log("VideoExtras: Running YouTube Addon/Plugin with search %s" % searchDetails)
+                xbmc.executebuiltin("RunAddon(plugin.video.youtube,%s)" % searchDetails)
             else:
                 itemToPlay = select
                 # If we added the PlayAll option to the list need to allow for it
