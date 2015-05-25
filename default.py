@@ -256,9 +256,11 @@ class VideoExtras(VideoExtrasBase):
                     extrasWindow = VideoExtrasWindow.createVideoExtrasWindow(files=files)
                     xbmc.executebuiltin("Dialog.Close(movieinformation)", True)
                     extrasWindow.doModal()
+                    del extrasWindow
                 else:
                     extrasWindow = VideoExtrasDialog()
                     needsWindowReset = extrasWindow.showList(files)
+                    del extrasWindow
 
                 # The video selection will be the default return location
                 if (not Settings.isMenuReturnVideoSelection()) and needsWindowReset:
@@ -444,6 +446,8 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
                         else:
                             self.onInit()
 
+            del contextWindow
+
     def onClick(self, control):
         WINDOW_LIST_ID = 51
         # Check to make sure that this click was for the extras list
@@ -488,6 +492,7 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             if resumeWindow.isRestart():
                 extraItem.setResumePoint(0)
             # Default is to actually resume
+            del resumeWindow
 
         ExtrasPlayer.performPlayAction(extraItem, SourceDetails.getTitle())
 
@@ -615,6 +620,8 @@ if __name__ == '__main__':
                         files = videoExtras.findExtras(extrasDb=extrasDb, defaultFanArt=SourceDetails.getFanArt())
                         # need to display the extras
                         videoExtras.run(files)
+
+                    del videoExtras
         else:
             # Close any open dialogs
             xbmc.executebuiltin("Dialog.Close(all, true)", True)

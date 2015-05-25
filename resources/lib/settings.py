@@ -180,3 +180,7 @@ class Settings():
     @staticmethod
     def isYouTubeSearchSupportEnabled():
         return __addon__.getSetting("enableYouTubeSearchSupport") == 'true'
+
+    @staticmethod
+    def disableYouTubeSearchSupport():
+        __addon__.setSetting("enableYouTubeSearchSupport", "false")

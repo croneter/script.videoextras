@@ -181,6 +181,7 @@ class MenuNavigator():
             videoExtras = VideoExtrasBase(file, target)
             # We are only checking for existence of extras, no need for fanart
             firstExtraFile = videoExtras.findExtras(True)
+            del videoExtras
             if firstExtraFile:
                 log("MenuNavigator: Extras found for (%d) %s" % (dbid, file))
                 return True
@@ -199,6 +200,7 @@ class MenuNavigator():
 
         # Perform the search command
         files = videoExtras.findExtras(extrasDb=extrasDb, defaultFanArt=extrasDefaultFanArt)
+        del videoExtras
 
         tvShowTitle = ""
         if target == MenuNavigator.TVSHOWS:
@@ -266,6 +268,7 @@ class MenuNavigator():
         # Perform the search command
         # No need for fanart default as only getting a list to play, not display
         files = videoExtras.findExtras(extrasDb=extrasDb)
+        del videoExtras
 
         ExtrasPlayer.playAll(files, extrasParentTitle)
 
@@ -281,6 +284,8 @@ class MenuNavigator():
         # Perform the search command
         # No need for fanart default as only getting a list to play, not display
         files = videoExtras.findExtras(extrasDb=extrasDb)
+        del videoExtras
+
         for anExtra in files:
             if anExtra.isFilenameMatch(filename):
                 log("MenuNavigator: Found  = %s" % filename)
@@ -315,6 +320,9 @@ class MenuNavigator():
             extrasDb = ExtrasDB()
             # We are only updating the DB for an entry already shown, no need for fanart
             files = videoExtras.findExtras(extrasDb=extrasDb)
+            del videoExtras
+            del extrasDb
+
             for anExtra in files:
                 if anExtra.isFilenameMatch(filename):
                     log("MenuNavigator: Found  = %s" % filename)
@@ -334,6 +342,9 @@ class MenuNavigator():
             extrasDb = ExtrasDB()
             # We are only updating the DB for an entry already shown, no need for fanart
             files = videoExtras.findExtras(extrasDb=extrasDb)
+            del videoExtras
+            del extrasDb
+
             for anExtra in files:
                 if anExtra.isFilenameMatch(filename):
                     log("MenuNavigator: Found  = %s" % filename)
@@ -349,6 +360,8 @@ class MenuNavigator():
         # Perform the search command
         # We are only updating the NFO for an entry already shown, no need for fanart
         files = videoExtras.findExtras()
+        del videoExtras
+
         for anExtra in files:
             if anExtra.isFilenameMatch(filename):
                 log("MenuNavigator: Found  = %s" % filename)
@@ -381,6 +394,8 @@ class MenuNavigator():
         # Perform the search command
         # We are only updating the NFO for an entry already shown, no need for fanart
         files = videoExtras.findExtras()
+        del videoExtras
+
         for anExtra in files:
             if anExtra.isFilenameMatch(filename):
                 log("MenuNavigator: Found  = %s" % filename)
@@ -460,6 +475,7 @@ if __name__ == '__main__':
         log("VideoExtrasPlugin: Mode is NONE - showing root menu")
         menuNav = MenuNavigator(base_url, addon_handle)
         menuNav.showRootMenu()
+        del menuNav
     elif mode[0] == 'folder':
         log("VideoExtrasPlugin: Mode is FOLDER")
 
@@ -469,6 +485,7 @@ if __name__ == '__main__':
         if (foldername is not None) and (len(foldername) > 0):
             menuNav = MenuNavigator(base_url, addon_handle)
             menuNav.showFolder(foldername[0])
+            del menuNav
 
     elif mode[0] == 'listextras':
         log("VideoExtrasPlugin: Mode is LIST EXTRAS")
@@ -494,6 +511,7 @@ if __name__ == '__main__':
 
             menuNav = MenuNavigator(base_url, addon_handle)
             menuNav.showExtras(path[0], foldername[0], extrasParentTitle, extrasDefaultFanArt, extrasDefaultIconImage)
+            del menuNav
 
     elif mode[0] == 'playallextras':
         log("VideoExtrasPlugin: Mode is PLAY ALL EXTRAS")
@@ -511,6 +529,7 @@ if __name__ == '__main__':
 
             menuNav = MenuNavigator(base_url, addon_handle)
             menuNav.playAllExtras(path[0], foldername[0], extrasParentTitle)
+            del menuNav
 
     elif mode[0] == 'playextra':
         log("VideoExtrasPlugin: Mode is PLAY EXTRA")
@@ -530,6 +549,7 @@ if __name__ == '__main__':
 
             menuNav = MenuNavigator(base_url, addon_handle)
             menuNav.playExtra(path[0], foldername[0], filename[0], extrasParentTitle)
+            del menuNav
 
     elif mode[0] == 'resumeextra':
         log("VideoExtrasPlugin: Mode is RESUME EXTRA")
@@ -549,6 +569,7 @@ if __name__ == '__main__':
 
             menuNav = MenuNavigator(base_url, addon_handle)
             menuNav.playExtra(path[0], foldername[0], filename[0], extrasParentTitle, forceResume=True)
+            del menuNav
 
     elif mode[0] == 'beginextra':
         log("VideoExtrasPlugin: Mode is BEGIN EXTRA")
@@ -568,6 +589,7 @@ if __name__ == '__main__':
 
             menuNav = MenuNavigator(base_url, addon_handle)
             menuNav.playExtra(path[0], foldername[0], filename[0], extrasParentTitle, fromStart=True)
+            del menuNav
 
     elif mode[0] == 'markwatched':
         log("VideoExtrasPlugin: Mode is MARK WATCHED")
@@ -583,6 +605,7 @@ if __name__ == '__main__':
 
             menuNav = MenuNavigator(base_url, addon_handle)
             menuNav.markAsWatched(path[0], foldername[0], filename[0])
+            del menuNav
 
     elif mode[0] == 'markunwatched':
         log("VideoExtrasPlugin: Mode is MARK UNWATCHED")
@@ -598,6 +621,7 @@ if __name__ == '__main__':
 
             menuNav = MenuNavigator(base_url, addon_handle)
             menuNav.markAsUnwatched(path[0], foldername[0], filename[0])
+            del menuNav
 
     elif mode[0] == 'edittitle':
         log("VideoExtrasPlugin: Mode is EDIT TITLE")
@@ -613,6 +637,7 @@ if __name__ == '__main__':
 
             menuNav = MenuNavigator(base_url, addon_handle)
             menuNav.editTitle(foldername[0], path[0], filename[0])
+            del menuNav
 
     elif mode[0] == 'editplot':
         log("VideoExtrasPlugin: Mode is EDIT PLOT")
@@ -628,3 +653,4 @@ if __name__ == '__main__':
 
             menuNav = MenuNavigator(base_url, addon_handle)
             menuNav.editPlot(foldername[0], path[0], filename[0])
+            del menuNav
