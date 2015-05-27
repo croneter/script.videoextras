@@ -107,6 +107,7 @@ class ExtrasDB():
 
         if row is None:
             log("ExtrasDB: No entry found in the database for %s" % filename)
+            conn.close()
             return None
 
         log("ExtrasDB: Database info: %s" % str(row))
