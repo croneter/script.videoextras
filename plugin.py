@@ -151,7 +151,7 @@ class MenuNavigator():
                 videoItem['file'] = item['file']
 
                 if item['thumbnail'] is None:
-                    item['thumbnail'] = 'DefaultFolder.png'
+                    videoItem['thumbnail'] = 'DefaultFolder.png'
                 else:
                     videoItem['thumbnail'] = item['thumbnail']
                 videoItem['fanart'] = item['fanart']
