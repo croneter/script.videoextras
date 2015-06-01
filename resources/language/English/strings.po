@@ -234,7 +234,19 @@ msgctxt "#32116"
 msgid "Search YouTube ..."
 msgstr ""
 
-#empty strings from id 32117 to 32149
+msgctxt "#32117"
+msgid "Deleted Scenes"
+msgstr ""
+
+msgctxt "#32118"
+msgid "Special Features"
+msgstr ""
+
+msgctxt "#32119"
+msgid "Bloopers"
+msgstr ""
+
+#empty strings from id 32120 to 32149
 
 msgctxt "#32150"
 msgid "This action will update the file advancedsettings.xml to ensure the extras files are handled correctly. Make sure any changes are saved before running. Continue?"

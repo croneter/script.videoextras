@@ -233,7 +233,7 @@ class MenuNavigator():
             # Use the DVD Cover artwork for the logo (Same as the others)
             if extrasDefaultIconImage != "":
                 li.setIconImage(extrasDefaultIconImage)
-            li.addContextMenuItems([], replaceItems=True)
+            li.addContextMenuItems(self._getYouTubeContextMenu(extrasParentTitle), replaceItems=True)
             xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
         # Add each of the extras to the list to display
@@ -449,6 +449,30 @@ class MenuNavigator():
         # Edit Plot
         cmd = self._build_url({'mode': 'editplot', 'foldername': target, 'path': path, 'filename': extraItem.getFilename().encode("utf-8")})
         ctxtMenu.append((__addon__.getLocalizedString(32114), 'XBMC.RunPlugin(%s)' % cmd))
+
+        return ctxtMenu
+
+    # Adds the context menu for the youtube link to allow searching for different words
+    def _getYouTubeContextMenu(self, title):
+        ctxtMenu = []
+
+        title = title.replace(" ", "+")
+
+        # Extras
+        cmd = "/search/?q=%s+Extras" % title
+        ctxtMenu.append((__addon__.getLocalizedString(32001), 'RunAddon(plugin.video.youtube,%s)' % cmd))
+
+        # Deleted Scenes
+        cmd = "/search/?q=%s+Deleted+Scenes" % title
+        ctxtMenu.append((__addon__.getLocalizedString(32117), 'RunAddon(plugin.video.youtube,%s)' % cmd))
+
+        # Special Features
+        cmd = "/search/?q=%s+Special+Features" % title
+        ctxtMenu.append((__addon__.getLocalizedString(32118), 'RunAddon(plugin.video.youtube,%s)' % cmd))
+
+        # Bloopers
+        cmd = "/search/?q=%s+Bloopers" % title
+        ctxtMenu.append((__addon__.getLocalizedString(32119), 'RunAddon(plugin.video.youtube,%s)' % cmd))
 
         return ctxtMenu
 
