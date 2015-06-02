@@ -369,6 +369,17 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
             log("VideoExtrasWindow: Close Action received: %s" % str(action.getId()))
             self.close()
         elif action == ACTION_CONTEXT_MENU:
+            youtubePosition = 0
+            if len(self.files) > 0:
+                youtubePosition = youtubePosition + 1
+
+            # Check to see if the context menu has been called up for the You Tube option
+            if Settings.isYouTubeSearchSupportEnabled() and self.getCurrentListPosition() == youtubePosition:
+                contextWindow = YouTubeContextMenu.createYouTubeContextMenu(SourceDetails.getTitle())
+                contextWindow.doModal()
+                del contextWindow
+                return
+
             # Check for the Play All case
             if self.getCurrentListPosition() == 0:
                 return
@@ -581,6 +592,77 @@ class VideoExtrasContextMenu(xbmcgui.WindowXMLDialog):
 
     def isEditPlot(self):
         return self.selectionMade == VideoExtrasContextMenu.EDIT_PLOT
+
+
+# Context Menu for the YouTube Command
+# Overwrites the values in our own custom Context menu
+class YouTubeContextMenu(xbmcgui.WindowXMLDialog):
+    EXIT = 1
+    RESUME__EXTRAS = 2
+    RESTART__DELETED_SCENES = 40
+    MARK_WATCHED__SPECIAL_FEATURES = 41
+    MARK_UNWATCHED__BLOOPERS = 42
+    EDIT_TITLE__INTERVIEW = 43
+    EDIT_PLOT = 44
+
+    def __init__(self, *args, **kwargs):
+        # Copy off the key-word arguments
+        # The non keyword arguments will be the ones passed to the main WindowXML
+        self.title = kwargs.pop('title')
+        if self.title is not None:
+            self.title = self.title.replace(" ", "+")
+        self.selectionMade = VideoExtrasContextMenu.EXIT
+
+    # Static method to create the Window Dialog class
+    @staticmethod
+    def createYouTubeContextMenu(title):
+        return YouTubeContextMenu("script-videoextras-context.xml", __addon__.getAddonInfo('path').decode("utf-8"), title=title)
+
+    def onInit(self):
+        # Reset all the labels for the Context Menu
+        ctxButton = self.getControl(YouTubeContextMenu.RESUME__EXTRAS)
+        ctxButton.setLabel(__addon__.getLocalizedString(32001))
+
+        ctxButton = self.getControl(YouTubeContextMenu.RESTART__DELETED_SCENES)
+        ctxButton.setLabel(__addon__.getLocalizedString(32117))
+
+        ctxButton = self.getControl(YouTubeContextMenu.MARK_WATCHED__SPECIAL_FEATURES)
+        ctxButton.setLabel(__addon__.getLocalizedString(32118))
+
+        ctxButton = self.getControl(YouTubeContextMenu.MARK_UNWATCHED__BLOOPERS)
+        ctxButton.setLabel(__addon__.getLocalizedString(32119))
+
+        ctxButton = self.getControl(YouTubeContextMenu.EDIT_TITLE__INTERVIEW)
+        ctxButton.setLabel(__addon__.getLocalizedString(32120))
+
+        ctxButton = self.getControl(YouTubeContextMenu.EDIT_PLOT)
+        ctxButton.setLabel("")
+
+        xbmcgui.WindowXMLDialog.onInit(self)
+
+    def onClick(self, control):
+        # Save the item that was clicked
+        self.selectionMade = control
+
+        # Close the dialog after the selection
+        self.close()
+
+        # Check what the action was
+        if self.selectionMade == YouTubeContextMenu.RESUME__EXTRAS:
+            cmd = "/search/?q=%s+Extras" % self.title
+            xbmc.executebuiltin("RunAddon(plugin.video.youtube,%s)" % cmd)
+        elif self.selectionMade == YouTubeContextMenu.RESTART__DELETED_SCENES:
+            cmd = "/search/?q=%s+Deleted+Scene" % self.title
+            xbmc.executebuiltin("RunAddon(plugin.video.youtube,%s)" % cmd)
+        elif self.selectionMade == YouTubeContextMenu.MARK_WATCHED__SPECIAL_FEATURES:
+            cmd = "/search/?q=%s+Special+Features" % self.title
+            xbmc.executebuiltin("RunAddon(plugin.video.youtube,%s)" % cmd)
+        elif self.selectionMade == YouTubeContextMenu.MARK_UNWATCHED__BLOOPERS:
+            cmd = "/search/?q=%s+Blooper" % self.title
+            xbmc.executebuiltin("RunAddon(plugin.video.youtube,%s)" % cmd)
+        elif self.selectionMade == YouTubeContextMenu.EDIT_TITLE__INTERVIEW:
+            cmd = "/search/?q=%s+Interview" % self.title
+            xbmc.executebuiltin("RunAddon(plugin.video.youtube,%s)" % cmd)
 
 
 #########################

@@ -463,7 +463,7 @@ class MenuNavigator():
         ctxtMenu.append((__addon__.getLocalizedString(32001), 'RunAddon(plugin.video.youtube,%s)' % cmd))
 
         # Deleted Scenes
-        cmd = "/search/?q=%s+Deleted+Scenes" % title
+        cmd = "/search/?q=%s+Deleted+Scene" % title
         ctxtMenu.append((__addon__.getLocalizedString(32117), 'RunAddon(plugin.video.youtube,%s)' % cmd))
 
         # Special Features
@@ -471,8 +471,12 @@ class MenuNavigator():
         ctxtMenu.append((__addon__.getLocalizedString(32118), 'RunAddon(plugin.video.youtube,%s)' % cmd))
 
         # Bloopers
-        cmd = "/search/?q=%s+Bloopers" % title
+        cmd = "/search/?q=%s+Blooper" % title
         ctxtMenu.append((__addon__.getLocalizedString(32119), 'RunAddon(plugin.video.youtube,%s)' % cmd))
+
+        # Interviews
+        cmd = "/search/?q=%s+Interview" % title
+        ctxtMenu.append((__addon__.getLocalizedString(32120), 'RunAddon(plugin.video.youtube,%s)' % cmd))
 
         return ctxtMenu
 
