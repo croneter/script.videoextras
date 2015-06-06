@@ -118,13 +118,18 @@ class VideoExtrasFinder():
         return custPath
 
     def _getNfoInfo(self, directory):
+        extras = []
+        extradirs = []
+
+        # Do not look for the nfo file if dealing with a plugin
+        if 'plugin://' in directory:
+            log("VideoExtrasFinder: No NFO file search for plugin: %s" % directory)
+            return extradirs, extras
+
         # Find out the name of the NFO file
         nfoFileName = os_path_join(directory, "videoextras.nfo")
 
         log("VideoExtrasFinder: Searching for NFO file: %s" % nfoFileName)
-
-        extras = []
-        extradirs = []
 
         # Return None if file does not exist
         if not xbmcvfs.exists(nfoFileName):
