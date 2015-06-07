@@ -682,8 +682,13 @@ if __name__ == '__main__':
                 # Load the details of the current source of the extras
                 SourceDetails.forceLoadDetails()
 
+                # handle the plugins that VideoExtras supports
+                forceExtrasSupport = False
+                if ("plugin.video.emby" in sys.argv[2]) and Settings.isCustomPathEnabled():
+                    forceExtrasSupport = True
+
                 # Make sure we are not passed a plugin path
-                if "plugin://" in sys.argv[2]:
+                if ("plugin://" in sys.argv[2]) and not forceExtrasSupport:
                     if sys.argv[1] == "check":
                         xbmcgui.Window(12003).setProperty("HideVideoExtrasButton", "true")
                 else:

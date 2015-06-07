@@ -27,6 +27,7 @@ from settings import log
 from settings import os_path_join
 from settings import os_path_split
 from settings import dir_exists
+from settings import normalize_string
 
 from ExtrasItem import ExtrasItem
 
@@ -113,7 +114,20 @@ class VideoExtrasFinder():
                 custPath = os_path_join(custPath, path2ndLastDir)
                 log("VideoExtrasFinder: Checking existence of custom path %s" % custPath)
                 if not dir_exists(custPath):
-                    custPath = None
+                    # Some systems will store extras in the custom pass using the name
+                    # of the TV Show of Movie, so try that
+                    videoName = ""
+                    if self.videoType == Settings.TVSHOWS:
+                        videoName = xbmc.getInfoLabel("ListItem.TVShowTitle")
+                    else:
+                        videoName = xbmc.getInfoLabel("ListItem.Title")
+                    videoName = normalize_string(videoName)
+                    # Now construct the path using the movie or TV show title
+                    custPath = Settings.getCustomPath(self.videoType)
+                    custPath = os_path_join(custPath, videoName)
+                    log("VideoExtrasFinder: Checking existence of custom path %s" % custPath)
+                    if not dir_exists(custPath):
+                        custPath = None
 
         return custPath
 
