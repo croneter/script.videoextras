@@ -227,14 +227,11 @@ class MenuNavigator():
 
         # Check if we want to have YouTube Extra Support
         if Settings.isYouTubeSearchSupportEnabled():
-            # Create the message to the YouTube Plugin
-            url = "plugin://plugin.video.youtube/search/?q=%s+Extras" % extrasParentTitle.replace(" ", "+")
-            li = xbmcgui.ListItem(__addon__.getLocalizedString(32116))
-            # Use the DVD Cover artwork for the logo (Same as the others)
-            if extrasDefaultIconImage != "":
-                li.setIconImage(extrasDefaultIconImage)
-            li.addContextMenuItems(self._getYouTubeContextMenu(extrasParentTitle), replaceItems=True)
-            xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
+            self._getVideoPluginLink(extrasParentTitle, 'plugin.video.youtube', 32116, extrasDefaultIconImage, extrasDefaultFanArt)
+
+        # Check if we want to have Vimeo Extra Support
+        if Settings.isVimeoSearchSupportEnabled():
+            self._getVideoPluginLink(extrasParentTitle, 'plugin.video.vimeo', 32122, extrasDefaultIconImage, extrasDefaultFanArt)
 
         # Add each of the extras to the list to display
         for anExtra in files:
@@ -452,37 +449,55 @@ class MenuNavigator():
 
         return ctxtMenu
 
-    # Adds the context menu for the youtube link to allow searching for different words
-    def _getYouTubeContextMenu(self, title):
-        ctxtMenu = []
+    # Adds the Menu Item for the youtube/vimeo link to allow searching for different words
+    def _getVideoPluginLink(self, parentTitle, pluginName='plugin.video.youtube', langId=32116, defaultIconImage=None, defaultFanArt=None):
+        title = parentTitle.replace(" ", "+")
+        # Create the message to the Plugin
+        url = "plugin://%s/search/?q=%s+Extras" % (pluginName, title)
+        li = xbmcgui.ListItem(__addon__.getLocalizedString(langId))
+        icon = None
+        try:
+            icon = xbmcaddon.Addon(id=pluginName).getAddonInfo('icon')
+        except:
+            icon = None
+        # Now set the icon
+        if icon not in [None, ""]:
+            li.setIconImage(icon)
+        elif defaultIconImage not in [None, ""]:
+            li.setIconImage(defaultIconImage)
 
-        title = title.replace(" ", "+")
+        if defaultFanArt not in [None, ""]:
+            li.setProperty("Fanart_Image", defaultFanArt)
+
+        # Get together the items for the context menu
+        ctxtMenu = []
 
         # Extras
         cmd = "/search/?q=%s+Extras" % title
-        ctxtMenu.append((__addon__.getLocalizedString(32001), 'RunAddon(plugin.video.youtube,%s)' % cmd))
+        ctxtMenu.append((__addon__.getLocalizedString(32001), 'RunAddon(%s,%s)' % (pluginName, cmd)))
 
         # Deleted Scenes
         cmd = "/search/?q=%s+Deleted+Scene" % title
-        ctxtMenu.append((__addon__.getLocalizedString(32117), 'RunAddon(plugin.video.youtube,%s)' % cmd))
+        ctxtMenu.append((__addon__.getLocalizedString(32117), 'RunAddon(%s,%s)' % (pluginName, cmd)))
 
         # Special Features
         cmd = "/search/?q=%s+Special+Features" % title
-        ctxtMenu.append((__addon__.getLocalizedString(32118), 'RunAddon(plugin.video.youtube,%s)' % cmd))
+        ctxtMenu.append((__addon__.getLocalizedString(32118), 'RunAddon(%s,%s)' % (pluginName, cmd)))
 
         # Bloopers
         cmd = "/search/?q=%s+Blooper" % title
-        ctxtMenu.append((__addon__.getLocalizedString(32119), 'RunAddon(plugin.video.youtube,%s)' % cmd))
+        ctxtMenu.append((__addon__.getLocalizedString(32119), 'RunAddon(%s,%s)' % (pluginName, cmd)))
 
         # Interviews
         cmd = "/search/?q=%s+Interview" % title
-        ctxtMenu.append((__addon__.getLocalizedString(32120), 'RunAddon(plugin.video.youtube,%s)' % cmd))
+        ctxtMenu.append((__addon__.getLocalizedString(32120), 'RunAddon(%s,%s)' % (pluginName, cmd)))
 
         # VFX (Visual Effects)
         cmd = "/search/?q=%s+VFX" % title
-        ctxtMenu.append((__addon__.getLocalizedString(32121), 'RunAddon(plugin.video.youtube,%s)' % cmd))
+        ctxtMenu.append((__addon__.getLocalizedString(32121), 'RunAddon(%s,%s)' % (pluginName, cmd)))
 
-        return ctxtMenu
+        li.addContextMenuItems(ctxtMenu, replaceItems=True)
+        xbmcplugin.addDirectoryItem(handle=self.addon_handle, url=url, listitem=li, isFolder=True)
 
 
 ################################

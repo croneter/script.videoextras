@@ -226,6 +226,28 @@ def checkYouTubeSettings():
             Settings.disableYouTubeSearchSupport()
 
 
+# Check Vimeo settings are correct, we will automatically disable the
+# option if the Vimeo addon is not installed
+def checkVimeoSettings():
+    # Check to see if the Vimeo support is enabled
+    if Settings.isVimeoSearchSupportEnabled():
+        # It is enabled in settings, but we should check to ensure that the
+        # Vimeo addon is actually installed
+        vimeoInstalled = False
+        try:
+            vimeoAddon = xbmcaddon.Addon(id='plugin.video.vimeo')
+            if vimeoAddon not in [None, ""]:
+                vimeoInstalled = True
+        except:
+            # We will get an exception if we can not find the Vimeo addon
+            vimeoInstalled = False
+
+        if not vimeoInstalled:
+            # There is no Vimeo addon installed, so disable this option in settings
+            log("VideoExtrasService: Disabling Vimeo support as addon not installed")
+            Settings.disableVimeoSearchSupport()
+
+
 ###################################
 # Main of the Video Extras Service
 ###################################
@@ -249,9 +271,13 @@ if __name__ == '__main__':
             skinExtrasList = os_path_join(skinExtrasList, "list1.png")
             __addon__.setSetting('listImage', skinExtrasList)
 
-    # Check theYouTube settings are correct, we will automatically disable the
+    # Check the YouTube settings are correct, we will automatically disable the
     # option if the YouTube addon is not installed
     checkYouTubeSettings()
+
+    # Check the Vimeo settings are correct, we will automatically disable the
+    # option if the Vimeo addon is not installed
+    checkVimeoSettings()
 
     # Make sure that the service option is enabled
     if Settings.isServiceEnabled():

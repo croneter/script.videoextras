@@ -201,3 +201,11 @@ class Settings():
     @staticmethod
     def disableYouTubeSearchSupport():
         __addon__.setSetting("enableYouTubeSearchSupport", "false")
+
+    @staticmethod
+    def isVimeoSearchSupportEnabled():
+        return __addon__.getSetting("enableVimeoSearchSupport") == 'true'
+
+    @staticmethod
+    def disableVimeoSearchSupport():
+        __addon__.setSetting("enableVimeoSearchSupport", "false")
