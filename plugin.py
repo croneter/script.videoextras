@@ -105,7 +105,7 @@ class MenuNavigator():
             # Create the list-item for this video
             li = xbmcgui.ListItem(videoItem['title'], iconImage=videoItem['thumbnail'])
 
-            if not self.hasVideoExtras(target, videoItem['dbid'], videoItem['file']):
+            if not self.hasVideoExtras(target, videoItem['dbid'], videoItem['file'], videoItem['title']):
                 # Check if we are supporting YouTube Searches, if so it doesn't matter
                 # If we do not have any Extras yet
                 if not Settings.isYouTubeSearchSupportEnabled():
@@ -161,7 +161,7 @@ class MenuNavigator():
                 Videolist.append(videoItem)
         return Videolist
 
-    def hasVideoExtras(self, target, dbid, file):
+    def hasVideoExtras(self, target, dbid, file, title=None):
         # If the service is on, then we can just check to see if the overlay image exists
         if Settings.isServiceEnabled():
             # Get the path where the file exists
@@ -178,7 +178,7 @@ class MenuNavigator():
         # Otherwise, need to do the lookup the old fashioned way of looking for the
         # extras files on the file system (This is much slower)
         else:
-            videoExtras = VideoExtrasBase(file, target)
+            videoExtras = VideoExtrasBase(file, target, title)
             # We are only checking for existence of extras, no need for fanart
             firstExtraFile = videoExtras.findExtras(True)
             del videoExtras
@@ -196,7 +196,7 @@ class MenuNavigator():
             extrasDb = ExtrasDB()
 
         # Create the extras class that will be used to process the extras
-        videoExtras = VideoExtrasBase(path, target)
+        videoExtras = VideoExtrasBase(path, target, extrasParentTitle)
 
         # Perform the search command
         files = videoExtras.findExtras(extrasDb=extrasDb, defaultFanArt=extrasDefaultFanArt)
@@ -263,7 +263,7 @@ class MenuNavigator():
             extrasDb = ExtrasDB()
 
         # Create the extras class that will be used to process the extras
-        videoExtras = VideoExtrasBase(path, target)
+        videoExtras = VideoExtrasBase(path, target, extrasParentTitle)
 
         # Perform the search command
         # No need for fanart default as only getting a list to play, not display
@@ -279,7 +279,7 @@ class MenuNavigator():
             extrasDb = ExtrasDB()
 
         # Create the extras class that will be used to process the extras
-        videoExtras = VideoExtrasBase(path, target)
+        videoExtras = VideoExtrasBase(path, target, extrasParentTitle)
 
         # Perform the search command
         # No need for fanart default as only getting a list to play, not display

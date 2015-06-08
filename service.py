@@ -146,7 +146,7 @@ class VideoExtrasService():
                     return
 
                 log("VideoExtrasService: %s detected: %s = %s" % (target, item['title'], item['file']))
-                videoExtras = VideoExtrasBase(item['file'], target)
+                videoExtras = VideoExtrasBase(item['file'], target, item['title'])
                 # Only checking for the existence of extras - no need for DB or default Fanart
                 firstExtraFile = videoExtras.findExtras(True)
                 del videoExtras
