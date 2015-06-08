@@ -603,7 +603,7 @@ class YouTubeContextMenu(xbmcgui.WindowXMLDialog):
     MARK_WATCHED__SPECIAL_FEATURES = 41
     MARK_UNWATCHED__BLOOPERS = 42
     EDIT_TITLE__INTERVIEW = 43
-    EDIT_PLOT = 44
+    EDIT_PLOT__VFX = 44
 
     def __init__(self, *args, **kwargs):
         # Copy off the key-word arguments
@@ -635,8 +635,8 @@ class YouTubeContextMenu(xbmcgui.WindowXMLDialog):
         ctxButton = self.getControl(YouTubeContextMenu.EDIT_TITLE__INTERVIEW)
         ctxButton.setLabel(__addon__.getLocalizedString(32120))
 
-        ctxButton = self.getControl(YouTubeContextMenu.EDIT_PLOT)
-        ctxButton.setLabel("")
+        ctxButton = self.getControl(YouTubeContextMenu.EDIT_PLOT__VFX)
+        ctxButton.setLabel(__addon__.getLocalizedString(32121))
 
         xbmcgui.WindowXMLDialog.onInit(self)
 
@@ -662,6 +662,9 @@ class YouTubeContextMenu(xbmcgui.WindowXMLDialog):
             xbmc.executebuiltin("RunAddon(plugin.video.youtube,%s)" % cmd)
         elif self.selectionMade == YouTubeContextMenu.EDIT_TITLE__INTERVIEW:
             cmd = "/search/?q=%s+Interview" % self.title
+            xbmc.executebuiltin("RunAddon(plugin.video.youtube,%s)" % cmd)
+        elif self.selectionMade == YouTubeContextMenu.EDIT_PLOT__VFX:
+            cmd = "/search/?q=%s+VFX" % self.title
             xbmc.executebuiltin("RunAddon(plugin.video.youtube,%s)" % cmd)
 
 

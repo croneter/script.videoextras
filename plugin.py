@@ -478,6 +478,10 @@ class MenuNavigator():
         cmd = "/search/?q=%s+Interview" % title
         ctxtMenu.append((__addon__.getLocalizedString(32120), 'RunAddon(plugin.video.youtube,%s)' % cmd))
 
+        # VFX (Visual Effects)
+        cmd = "/search/?q=%s+VFX" % title
+        ctxtMenu.append((__addon__.getLocalizedString(32121), 'RunAddon(plugin.video.youtube,%s)' % cmd))
+
         return ctxtMenu
 
 
