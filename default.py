@@ -16,6 +16,7 @@
 # *
 import sys
 import os
+import urllib
 import traceback
 import xbmc
 import xbmcgui
@@ -188,11 +189,11 @@ class VideoExtrasDialog(xbmcgui.Window):
             if (select == 0) and (addPlayAll is True):
                 ExtrasPlayer.playAll(exList, SourceDetails.getTitle())
             elif select == youtubePosition:
-                searchDetails = "/search/?q=%s+Extras" % SourceDetails.getTitle().replace(" ", "+")
+                searchDetails = "/search/?q=%s+Extras" % urllib.quote_plus(SourceDetails.getTitle().encode('utf8'))
                 log("VideoExtras: Running YouTube Addon/Plugin with search %s" % searchDetails)
                 xbmc.executebuiltin("RunAddon(plugin.video.youtube,%s)" % searchDetails)
             elif select == vimeoPosition:
-                searchDetails = "/search/?q=%s+Extras" % SourceDetails.getTitle().replace(" ", "+")
+                searchDetails = "/search/?q=%s+Extras" % urllib.quote_plus(SourceDetails.getTitle().encode('utf8'))
                 log("VideoExtras: Running Vimeo Addon/Plugin with search %s" % searchDetails)
                 xbmc.executebuiltin("RunAddon(plugin.video.vimeo,%s)" % searchDetails)
             else:
@@ -356,7 +357,7 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
                 li.setInfo('video', {'Title': SourceDetails.getTitle()})
 
             li.setProperty("Fanart_Image", SourceDetails.getFanArt())
-            li.setProperty("search", "/search/?q=%s+Extras" % SourceDetails.getTitle().replace(" ", "+"))
+            li.setProperty("search", "/search/?q=%s+Extras" % urllib.quote_plus(SourceDetails.getTitle().encode('utf8')))
             self.addItem(li)
 
         # Check if we want to have Vimeo Extra Support
@@ -370,7 +371,7 @@ class VideoExtrasWindow(xbmcgui.WindowXML):
                 li.setInfo('video', {'Title': SourceDetails.getTitle()})
 
             li.setProperty("Fanart_Image", SourceDetails.getFanArt())
-            li.setProperty("search", "/search/?q=%s+Extras" % SourceDetails.getTitle().replace(" ", "+"))
+            li.setProperty("search", "/search/?q=%s+Extras" % urllib.quote_plus(SourceDetails.getTitle().encode('utf8')))
             self.addItem(li)
 
         for anExtra in self.files:
@@ -705,19 +706,20 @@ class VideoPluginContextMenu(xbmcgui.WindowXMLDialog):
         self.close()
 
         cmd = None
+        escTitle = urllib.quote_plus(self.title.encode('utf8'))
         # Check what the action was
         if self.selectionMade == VideoPluginContextMenu.RESUME__EXTRAS:
-            cmd = "/search/?q=%s+Extras" % self.title
+            cmd = "/search/?q=%s+Extras" % escTitle
         elif self.selectionMade == VideoPluginContextMenu.RESTART__DELETED_SCENES:
-            cmd = "/search/?q=%s+Deleted+Scene" % self.title
+            cmd = "/search/?q=%s+Deleted+Scene" % escTitle
         elif self.selectionMade == VideoPluginContextMenu.MARK_WATCHED__SPECIAL_FEATURES:
-            cmd = "/search/?q=%s+Special+Features" % self.title
+            cmd = "/search/?q=%s+Special+Features" % escTitle
         elif self.selectionMade == VideoPluginContextMenu.MARK_UNWATCHED__BLOOPERS:
-            cmd = "/search/?q=%s+Blooper" % self.title
+            cmd = "/search/?q=%s+Blooper" % escTitle
         elif self.selectionMade == VideoPluginContextMenu.EDIT_TITLE__INTERVIEW:
-            cmd = "/search/?q=%s+Interview" % self.title
+            cmd = "/search/?q=%s+Interview" % escTitle
         elif self.selectionMade == VideoPluginContextMenu.EDIT_PLOT__VFX:
-            cmd = "/search/?q=%s+VFX" % self.title
+            cmd = "/search/?q=%s+VFX" % escTitle
 
         if cmd not in [None, ""]:
             xbmc.executebuiltin("RunAddon(%s,%s)" % (self.pluginName, cmd))

@@ -451,7 +451,7 @@ class MenuNavigator():
 
     # Adds the Menu Item for the youtube/vimeo link to allow searching for different words
     def _getVideoPluginLink(self, parentTitle, pluginName='plugin.video.youtube', langId=32116, defaultIconImage=None, defaultFanArt=None):
-        title = parentTitle.replace(" ", "+")
+        title = urllib.quote_plus(parentTitle)
         # Create the message to the Plugin
         url = "plugin://%s/search/?q=%s+Extras" % (pluginName, title)
         li = xbmcgui.ListItem(__addon__.getLocalizedString(langId))
