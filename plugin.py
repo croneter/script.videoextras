@@ -238,7 +238,7 @@ class MenuNavigator():
             # Create the list item
             li = anExtra.createListItem(parentTitle=extrasParentTitle, tvShowTitle=tvShowTitle, defaultIconImage=extrasDefaultIconImage)
             # Hack, if the "TotalTime" and "ResumeTime" are set on the list item
-            # and it is partially watched, then XBMC will display the continue dialog
+            # and it is partially watched, then Kodi will display the continue dialog
             # However we can not get what the user selects from this dialog, so it
             # will always continue.  Found out that we can hack this by clearing
             # the "TotalTime" property
@@ -423,29 +423,29 @@ class MenuNavigator():
         # Resume
         if extraItem.getResumePoint() > 0:
             cmd = self._build_url({'mode': 'resumeextra', 'foldername': target, 'path': path, 'filename': extraItem.getFilename().encode("utf-8"), 'parentTitle': extrasParentTitle})
-            ctxtMenu.append(("%s %s" % (__addon__.getLocalizedString(32104), extraItem.getDisplayResumePoint()), 'XBMC.RunPlugin(%s)' % cmd))
+            ctxtMenu.append(("%s %s" % (__addon__.getLocalizedString(32104), extraItem.getDisplayResumePoint()), 'RunPlugin(%s)' % cmd))
 
         # Play Now
         cmd = self._build_url({'mode': 'beginextra', 'foldername': target, 'path': path, 'filename': extraItem.getFilename().encode("utf-8"), 'parentTitle': extrasParentTitle})
-        ctxtMenu.append((__addon__.getLocalizedString(32105), 'XBMC.RunPlugin(%s)' % cmd))
+        ctxtMenu.append((__addon__.getLocalizedString(32105), 'RunPlugin(%s)' % cmd))
 
         # Mark As Watched
         if (extraItem.getWatched() == 0) or (extraItem.getResumePoint() > 0):
             cmd = self._build_url({'mode': 'markwatched', 'foldername': target, 'path': path, 'filename': extraItem.getFilename().encode("utf-8")})
-            ctxtMenu.append((__addon__.getLocalizedString(32106), 'XBMC.RunPlugin(%s)' % cmd))
+            ctxtMenu.append((__addon__.getLocalizedString(32106), 'RunPlugin(%s)' % cmd))
 
         # Mark As Unwatched
         if (extraItem.getWatched() != 0) or (extraItem.getResumePoint() > 0):
             cmd = self._build_url({'mode': 'markunwatched', 'foldername': target, 'path': path, 'filename': extraItem.getFilename().encode("utf-8")})
-            ctxtMenu.append((__addon__.getLocalizedString(32107), 'XBMC.RunPlugin(%s)' % cmd))
+            ctxtMenu.append((__addon__.getLocalizedString(32107), 'RunPlugin(%s)' % cmd))
 
         # Edit Title
         cmd = self._build_url({'mode': 'edittitle', 'foldername': target, 'path': path, 'filename': extraItem.getFilename().encode("utf-8")})
-        ctxtMenu.append((__addon__.getLocalizedString(32108), 'XBMC.RunPlugin(%s)' % cmd))
+        ctxtMenu.append((__addon__.getLocalizedString(32108), 'RunPlugin(%s)' % cmd))
 
         # Edit Plot
         cmd = self._build_url({'mode': 'editplot', 'foldername': target, 'path': path, 'filename': extraItem.getFilename().encode("utf-8")})
-        ctxtMenu.append((__addon__.getLocalizedString(32114), 'XBMC.RunPlugin(%s)' % cmd))
+        ctxtMenu.append((__addon__.getLocalizedString(32114), 'RunPlugin(%s)' % cmd))
 
         return ctxtMenu
 

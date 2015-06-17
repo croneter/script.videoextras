@@ -1,19 +1,4 @@
 # -*- coding: utf-8 -*-
-# *  This Program is free software; you can redistribute it and/or modify
-# *  it under the terms of the GNU General Public License as published by
-# *  the Free Software Foundation; either version 2, or (at your option)
-# *  any later version.
-# *
-# *  This Program is distributed in the hope that it will be useful,
-# *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-# *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# *  GNU General Public License for more details.
-# *
-# *  You should have received a copy of the GNU General Public License
-# *  along with XBMC; see the file COPYING.  If not, write to
-# *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-# *  http://www.gnu.org/copyleft/gpl.html
-# *
 import sys
 import os
 import urllib
@@ -282,11 +267,11 @@ class VideoExtras(VideoExtrasBase):
                 # The video selection will be the default return location
                 if (not Settings.isMenuReturnVideoSelection()) and needsWindowReset:
                     if Settings.isMenuReturnHome():
-                        xbmc.executebuiltin("xbmc.ActivateWindow(home)", True)
+                        xbmc.executebuiltin("ActivateWindow(home)", True)
                     else:
                         infoDialogId = 12003
                         # Put the information dialog back up
-                        xbmc.executebuiltin("xbmc.ActivateWindow(movieinformation)")
+                        xbmc.executebuiltin("ActivateWindow(movieinformation)")
                         if Settings.isMenuReturnExtras():
                             # Wait for the Info window to open, it can take a while
                             # this is to avoid the case where the exList dialog displays
