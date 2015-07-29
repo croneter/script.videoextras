@@ -156,6 +156,10 @@ class Settings():
         return __addon__.getSetting("forceButtonDisplay") == "true"
 
     @staticmethod
+    def showOnContextMenu():
+        return __addon__.getSetting("showOnContextMenu") == "true"
+
+    @staticmethod
     def isServiceEnabled():
         return __addon__.getSetting("serviceEnabled") == "true"
 

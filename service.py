@@ -5,6 +5,7 @@ import traceback
 import xbmc
 import xbmcvfs
 import xbmcaddon
+import xbmcgui
 
 # Add JSON support for queries
 if sys.version_info < (2, 7):
@@ -238,6 +239,13 @@ def checkVimeoSettings():
 ###################################
 if __name__ == '__main__':
     log("VideoExtrasService: Starting service (version %s)" % __version__)
+
+    # Record if the Context menu should be displayed
+    if Settings.showOnContextMenu():
+        xbmcgui.Window(10025).setProperty("VideoExtrasShowContextMenu", "true")
+    else:
+        xbmcgui.Window(10025).clearProperty("VideoExtrasShowContextMenu")
+
     log("VideoExtrasService: Directory for overlay images is %s" % __profile__)
 
     # This is a bit of a hack, but we want to force the default paths for the
