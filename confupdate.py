@@ -147,7 +147,7 @@ class ConfUpdate():
 
         if previousOnLoad not in dialogXmlStr:
             # The file has had a standard component deleted, so quit
-            log("DialogVideoInfo: Could not find allowoverlay command, skipping file", xbmc.LOGERROR)
+            log("DialogVideoInfo: Could not find controls command, skipping file", xbmc.LOGERROR)
             self.errorToLog = True
             return
 

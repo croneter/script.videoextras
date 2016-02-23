@@ -1,4 +1,4 @@
-v2.1.0
+v2.1.0 (2016-02-23)
 - Update to support Extras button in Jarvis Confluence
 
 v2.0.3 (2015-10-20)
