@@ -143,7 +143,7 @@ class ConfUpdate():
         dialogXmlStr = self._addIncludeToXml(dialogXmlStr)
 
         # Start by adding the onLoad section
-        previousOnLoad = '</allowoverlay>'
+        previousOnLoad = '<controls>'
 
         if previousOnLoad not in dialogXmlStr:
             # The file has had a standard component deleted, so quit
@@ -152,8 +152,8 @@ class ConfUpdate():
             return
 
         # Now add the Video Extras onLoad command after the allowoverlay one
-        DIALOG_VIDEO_INFO_ONLOAD = '\n\t<onload condition="System.HasAddon(script.videoextras)">RunScript(script.videoextras,check,"$INFO[ListItem.FilenameAndPath]")</onload>'
-        insertTxt = previousOnLoad + DIALOG_VIDEO_INFO_ONLOAD
+        DIALOG_VIDEO_INFO_ONLOAD = '<onload condition="System.HasAddon(script.videoextras)">RunScript(script.videoextras,check,"$INFO[ListItem.FilenameAndPath]")</onload>\n\t'
+        insertTxt = DIALOG_VIDEO_INFO_ONLOAD + previousOnLoad
         dialogXmlStr = dialogXmlStr.replace(previousOnLoad, insertTxt)
 
         # Now we need to add the button after the Final button
